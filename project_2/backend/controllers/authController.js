@@ -119,11 +119,16 @@ const sendOtpEmail = async (email, otp) => {
 
         if (isRealGmail) {
             const transporter = nodemailer.createTransport({
-                service: process.env.EMAIL_SERVICE || "gmail",
+                host: "smtp.gmail.com",
+                port: 465,
+                secure: true, // Direct SSL/TLS port 465 works 100% reliably on cloud servers like Render
                 auth: {
                     user: process.env.EMAIL_USER,
                     pass: process.env.EMAIL_PASS
-                }
+                },
+                connectionTimeout: 15000,
+                greetingTimeout: 15000,
+                socketTimeout: 15000
             });
 
             const mailOptions = {
@@ -159,11 +164,16 @@ const sendOtpEmail = async (email, otp) => {
 const sendSecurityAlertEmail = async (email, subject, alertType, ip, userAgent) => {
     try {
         const transporter = nodemailer.createTransport({
-            service: process.env.EMAIL_SERVICE || "gmail",
+            host: "smtp.gmail.com",
+            port: 465,
+            secure: true,
             auth: {
                 user: process.env.EMAIL_USER || "mock",
                 pass: process.env.EMAIL_PASS || "mock"
-            }
+            },
+            connectionTimeout: 15000,
+            greetingTimeout: 15000,
+            socketTimeout: 15000
         });
 
         const mailOptions = {
