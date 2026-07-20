@@ -1,3 +1,8 @@
+const dns = require("dns");
+if (dns && dns.setDefaultResultOrder) {
+    dns.setDefaultResultOrder("ipv4first");
+}
+
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const app = require("./app");

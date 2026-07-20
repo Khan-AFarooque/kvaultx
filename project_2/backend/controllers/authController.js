@@ -118,20 +118,6 @@ const sendOtpEmail = async (email, otp) => {
                             process.env.EMAIL_PASS !== "mock_sender_password";
 
         if (isRealGmail) {
-            const transporter = nodemailer.createTransport({
-                host: "smtp.gmail.com",
-                port: 465,
-                secure: true,
-                family: 4, // Force IPv4 resolution (fixes Render IPv6 ENETUNREACH network error)
-                auth: {
-                    user: process.env.EMAIL_USER,
-                    pass: process.env.EMAIL_PASS
-                },
-                connectionTimeout: 15000,
-                greetingTimeout: 15000,
-                socketTimeout: 15000
-            });
-
             const mailOptions = {
                 from: `"KvaultX" <${process.env.EMAIL_USER}>`,
                 to: email,
@@ -147,9 +133,32 @@ const sendOtpEmail = async (email, otp) => {
                 </div>`
             };
 
-            await transporter.sendMail(mailOptions);
-            console.log(`\n📧 [REAL EMAIL DELIVERED TO INBOX] Sent OTP to ${email}: ${otp}\n`);
-            return { success: true, isRealSent: true };
+            // Attempt 1: Direct SSL Port 465 with family: 4 (IPv4)
+            try {
+                const transporter1 = nodemailer.createTransport({
+                    host: "smtp.gmail.com",
+                    port: 465,
+                    secure: true,
+                    family: 4,
+                    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+                    connectionTimeout: 10000,
+                    greetingTimeout: 10000,
+                    socketTimeout: 10000
+                });
+                await transporter1.sendMail(mailOptions);
+                console.log(`\n📧 [REAL EMAIL DELIVERED TO INBOX] Sent OTP to ${email}: ${otp}\n`);
+                return { success: true, isRealSent: true };
+            } catch (err1) {
+                console.warn("Attempt 1 (465 SSL) warning:", err1.message, "Trying Attempt 2 (Service Fallback)...");
+                // Attempt 2: Service Fallback
+                const transporter2 = nodemailer.createTransport({
+                    service: "gmail",
+                    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+                });
+                await transporter2.sendMail(mailOptions);
+                console.log(`\n📧 [REAL EMAIL DELIVERED TO INBOX] Sent OTP to ${email}: ${otp}\n`);
+                return { success: true, isRealSent: true };
+            }
         } else {
             console.log(`\n📧 [DEV MODE - MOCK EMAIL] Placeholder SMTP credentials in .env. OTP for ${email}: ${otp}\n`);
             return { success: true, isRealSent: false };
