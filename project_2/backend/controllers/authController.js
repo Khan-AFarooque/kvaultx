@@ -121,7 +121,8 @@ const sendOtpEmail = async (email, otp) => {
             const transporter = nodemailer.createTransport({
                 host: "smtp.gmail.com",
                 port: 465,
-                secure: true, // Direct SSL/TLS port 465 works 100% reliably on cloud servers like Render
+                secure: true,
+                family: 4, // Force IPv4 resolution (fixes Render IPv6 ENETUNREACH network error)
                 auth: {
                     user: process.env.EMAIL_USER,
                     pass: process.env.EMAIL_PASS
@@ -167,6 +168,7 @@ const sendSecurityAlertEmail = async (email, subject, alertType, ip, userAgent) 
             host: "smtp.gmail.com",
             port: 465,
             secure: true,
+            family: 4, // Force IPv4 resolution
             auth: {
                 user: process.env.EMAIL_USER || "mock",
                 pass: process.env.EMAIL_PASS || "mock"
