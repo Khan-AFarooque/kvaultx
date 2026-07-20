@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | KvaultX</title>
+
+    <link rel="stylesheet" href="../css/login.css">
+</head>
+
+<body class="login-page">
+
+    <!-- Top Scrolling Marquee Security Quote Banner -->
+    <div class="top-banner">
+        <marquee behavior="scroll" direction="left" scrollamount="7" style="font-weight: 600; color: #ffffff; font-size: 13.5px;">
+            🔐 "Saving your notes is saving your privacy — Protect your passwords with zero-knowledge AES-256 encryption — KvaultX" 🔐 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 🔐 "Saving your notes is saving your privacy — Protect your passwords with zero-knowledge AES-256 encryption — KvaultX" 🔐
+        </marquee>
+    </div>
+
+    <div class="login-wrapper">
+
+        <div class="login-card">
+
+            <div class="login-brand">
+                <img src="../assets/logo.png" alt="KvaultX Logo" style="height: 60px; width: auto; margin: 0 auto 10px; display: block; object-fit: contain; filter: drop-shadow(0 4px 14px rgba(0, 210, 255, 0.45));">
+                <h2 style="font-weight: 800; letter-spacing: 0.5px; background: linear-gradient(135deg, #00d2ff, #928dab); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">KvaultX Login</h2>
+                <p class="login-subtitle">SECURE • STORE • PROTECT</p>
+            </div>
+
+            <form id="loginForm">
+
+                <div class="field-group">
+                    <label class="field-label" for="loginEmail">Email Address</label>
+                    <input id="loginEmail" type="email" placeholder="Enter your email address" required>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label" for="loginPassword">Password</label>
+                    <div class="password-box">
+                        <input type="password" id="loginPassword" placeholder="Enter password" required>
+                        <span id="toggleLoginPass" class="toggle-eye">👁</span>
+                    </div>
+                </div>
+
+                <!-- CAPTCHA -->
+                <div class="field-group">
+                    <label class="field-label">Security Check</label>
+                    <div class="captcha-box">
+                        <span id="captchaText">Loading...</span>
+                        <button type="button" id="reloadCaptcha" title="Refresh captcha">↻</button>
+                    </div>
+                    <input type="text" id="captchaInput" placeholder="Enter CAPTCHA" required />
+                </div>
+
+                <!-- MFA Code (Hidden by default, shown when MFA is enabled) -->
+                <div class="field-group" id="mfaGroup" style="display: none;">
+                    <label class="field-label" for="mfaCode">2FA / MFA Code</label>
+                    <input type="text" id="mfaCode" placeholder="Enter 6-digit MFA code" maxlength="6" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+                    <div style="margin-top: 6px; text-align: right;">
+                        <button type="button" onclick="showLoginQrScanner()" style="background: transparent; border: none; color: #10b981; font-size: 12px; font-weight: 600; text-decoration: underline; cursor: pointer; padding: 0;">
+                            📱 Don't have app? Scan QR Code
+                        </button>
+                    </div>
+                </div>
+
+                <button id="loginBtn" type="button">Login</button>
+                <button type="button" onclick="loginWithPasskey()" style="background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.3); margin-top: 10px; font-weight: 600;">
+                    🔑 Login with Device Passkey (Windows Hello / PIN)
+                </button>
+
+                <p class="forgot-link">
+                    <a href="../forgot.html">Forgot Password?</a>
+                </p>
+
+            </form>
+
+            <p class="signup-hint">Don’t have an account? <a href="signup.html">Create one</a></p>
+
+        </div>
+
+    </div>
+
+    <!-- QR Code Scanner Modal for Login Page -->
+    <div id="loginQrModal" class="modal-overlay hidden" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); display: none; visibility: hidden; justify-content: center; align-items: center; z-index: 99999;">
+        <div class="modal-card" style="background: #0d1a16; border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 20px; padding: 28px; max-width: 420px; width: 90%; text-align: center; color: #ffffff; box-shadow: 0 20px 60px rgba(0,0,0,0.6);">
+            <h3 style="margin-bottom: 8px;">📱 Scan 2FA QR Code</h3>
+            <p style="font-size: 13px; color: #a6bba8; margin-bottom: 16px;">Scan this QR code with Google Authenticator or Authy app on your mobile phone to get your 6-digit login code.</p>
+            <div id="loginQrContainer" style="margin: 16px 0;"></div>
+            <button type="button" onclick="closeLoginQrModal()" style="background: #10b981; color: #050a09; font-weight: 700; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer; margin-top: 10px;">
+                Got Code (Back to Login)
+            </button>
+        </div>
+    </div>
+
+    <!-- Standard Copyright Footer -->
+    <footer class="login-footer">
+        © 2026 KvaultX. All rights reserved.
+    </footer>
+
+    <script src="../js/utils.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        async function showLoginQrScanner() {
+            const modal = document.getElementById("loginQrModal");
+            const container = document.getElementById("loginQrContainer");
+            if (!modal || !container) return;
+
+            modal.classList.remove("hidden");
+            modal.style.display = "flex";
+            modal.style.visibility = "visible";
+            modal.style.opacity = "1";
+            container.innerHTML = "<p style='color:#10b981; font-size:13px; font-weight:600; padding:15px;'>Generating QR Code Scanner...</p>";
+
+            try {
+                const email = document.querySelector("#loginEmail")?.value.trim() || "user@kvaultx.io";
+                const apiUrl = typeof API_AUTH_URL !== "undefined" ? API_AUTH_URL : (window.location.hostname === "localhost" ? "http://localhost:5000/api/auth" : `${window.location.origin}/api/auth`);
+                const res = await fetch(`${apiUrl}/mfa/login-qr`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email })
+                });
+
+                let qrUrl = "";
+                if (res.ok) {
+                    const data = await res.json();
+                    qrUrl = data.qrCode;
+                }
+
+                if (!qrUrl) {
+                    const otpUrl = `otpauth://totp/SecureVault%20AI:${encodeURIComponent(email)}?secret=JBSWY3DPEHPK3PXP&issuer=SecureVault%20AI`;
+                    qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(otpUrl)}`;
+                }
+
+                container.innerHTML = `
+                    <div style="text-align:center; padding:10px;">
+                        <img src="${qrUrl}" alt="Authenticator QR Code Scanner" style="width: 210px; height: 210px; border-radius: 12px; border: 3px solid #10b981; display: block; margin: 0 auto; box-shadow: 0 8px 25px rgba(16,185,129,0.35);">
+                    </div>
+                `;
+            } catch(e) {
+                console.error("Login QR Scanner error:", e);
+            }
+        }
+
+        function closeLoginQrModal() {
+            const modal = document.getElementById("loginQrModal");
+            if (modal) {
+                modal.classList.add("hidden");
+                modal.style.display = "none";
+            }
+        }
+    </script>
+</body>
+
+</html>

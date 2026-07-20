@@ -1,0 +1,58 @@
+1. System Flows
+🎯 1. Authentication Flow
+Signup
+Plaintext
+Signup Form ➔ Validate Input ➔ Hash Password (bcrypt) ➔ Save User to MongoDB ➔ Success Response
+Login
+Plaintext
+Enter Email & Password ➔ Validate Input ➔ Verify Password (bcrypt) ➔ Generate JWT ➔ Send JWT ➔ Redirect to Dashboard
+➕ 2. Add Password Flow
+Plaintext
+Dashboard ➔ Click "Add Password" ➔ Fill Form ➔ Submit ➔ Verify JWT ➔ Validate Form Data ➔ Extract user_id ➔ Generate New IV ➔ Encrypt Password (AES) ➔ Save to MongoDB (user_id + category_id + encrypted_password + IV) ➔ Success Response ➔ Refresh Dashboard
+👁️ 3. View Password Flow (Traditional Secure V1)
+Plaintext
+Dashboard ➔ Request Vault Items ➔ Verify JWT ➔ Fetch User's Vault Items ➔ Decrypt Passwords on Backend ➔ Return Plaintext JSON over HTTPS ➔ Display Password Cards
+Note: Decryption occurs entirely on the backend server for Version 1. If migrating to a Zero-Knowledge architecture in the future, decryption will move strictly to the frontend client.
+
+✏️ 4. Edit Password Flow
+Plaintext
+Select Password ➔ Open Edit Form ➔ Update Details ➔ Submit ➔ Verify JWT ➔ Validate Input ➔ Generate New IV ➔ Encrypt Password (AES) ➔ Update MongoDB ➔ Success Response ➔ Refresh Dashboard
+🗑️ 5. Delete Password Flow
+Plaintext
+Click Delete ➔ Confirmation ➔ Verify JWT ➔ Delete Password from MongoDB ➔ Success Response ➔ Refresh Dashboard
+🎲 6. Password Generator Flow
+Plaintext
+Open Password Generator ➔ Choose Length ➔ Select Options (Caps, Lower, Num, Sym) ➔ Generate Password directly in JavaScript (via window.crypto) ➔ Display Password ➔ Copy to Clipboard ➔ Use in Add Password Form
+🚪 7. Logout Flow
+Plaintext
+Click Logout ➔ Call API to Invalidate JWT (or Clear HttpOnly Cookie) ➔ Clear Client Session State ➔ Redirect to Login Page
+2. API Design (REST Endpoints)
+🔑 Authentication
+POST /api/auth/signup — Registers a new user account.
+
+POST /api/auth/login — Validates credentials and returns session token.
+
+POST /api/auth/logout — Destroys session / clears cookies.
+
+🔒 Password Vault
+GET /api/vault — Retrieves all saved accounts for the authenticated user.
+
+POST /api/vault — Saves a new encrypted credential block.
+
+PUT /api/vault/:id — Updates an existing credential entry using a fresh IV.
+
+DELETE /api/vault/:id — Permanently removes a credential entry.
+
+📁 Categories
+GET /api/categories — Fetches user-defined grouping tags (e.g., Work, Social).
+
+POST /api/categories — Generates a new category label.
+
+PUT /api/categories/:id — Renames or modifies an existing category.
+
+DELETE /api/categories/:id — Removes a category category record.
+
+👤 User Profile
+GET /api/profile — Retrieves account settings and meta information.
+
+PUT /api/profile — Modifies general profile specifications.

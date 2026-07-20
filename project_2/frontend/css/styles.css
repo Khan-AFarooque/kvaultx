@@ -1,0 +1,606 @@
+/* Make sure nothing blocks clicks */
+#themeToggleBtn {
+    position: relative;
+    z-index: 9999;
+    pointer-events: auto;
+}
+
+/* ----------------------- FONT IMPORT ----------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+/* ----------------------- RESET & GLOBAL TYPOGRAPHY ----------------------- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #f1f5f9;
+    padding: 24px;
+    background: radial-gradient(circle at 50% 50%, #0c1916 0%, #050a09 100%);
+    background-attachment: fixed;
+    position: relative;
+    overflow-x: hidden;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ----------------------- TWINKLING / GLOWING HEADING ANIMATION ----------------------- */
+@keyframes twinklingGlow {
+    0%, 100% {
+        text-shadow: 0 0 10px rgba(0, 210, 255, 0.4), 0 0 20px rgba(16, 185, 129, 0.3);
+        filter: brightness(1);
+    }
+    50% {
+        text-shadow: 0 0 18px rgba(0, 210, 255, 0.85), 0 0 35px rgba(16, 185, 129, 0.65), 0 0 45px rgba(0, 210, 255, 0.5);
+        filter: brightness(1.2);
+    }
+}
+
+h1, h2, h3, .brand-title, .app-brand-name, .twinkle-heading, .card-header h2, .auth-header h2 {
+    font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif !important;
+    color: #ffffff;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+/* Highlighting important headings with twinkling shimmer */
+.twinkle-heading,
+.brand-title,
+.app-brand-name,
+h2.twinkle-title,
+.highlight-heading {
+    background: linear-gradient(135deg, #ffffff 0%, #00d2ff 45%, #10b981 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: twinklingGlow 3.5s ease-in-out infinite;
+}
+
+/* Floating accent glows in background */
+body::before,
+body::after {
+    content: "";
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(95px);
+    opacity: 0.28;
+    z-index: 0;
+    pointer-events: none;
+}
+
+body::before {
+    width: 320px;
+    height: 320px;
+    background: #10b981;
+    top: -80px;
+    left: -80px;
+    animation: floatBlob 9s ease-in-out infinite;
+}
+
+body::after {
+    width: 280px;
+    height: 280px;
+    background: #115e59;
+    bottom: -60px;
+    right: -60px;
+    animation: floatBlob 11s ease-in-out infinite reverse;
+}
+
+@keyframes floatBlob {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(30px, 20px) scale(1.08); }
+}
+
+/* ----------------------- FORM (Login + Signup / Add Password / Reset) ----------------------- */
+form {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 440px;
+    background: rgba(11, 22, 19, 0.7);
+    border: 1px solid rgba(22, 48, 42, 0.5);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-radius: 20px;
+    padding: 36px 32px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+    animation: slideUp 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(40px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 20px;
+    letter-spacing: 0.2px;
+    text-align: center;
+}
+
+input, textarea, select {
+    width: 100%;
+    padding: 13px 14px;
+    border: 1px solid #16302a;
+    border-radius: 10px;
+    font-size: 15px;
+    font-family: 'Poppins', sans-serif;
+    background: #080f0d;
+    color: #ffffff;
+    outline: none;
+    transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.15s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+    transform: translateY(-1px);
+}
+
+button {
+    width: 100%;
+    padding: 13px;
+    margin-top: 6px;
+    border: none;
+    border-radius: 10px;
+    background: #10b981;
+    color: #050a09;
+    font-size: 15.5px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    background: #059669;
+    box-shadow: 0 10px 24px rgba(16, 185, 129, 0.25);
+}
+
+p {
+    margin-top: 15px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+a {
+    color: #7de3b8;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+a:hover {
+    color: #ffffff;
+    text-decoration: underline;
+}
+
+/* ----------------------- DASHBOARD ----------------------- */
+.dashboard-container {
+    width: 100%;
+    height: 100vh;
+    padding-top: 35px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.dashboard-container h2 {
+    font-size: 26px;
+    margin-bottom: 8px;
+}
+
+.dashboard-container p {
+    font-size: 15px;
+    margin-bottom: 18px;
+    color: #ffde59;
+}
+
+textarea {
+    width: 90%;
+    max-width: 350px;
+    height: 120px;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    font-size: 15px;
+    margin: 12px 0;
+    background: #eef2f3;
+    color: black;
+    outline: none;
+}
+
+textarea:focus {
+    background: #dff9fb;
+}
+
+button {
+    max-width: 350px;
+}
+
+/* NOTES LIST */
+#notesList {
+    width: 90%;
+    max-width: 350px;
+    list-style: none;
+    margin-top: 10px;
+    padding: 0;
+    display: none;
+}
+.notes-layout {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    width: 100%;
+    max-width: 800px;
+    margin: 20px auto;
+}
+#noteInput {
+    flex: 1;
+    min-height: 180px;
+}
+
+#notesList li {
+    background: white;
+    color: #283e51;
+    padding: 10px;
+    margin: 6px 0;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+/* Optional running text (if used) */
+.running-text {
+    position: absolute;
+    top: 10px;
+    width: 100%;
+    color: #ffffff;
+    text-align: center;
+    font-size: 18px;
+    animation: scroll 10s linear infinite;
+}
+
+@keyframes scroll {
+    0% {
+        transform: translateX(100%);
+    }
+
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+/* ---------------- FORCE DASHBOARD VERTICAL ---------------- */
+body.dashboard-page {
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding-top: 40px;
+}
+
+.dashboard-page .dashboard-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.dashboard-page .dashboard-container>* {
+    width: 90%;
+    max-width: 350px;
+    margin: 10px 0;
+    text-align: center;
+}
+
+.password-box {
+    position: relative;
+    width: 100%;
+}
+
+.toggle-eye {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+/* ================= DARK MODE ================= */
+
+
+/* Dark input + textarea */
+
+
+/* FORCE DARK MODE COLORS ON TOP OF ALL OTHER STYLES */
+body.dark-mode {
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364) !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .dashboard-container,
+body.dark-mode form {
+     background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 18px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    padding: 25px;
+
+}
+
+body.dark-mode input,
+body.dark-mode textarea {
+    background: #2a2a2a !important;
+    color: #ffffff !important;
+    border: 1px solid #444 !important;
+}
+
+body.dark-mode button {
+        transition: all 0.3s ease;
+
+}
+
+body.dark-mode #notesList li {
+    background: #1e1e1e !important;
+    color: white !important;
+}
+
+.captcha-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #eef2f3;
+    padding: 10px;
+    border-radius: 8px;
+    margin: 8px 0;
+    font-weight: bold;
+}
+
+#captchaText {
+    color: #283e51;
+    font-size: 18px;
+    letter-spacing: 3px;
+}
+
+#reloadCaptcha {
+    background: #4b79a1;
+    color: white;
+    border-radius: 6px;
+    width: 40px;
+    padding: 4px;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+/* ===== Day 11: Full Screen Notes Popup ===== */
+
+#notesPopup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+#notesPopup.hidden {
+    display: none;
+}
+
+.popup-content {
+    width: 90%;
+    max-width: 700px;
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.4);
+}
+
+.popup-content h2 {
+    margin-bottom: 10px;
+}
+
+#notesDisplay {
+    width: 100%;
+    height: 350px;
+    resize: none;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background: #f5f5f5;
+}
+
+#closePopupBtn {
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    background: #283e51;
+    color: white;
+    cursor: pointer;
+}
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&display=swap');
+
+/* Top marquee styling */
+.top-marquee {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 40px;
+    line-height: 40px;
+    background: #283e51;
+    color: #ffffff;
+
+    font-family: 'Poppins', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 1px;
+
+    z-index: 9999;
+}
+#passwordStrength {
+    font-size: 14px;
+    margin-top: 5px;
+    text-align: left;
+}
+
+.weak {
+    color: red;
+}
+
+.medium {
+    color: orange;
+}
+
+.strong {
+    color: green;
+}
+#captchaText {
+    color: black;
+    font-size: 22px;
+    font-weight: bold;
+    letter-spacing: 3px;
+    background: #f2f2f2;
+    padding: 8px 12px;
+    border-radius: 6px;
+    display: inline-block;
+}
+.action-menu {
+     position: fixed;
+    bottom: 30px;
+    right: 30px;
+}
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #4b79a1;
+    border-radius: 10px;
+}
+
+
+.main-action-btn {
+    background: #283e51;
+    color: #fff;  
+    font-size: 22px;
+     width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    font-size: 22px;
+    background: #283e51;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.action-buttons {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.actions-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.action-buttons button {
+    padding: 10px;
+    border-radius: 20px;
+    border: none;
+    background: #4b79a1;
+    color: white;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.action-buttons button:hover {
+        transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.25);
+
+}
+
+.hidden {
+    display: none;
+}
+/* Forgot Password Page */
+.forgot-container {
+    max-width: 360px;
+    margin: 80px auto;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    text-align: center;
+}
+
+.forgot-container h2 {
+    margin-bottom: 10px;
+    color: white;
+}
+
+.forgot-container input {
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+    font-size: 14px;
+}
+
+.forgot-container button {
+    padding: 12px;
+    border-radius: 20px;
+    border: none;
+    background: #4b79a1;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.forgot-container button:hover {
+    background: #355f7c;
+    transform: translateY(-2px);
+}
+#notesPopup {
+    pointer-events: auto;
+}
+
+.popup-content {
+    pointer-events: auto;
+}
+#resetPassBtn {
+    position: relative;
+    z-index: 9999;
+    pointer-events: auto;
+}
