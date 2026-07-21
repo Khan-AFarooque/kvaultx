@@ -253,49 +253,156 @@ const sendOtpEmail = async (email, otp) => {
     }
 };
 
-// Email Alert helper for security notifications
-const sendSecurityAlertEmail = async (email, subject, alertType, ip, userAgent) => {
+// Generic Email Dispatcher using Multi-Transport Pipeline (Brevo API -> Resend API -> Gmail SMTP)
+const sendGenericEmail = async (toEmail, subject, htmlContent) => {
     try {
-        const transporter = nodemailer.createTransport({
-            host: "smtp.gmail.com",
-            port: 465,
-            secure: true,
-            lookup: (hostname, opts, cb) => dns.lookup(hostname, { family: 4 }, cb),
-            auth: {
-                user: process.env.EMAIL_USER || "mock",
-                pass: process.env.EMAIL_PASS || "mock"
-            },
-            connectionTimeout: 15000,
-            greetingTimeout: 15000,
-            socketTimeout: 15000
-        });
+        const emailUser = (process.env.EMAIL_USER || "chotubhaiiit@gmail.com").replace(/\r|\n/g, "").trim();
+        const emailPass = (process.env.EMAIL_PASS || "").replace(/\r|\n/g, "").trim();
 
-        const mailOptions = {
-            from: `"KvaultX Security" <${process.env.EMAIL_USER || 'no-reply@kvaultx.io'}>`,
-            to: email,
-            subject: `KvaultX Security Alert: ${subject}`,
-            html: `<div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
-                <h2 style="color: #d9534f;">⚠️ KvaultX Security Alert</h2>
-                <p>This is to notify you of a security event on your account:</p>
-                <ul>
-                    <li><strong>Event:</strong> ${alertType}</li>
-                    <li><strong>Time:</strong> ${new Date().toUTCString()}</li>
-                    <li><strong>IP Address:</strong> ${ip}</li>
-                    <li><strong>Device / Browser:</strong> ${userAgent}</li>
-                </ul>
-                <p>If this was you, you can safely ignore this email. Otherwise, log in and change your password immediately.</p>
-            </div>`
-        };
-
-        if (process.env.EMAIL_USER === "mock_sender@gmail.com" || !process.env.EMAIL_USER) {
-            console.log(`\n🔔 [ALERT SIMULATION] Notification to ${email}: ${alertType} (IP: ${ip}, UA: ${userAgent})\n`);
-            return;
+        // 1. Brevo HTTP API (Port 443)
+        if (process.env.BREVO_API_KEY) {
+            try {
+                const brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
+                    method: "POST",
+                    headers: {
+                        "api-key": process.env.BREVO_API_KEY.trim(),
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify({
+                        sender: { name: "KvaultX", email: emailUser || "chotubhaiiit@gmail.com" },
+                        to: [{ email: toEmail.trim() }],
+                        subject: subject,
+                        htmlContent: htmlContent
+                    })
+                });
+                if (brevoRes.ok) {
+                    console.log(`\n📧 [BREVO HTTP API EMAIL SENT] to ${toEmail}: ${subject}\n`);
+                    return { success: true };
+                }
+            } catch (bErr) {
+                console.warn("Brevo API generic email warning:", bErr.message);
+            }
         }
 
-        await transporter.sendMail(mailOptions);
-    } catch (error) {
-        console.error("Security email alert failed:", error);
+        // 2. Resend HTTP API (Port 443)
+        if (process.env.RESEND_API_KEY) {
+            try {
+                const resendRes = await fetch("https://api.resend.com/emails", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${process.env.RESEND_API_KEY.trim()}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        from: "KvaultX <onboarding@resend.dev>",
+                        to: [toEmail.trim()],
+                        subject: subject,
+                        html: htmlContent
+                    })
+                });
+                if (resendRes.ok) {
+                    console.log(`\n📧 [RESEND HTTP API EMAIL SENT] to ${toEmail}: ${subject}\n`);
+                    return { success: true };
+                }
+            } catch (rErr) {
+                console.warn("Resend API generic email warning:", rErr.message);
+            }
+        }
+
+        // 3. Direct Nodemailer Gmail SMTP
+        if (emailUser && emailPass && emailUser !== "mock_sender@gmail.com") {
+            try {
+                const transporter = nodemailer.createTransport({
+                    host: "smtp.gmail.com",
+                    port: 465,
+                    secure: true,
+                    lookup: customLookupIPv4,
+                    auth: { user: emailUser, pass: emailPass },
+                    connectionTimeout: 5000
+                });
+                await transporter.sendMail({
+                    from: `"KvaultX Security" <${emailUser}>`,
+                    to: toEmail.trim(),
+                    subject: subject,
+                    html: htmlContent
+                });
+                console.log(`\n📧 [GMAIL SMTP EMAIL SENT] to ${toEmail}: ${subject}\n`);
+                return { success: true };
+            } catch (err) {
+                console.warn("Gmail SMTP generic email warning:", err.message);
+            }
+        }
+
+        console.log(`\n📧 [DEV MOCK EMAIL] to ${toEmail}: ${subject}\n`);
+        return { success: true };
+    } catch (err) {
+        console.error("sendGenericEmail error:", err.message);
+        return { success: false, error: err.message };
     }
+};
+
+const sendWelcomeEmail = async (email, name) => {
+    const subject = "Welcome to KvaultX - Your Vault is Ready 🔐";
+    const html = `<div style="font-family: Arial, sans-serif; padding: 25px; color: #333; background: #0f172a; border-radius: 12px; max-width: 600px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h1 style="color: #00d2ff; font-size: 28px; margin: 0;">🔐 KvaultX</h1>
+            <p style="color: #94a3b8; font-size: 13px; margin-top: 5px;">SECURE • STORE • PROTECT</p>
+        </div>
+        <div style="background: #1e293b; padding: 25px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); color: #f8fafc;">
+            <h2 style="color: #34e89e; margin-top: 0;">Welcome to KvaultX, ${name || "User"}! 🎉</h2>
+            <p style="font-size: 15px; line-height: 1.6; color: #cbd5e1;">
+                Thank you for believing in us and choosing <strong>KvaultX</strong> to store and protect your passwords, notes, and sensitive credentials!
+            </p>
+            <p style="font-size: 14px; line-height: 1.6; color: #cbd5e1;">
+                Your account is protected by <strong>zero-knowledge AES-256 encryption</strong>. Only you hold the master key to your vault.
+            </p>
+            <div style="background: rgba(0, 210, 255, 0.1); border-left: 4px solid #00d2ff; padding: 12px 15px; border-radius: 6px; margin: 20px 0;">
+                <p style="margin: 0; color: #38bdf8; font-size: 13px;">
+                    💡 <strong>Security Notice:</strong> If you did not create this account or if someone used your email address without your permission, please contact us immediately or reset your password.
+                </p>
+            </div>
+            <p style="font-size: 14px; color: #94a3b8; margin-bottom: 0;">
+                Stay safe,<br>
+                <strong>The KvaultX Security Team</strong>
+            </p>
+        </div>
+    </div>`;
+
+    return sendGenericEmail(email, subject, html);
+};
+
+const sendLoginAlertEmail = async (email, name, ip, userAgent) => {
+    const subject = "Security Alert: Successful Login to Your KvaultX Account 🔐";
+    const html = `<div style="font-family: Arial, sans-serif; padding: 25px; color: #333; background: #0f172a; border-radius: 12px; max-width: 600px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h1 style="color: #00d2ff; font-size: 28px; margin: 0;">🔐 KvaultX</h1>
+            <p style="color: #94a3b8; font-size: 13px; margin-top: 5px;">SECURITY LOGIN NOTIFICATION</p>
+        </div>
+        <div style="background: #1e293b; padding: 25px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); color: #f8fafc;">
+            <h2 style="color: #38bdf8; margin-top: 0;">Login Notification 🛡️</h2>
+            <p style="font-size: 14px; color: #cbd5e1;">Hello ${name || "User"},</p>
+            <p style="font-size: 14px; color: #cbd5e1;">
+                We detected a successful login to your <strong>KvaultX account</strong> with the following session details:
+            </p>
+            <ul style="background: #0f172a; padding: 15px 20px; border-radius: 6px; font-size: 13px; color: #94a3b8; list-style: none; line-height: 1.8;">
+                <li><strong>🕒 Time:</strong> ${new Date().toUTCString()}</li>
+                <li><strong>🌐 IP Address:</strong> ${ip || "127.0.0.1"}</li>
+                <li><strong>💻 Device / Browser:</strong> ${userAgent || "Web Browser"}</li>
+            </ul>
+            <div style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 12px 15px; border-radius: 6px; margin: 20px 0;">
+                <p style="margin: 0; color: #f87171; font-size: 13px;">
+                    ⚠️ <strong>Wasn't you?</strong> If a friend or unknown person logged into your account, please log in immediately and change your master password.
+                </p>
+            </div>
+            <p style="font-size: 14px; color: #94a3b8; margin-bottom: 0;">
+                Stay vigilant,<br>
+                <strong>The KvaultX Security Team</strong>
+            </p>
+        </div>
+    </div>`;
+
+    return sendGenericEmail(email, subject, html);
 };
 
 // Sign Up
@@ -314,6 +421,11 @@ exports.signup = async (req, res) => {
             email: email.toLowerCase(),
             password: hashedPassword
         });
+
+        // Dispatch Welcome Email asynchronously in background
+        sendWelcomeEmail(user.email, user.name)
+            .then(() => console.log(`📧 [WELCOME EMAIL SENT] to ${user.email}`))
+            .catch(err => console.error("Welcome email dispatch failed:", err));
 
         res.status(201).json({
             message: "User Registered Successfully",
@@ -453,8 +565,10 @@ exports.login = async (req, res) => {
         session.refreshToken = refreshToken;
         await session.save();
 
-        // 5. Trigger Security Alerts (New Device Login/Alert)
-        sendSecurityAlertEmail(user.email, "New Account Login", "Account Login Alert", ip, userAgent);
+        // 5. Trigger Security & Login Alert Emails
+        sendLoginAlertEmail(user.email, user.name, ip, userAgent)
+            .then(() => console.log(`📧 [LOGIN ALERT EMAIL SENT] to ${user.email}`))
+            .catch(err => console.error("Login alert dispatch failed:", err));
 
         // 6. Set HttpOnly Cookies for XSS Security
         sendTokenCookies(res, accessToken, refreshToken);

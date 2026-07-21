@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy | KvaultX</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            --card-bg: rgba(30, 41, 59, 0.75);
+            --border-color: rgba(255, 255, 255, 0.12);
+            --accent-cyan: #00d2ff;
+            --accent-green: #34e89e;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .privacy-header {
+            width: 100%;
+            max-width: 900px;
+            padding: 40px 20px 20px;
+            text-align: center;
+        }
+
+        .privacy-logo {
+            height: 55px;
+            width: auto;
+            margin-bottom: 12px;
+            filter: drop-shadow(0 4px 14px rgba(0, 210, 255, 0.45));
+        }
+
+        .privacy-title {
+            font-size: 32px;
+            font-weight: 800;
+            margin: 0 0 8px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .privacy-subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .privacy-container {
+            width: 90%;
+            max-width: 900px;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 50px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            box-sizing: border-box;
+        }
+
+        .privacy-section {
+            margin-bottom: 30px;
+        }
+
+        .privacy-section h3 {
+            font-size: 20px;
+            color: var(--accent-green);
+            border-bottom: 1px solid rgba(52, 232, 158, 0.2);
+            padding-bottom: 8px;
+            margin-top: 0;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .privacy-section p, .privacy-section li {
+            font-size: 14px;
+            line-height: 1.7;
+            color: #cbd5e1;
+        }
+
+        .privacy-section ul {
+            padding-left: 20px;
+            margin: 10px 0;
+        }
+
+        .privacy-section li {
+            margin-bottom: 8px;
+        }
+
+        .highlight-box {
+            background: rgba(52, 232, 158, 0.08);
+            border-left: 4px solid var(--accent-green);
+            padding: 14px 18px;
+            border-radius: 6px;
+            margin: 15px 0;
+            font-size: 13px;
+            color: #e2e8f0;
+        }
+
+        .btn-back {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-green));
+            color: #0f172a;
+            font-weight: 700;
+            padding: 12px 28px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);
+            margin-top: 20px;
+        }
+
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 232, 158, 0.4);
+        }
+
+        .privacy-footer {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 12px;
+            padding-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="privacy-header">
+        <img src="../assets/logo.png" alt="KvaultX Logo" class="privacy-logo">
+        <h1 class="privacy-title">Privacy Policy</h1>
+        <p class="privacy-subtitle">Effective Date: July 2026 • KvaultX Zero-Knowledge Security</p>
+    </header>
+
+    <main class="privacy-container">
+
+        <div class="highlight-box">
+            🔐 <strong>Your Privacy is Our Core Mission.</strong> At KvaultX, we believe your passwords, notes, and credentials belong strictly to you. We design our architecture so we NEVER sell, monetize, or read your private data.
+        </div>
+
+        <section class="privacy-section">
+            <h3>1. Zero-Knowledge Encryption Guarantee</h3>
+            <p>KvaultX is engineered from the ground up on a <strong>Zero-Knowledge Architecture</strong>. This means:</p>
+            <ul>
+                <li>Your master password and vault items are encrypted client-side using industry-standard <strong>AES-256 GCM encryption</strong> before sending data to our servers.</li>
+                <li>Our servers store ONLY encrypted ciphertext blob data. We do NOT hold master encryption keys or unencrypted passwords.</li>
+                <li>Even if compelled by third parties or database breaches, unencrypted vault data cannot be read by anyone except YOU.</li>
+            </ul>
+        </section>
+
+        <section class="privacy-section">
+            <h3>2. Information We Collect</h3>
+            <p>We minimize data collection to the absolute bare necessities required to operate the service:</p>
+            <ul>
+                <li><strong>Account Credentials:</strong> Full Name and Email Address (used for authentication, welcome emails, security alerts, and OTP verification).</li>
+                <li><strong>Master Password Hash:</strong> Cryptographically hashed using <strong>Bcrypt with 10 salt rounds</strong> (never plain-text).</li>
+                <li><strong>Security Logs:</strong> Basic security metadata (IP address, login timestamp, browser user-agent) stored strictly for security alert notifications and active session tracking.</li>
+            </ul>
+        </section>
+
+        <section class="privacy-section">
+            <h3>3. How We Use Your Information</h3>
+            <p>Your information is used strictly to:</p>
+            <ul>
+                <li>Authenticate your identity when logging in or resetting passwords.</li>
+                <li>Send automated <strong>Welcome Emails</strong> upon new account signup.</li>
+                <li>Send <strong>Security Login Notifications</strong> and Verification OTP codes to your email address.</li>
+                <li>Protect your account against brute-force attacks and unauthorized access attempts.</li>
+            </ul>
+            <p style="color: var(--accent-green); font-weight: 600;">We NEVER sell, rent, trade, or share your personal information or email address with any third-party advertisers.</p>
+        </section>
+
+        <section class="privacy-section">
+            <h3>4. Cookies & Token Storage</h3>
+            <p>KvaultX uses secure, short-lived <strong>JWT (JSON Web Tokens)</strong> and <strong>HttpOnly, SameSite=Lax Cookies</strong> to maintain your authenticated session. We do NOT use tracking cookies or third-party advertising cookies.</p>
+        </section>
+
+        <section class="privacy-section">
+            <h3>5. Data Retention & Account Deletion</h3>
+            <p>You have full control over your data. You may edit, export, or permanently delete your stored vault items at any time through the KvaultX Dashboard. If you delete your account, all associated encrypted vault items and account metadata are permanently purged from our databases.</p>
+        </section>
+
+        <section class="privacy-section">
+            <h3>6. Privacy Policy Updates</h3>
+            <p>We may update this Privacy Policy periodically to reflect enhancements in security protocols. Significant updates will be communicated via email notifications to all registered users.</p>
+        </section>
+
+        <section class="privacy-section">
+            <h3>7. Contact Privacy Team</h3>
+            <p>If you have any questions, concerns, or requests regarding this Privacy Policy or your data protection, please contact us at <a href="mailto:chotubhaiiit@gmail.com" style="color: var(--accent-green);">chotubhaiiit@gmail.com</a>.</p>
+        </section>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <a href="signup.html" class="btn-back">← Back to Signup</a>
+        </div>
+
+    </main>
+
+    <footer class="privacy-footer">
+        © 2026 KvaultX. All rights reserved. • Zero-Knowledge Data Protection
+    </footer>
+
+</body>
+</html>
