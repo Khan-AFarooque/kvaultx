@@ -30,22 +30,6 @@ KvaultX is an enterprise-grade, zero-knowledge password manager and secure crede
 
 ---
 
-## 🚀 Environment Setup (`.env`)
-
-Create a `.env` file in the backend directory with the following variables:
-
-```env
-PORT=5000
-MONGO_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/kvaultx?retryWrites=true&w=majority
-JWT_SECRET=your_super_secret_jwt_key
-JWT_REFRESH_SECRET=your_super_secret_refresh_jwt_key
-GMAIL_WEBHOOK_URL=https://script.google.com/macros/s/.../exec
-BREVO_API_KEY=your_brevo_api_key
-EMAIL_USER=your_verified_email@gmail.com
-```
-
----
-
 ## 💻 Installation & Running Locally
 
 1. **Clone Repository:**
