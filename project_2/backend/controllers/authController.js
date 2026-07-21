@@ -3,6 +3,7 @@ const Session = require("../models/Session");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
+const dns = require("dns");
 const crypto = require("crypto");
 const otplib = require("otplib");
 const authenticator = otplib.authenticator || (otplib.default && otplib.default.authenticator) || otplib;
@@ -133,31 +134,33 @@ const sendOtpEmail = async (email, otp) => {
                 </div>`
             };
 
-            // Attempt 1: Service Gmail with family: 4 (Fast IPv4 for Render)
+            // Attempt 1: Port 465 SSL with forced IPv4 DNS lookup (Fixes Render ENETUNREACH)
             try {
                 const transporter1 = nodemailer.createTransport({
-                    service: "gmail",
-                    family: 4,
+                    host: "smtp.gmail.com",
+                    port: 465,
+                    secure: true,
+                    lookup: (hostname, opts, cb) => dns.lookup(hostname, { family: 4 }, cb),
                     auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-                    connectionTimeout: 5000,
-                    greetingTimeout: 5000,
-                    socketTimeout: 5000
+                    connectionTimeout: 10000,
+                    greetingTimeout: 10000,
+                    socketTimeout: 10000
                 });
                 await transporter1.sendMail(mailOptions);
                 console.log(`\n📧 [REAL EMAIL DELIVERED TO INBOX] Sent OTP to ${email}: ${otp}\n`);
                 return { success: true, isRealSent: true };
             } catch (err1) {
-                console.warn("Attempt 1 (Service Gmail) warning:", err1.message, "Trying Attempt 2 (SSL 465)...");
-                // Attempt 2: SSL 465 Fallback with family: 4
+                console.warn("Attempt 1 (465 SSL IPv4) warning:", err1.message, "Trying Attempt 2 (587 TLS IPv4)...");
+                // Attempt 2: Port 587 TLS with forced IPv4 DNS lookup
                 const transporter2 = nodemailer.createTransport({
                     host: "smtp.gmail.com",
-                    port: 465,
-                    secure: true,
-                    family: 4,
+                    port: 587,
+                    secure: false,
+                    lookup: (hostname, opts, cb) => dns.lookup(hostname, { family: 4 }, cb),
                     auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-                    connectionTimeout: 5000,
-                    greetingTimeout: 5000,
-                    socketTimeout: 5000
+                    connectionTimeout: 10000,
+                    greetingTimeout: 10000,
+                    socketTimeout: 10000
                 });
                 await transporter2.sendMail(mailOptions);
                 console.log(`\n📧 [REAL EMAIL DELIVERED TO INBOX] Sent OTP to ${email}: ${otp}\n`);
@@ -186,7 +189,7 @@ const sendSecurityAlertEmail = async (email, subject, alertType, ip, userAgent) 
             host: "smtp.gmail.com",
             port: 465,
             secure: true,
-            family: 4, // Force IPv4 resolution
+            lookup: (hostname, opts, cb) => dns.lookup(hostname, { family: 4 }, cb),
             auth: {
                 user: process.env.EMAIL_USER || "mock",
                 pass: process.env.EMAIL_PASS || "mock"
