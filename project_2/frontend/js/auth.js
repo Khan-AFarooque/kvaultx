@@ -212,8 +212,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 localStorage.setItem("refreshToken", data.refreshToken);
                 localStorage.setItem("user", JSON.stringify(data.user));
 
-                alert("✅ Login successful! Redirecting to Dashboard...");
-                window.location.href = "dashboard.html";
+                const targetDashboard = window.location.pathname.includes("/pages/") ? "dashboard.html" : "pages/dashboard.html";
+                window.location.href = targetDashboard;
             } catch (err) {
                 console.error("Login Error:", err);
                 alert("Server connection error. Is the backend server running?");

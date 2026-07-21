@@ -84,12 +84,14 @@ const verifyTotpCode = (token, secret) => {
 
 // Generate access token (expires in 15 minutes)
 const generateAccessToken = (userId, sessionId) => {
-    return jwt.sign({ id: userId, sessionId }, process.env.JWT_SECRET, { expiresIn: "15m" });
+    const secret = process.env.JWT_SECRET || "kvaultx_secret_jwt_key_2026_super_secure";
+    return jwt.sign({ id: userId, sessionId }, secret, { expiresIn: "15m" });
 };
 
 // Generate refresh token (expires in 7 days)
 const generateRefreshToken = (userId, sessionId) => {
-    return jwt.sign({ id: userId, sessionId }, process.env.JWT_REFRESH_SECRET, { expiresIn: "7d" });
+    const refreshSecret = process.env.JWT_REFRESH_SECRET || "kvaultx_refresh_secret_jwt_key_2026";
+    return jwt.sign({ id: userId, sessionId }, refreshSecret, { expiresIn: "7d" });
 };
 
 // Helper to set HttpOnly cookies for XSS immunity

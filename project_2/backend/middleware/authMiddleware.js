@@ -11,7 +11,8 @@ const authMiddleware = async (req, res, next) => {
         }
         
         try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            const secret = process.env.JWT_SECRET || "kvaultx_secret_jwt_key_2026_super_secure";
+            const decoded = jwt.verify(token, secret);
             
             // Check if the user still exists
             const user = await User.findById(decoded.id).select("-password");
