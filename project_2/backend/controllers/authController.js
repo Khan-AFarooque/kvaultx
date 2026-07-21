@@ -253,13 +253,41 @@ const sendOtpEmail = async (email, otp) => {
     }
 };
 
-// Generic Email Dispatcher using Multi-Transport Pipeline (Brevo API -> Resend API -> Gmail SMTP)
+// Generic Email Dispatcher using Multi-Transport Pipeline (Resend API -> Gmail SMTP SSL 465 -> Gmail SMTP TLS 587)
 const sendGenericEmail = async (toEmail, subject, htmlContent) => {
     try {
         const emailUser = (process.env.EMAIL_USER || "chotubhaiiit@gmail.com").replace(/\r|\n/g, "").trim();
         const emailPass = (process.env.EMAIL_PASS || "").replace(/\r|\n/g, "").trim();
 
-        // 1. Brevo HTTP API (Port 443)
+        // 1. Resend HTTP API (Port 443)
+        if (process.env.RESEND_API_KEY) {
+            try {
+                const resendRes = await fetch("https://api.resend.com/emails", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${process.env.RESEND_API_KEY.trim()}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        from: "KvaultX <onboarding@resend.dev>",
+                        to: [toEmail.trim()],
+                        subject: subject,
+                        html: htmlContent
+                    })
+                });
+                if (resendRes.ok) {
+                    console.log(`\n📧 [RESEND HTTP API EMAIL SENT] to ${toEmail}: ${subject}\n`);
+                    return { success: true };
+                } else {
+                    const resendErr = await resendRes.json().catch(() => ({}));
+                    console.warn("Resend API warning in sendGenericEmail:", resendErr);
+                }
+            } catch (rErr) {
+                console.warn("Resend API generic email warning:", rErr.message);
+            }
+        }
+
+        // 2. Brevo HTTP API (Port 443)
         if (process.env.BREVO_API_KEY) {
             try {
                 const brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
@@ -285,52 +313,51 @@ const sendGenericEmail = async (toEmail, subject, htmlContent) => {
             }
         }
 
-        // 2. Resend HTTP API (Port 443)
-        if (process.env.RESEND_API_KEY) {
-            try {
-                const resendRes = await fetch("https://api.resend.com/emails", {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${process.env.RESEND_API_KEY.trim()}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        from: "KvaultX <onboarding@resend.dev>",
-                        to: [toEmail.trim()],
-                        subject: subject,
-                        html: htmlContent
-                    })
-                });
-                if (resendRes.ok) {
-                    console.log(`\n📧 [RESEND HTTP API EMAIL SENT] to ${toEmail}: ${subject}\n`);
-                    return { success: true };
-                }
-            } catch (rErr) {
-                console.warn("Resend API generic email warning:", rErr.message);
-            }
-        }
-
-        // 3. Direct Nodemailer Gmail SMTP
+        // 3. Direct Nodemailer Gmail SMTP with Forced IPv4 (Port 465 SSL & Port 587 TLS)
         if (emailUser && emailPass && emailUser !== "mock_sender@gmail.com") {
             try {
-                const transporter = nodemailer.createTransport({
+                const transporter1 = nodemailer.createTransport({
                     host: "smtp.gmail.com",
                     port: 465,
                     secure: true,
                     lookup: customLookupIPv4,
                     auth: { user: emailUser, pass: emailPass },
-                    connectionTimeout: 5000
+                    connectionTimeout: 10000,
+                    greetingTimeout: 10000,
+                    socketTimeout: 10000
                 });
-                await transporter.sendMail({
+                await transporter1.sendMail({
                     from: `"KvaultX Security" <${emailUser}>`,
                     to: toEmail.trim(),
                     subject: subject,
                     html: htmlContent
                 });
-                console.log(`\n📧 [GMAIL SMTP EMAIL SENT] to ${toEmail}: ${subject}\n`);
+                console.log(`\n📧 [GMAIL SMTP SSL 465 SENT] to ${toEmail}: ${subject}\n`);
                 return { success: true };
-            } catch (err) {
-                console.warn("Gmail SMTP generic email warning:", err.message);
+            } catch (err1) {
+                console.warn("Gmail SMTP 465 warning in sendGenericEmail:", err1.message);
+                try {
+                    const transporter2 = nodemailer.createTransport({
+                        host: "smtp.gmail.com",
+                        port: 587,
+                        secure: false,
+                        lookup: customLookupIPv4,
+                        auth: { user: emailUser, pass: emailPass },
+                        connectionTimeout: 10000,
+                        greetingTimeout: 10000,
+                        socketTimeout: 10000
+                    });
+                    await transporter2.sendMail({
+                        from: `"KvaultX Security" <${emailUser}>`,
+                        to: toEmail.trim(),
+                        subject: subject,
+                        html: htmlContent
+                    });
+                    console.log(`\n📧 [GMAIL SMTP TLS 587 SENT] to ${toEmail}: ${subject}\n`);
+                    return { success: true };
+                } catch (err2) {
+                    console.warn("Gmail SMTP 587 warning in sendGenericEmail:", err2.message);
+                }
             }
         }
 
