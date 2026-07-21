@@ -29,29 +29,23 @@ async function apiFetch(endpoint, options = {}) {
     try {
         let response = await fetch(url, options);
 
-        // Handle Token Expired (401 status and matching token-expired response code)
+        // Handle Token Expired or Invalid (401 status) with smooth automatic token refresh
         if (response.status === 401) {
-            const clone = response.clone();
-            let errData = {};
-            try {
-                errData = await clone.json();
-            } catch (e) {}
-
-            if (errData.code === "TOKEN_EXPIRED" || errData.message === "Token expired") {
-                // Try to refresh token
+            const refreshToken = localStorage.getItem("refreshToken");
+            if (refreshToken) {
                 const refreshed = await refreshTokens();
                 if (refreshed) {
                     // Retry original request with new token
                     const newAccessToken = localStorage.getItem("accessToken");
                     options.headers["Authorization"] = `Bearer ${newAccessToken}`;
                     response = await fetch(url, options);
-                } else {
-                    // Refresh failed, logout
-                    alert("Your session has expired. Please log in again.");
-                    localStorage.clear();
-                    window.location.href = "login.html";
+                    return response;
                 }
             }
+            
+            // Refresh failed or no refreshToken, logout cleanly
+            localStorage.clear();
+            window.location.href = "login.html";
         }
 
         return response;
