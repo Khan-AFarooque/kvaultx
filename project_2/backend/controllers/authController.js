@@ -133,18 +133,24 @@ const sendOtpEmail = async (email, otp) => {
                 </div>`
             };
 
-            // Attempt 1: Direct Service Gmail
+            // Attempt 1: Port 587 TLS with family: 4 (IPv4 - Fixes Render ENETUNREACH)
             try {
                 const transporter1 = nodemailer.createTransport({
-                    service: "gmail",
-                    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+                    host: "smtp.gmail.com",
+                    port: 587,
+                    secure: false,
+                    family: 4,
+                    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+                    connectionTimeout: 10000,
+                    greetingTimeout: 10000,
+                    socketTimeout: 10000
                 });
                 await transporter1.sendMail(mailOptions);
                 console.log(`\n📧 [REAL EMAIL DELIVERED TO INBOX] Sent OTP to ${email}: ${otp}\n`);
                 return { success: true, isRealSent: true };
             } catch (err1) {
-                console.warn("Attempt 1 (Service Gmail) warning:", err1.message, "Trying Attempt 2 (SSL 465)...");
-                // Attempt 2: SSL 465 Fallback
+                console.warn("Attempt 1 (587 TLS) warning:", err1.message, "Trying Attempt 2 (SSL 465)...");
+                // Attempt 2: SSL 465 Fallback with family: 4
                 const transporter2 = nodemailer.createTransport({
                     host: "smtp.gmail.com",
                     port: 465,
