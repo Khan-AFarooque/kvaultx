@@ -134,19 +134,24 @@ const sendOtpEmail = async (email, otp) => {
         const mailOptions = {
             from: `"KvaultX Security" <${emailUser}>`,
             to: email.trim(),
-            subject: "Your KvaultX Verification OTP Code",
-            text: `Your 6-digit OTP code is: ${otp}. It will expire in 10 minutes.`,
-            html: `<div style="font-family: Arial, sans-serif; padding: 20px; color: #333; background: #f9f9f9; border-radius: 8px;">
-                <h2 style="color: #00d2ff;">🔐 KvaultX Verification Code</h2>
-                <p>Your 6-digit verification code is:</p>
-                <div style="background: linear-gradient(135deg, #00d2ff, #10b981); color: #ffffff; padding: 15px; font-size: 28px; font-weight: bold; letter-spacing: 6px; text-align: center; border-radius: 8px; margin: 15px 0;">
-                    ${otp}
+            subject: `KvaultX Verification Code: ${otp}`,
+            text: `Your KvaultX security verification code is: ${otp}. This code expires in 10 minutes.`,
+            html: `<div style="font-family: Arial, sans-serif; padding: 25px; color: #f8fafc; background: #0f172a; border-radius: 12px; max-width: 500px; margin: 0 auto; border: 1px solid #1e293b;">
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <h2 style="color: #00d2ff; margin: 0; font-size: 24px;">🔐 KvaultX</h2>
+                    <p style="color: #94a3b8; font-size: 12px; margin-top: 4px;">ACCOUNT SECURITY VERIFICATION</p>
                 </div>
-                <p>This code will expire in 10 minutes.</p>
+                <div style="background: #1e293b; padding: 20px; border-radius: 8px; text-align: center;">
+                    <p style="color: #cbd5e1; font-size: 14px; margin-top: 0;">Your 6-digit OTP security code is:</p>
+                    <div style="font-size: 32px; font-weight: 800; color: #38bdf8; letter-spacing: 6px; padding: 12px; background: #0f172a; border-radius: 6px; display: inline-block; margin: 10px 0; border: 1px solid rgba(56, 189, 248, 0.3);">
+                        ${otp}
+                    </div>
+                    <p style="color: #94a3b8; font-size: 12px; margin-bottom: 0;">Code expires in 10 minutes. Do not share this code with anyone.</p>
+                </div>
             </div>`
         };
 
-        // 1. Fast HTTP API via Brevo (HTTPS Port 443 - Global Multi-User Delivery to ANY recipient!)
+        // 1. Fast HTTP API via Brevo (HTTPS Port 443 - Sends to ANY email address)
         if (process.env.BREVO_API_KEY) {
             try {
                 const brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
@@ -157,18 +162,19 @@ const sendOtpEmail = async (email, otp) => {
                         "Accept": "application/json"
                     },
                     body: JSON.stringify({
-                        sender: { name: "KvaultX", email: emailUser || "chotubhaiiit@gmail.com" },
+                        sender: { name: "KvaultX Security", email: emailUser || "chotubhaiiit@gmail.com" },
                         to: [{ email: email.trim() }],
-                        subject: "Your KvaultX Verification OTP Code",
+                        subject: mailOptions.subject,
+                        textContent: mailOptions.text,
                         htmlContent: mailOptions.html
                     })
                 });
                 const brevoData = await brevoRes.json().catch(() => ({}));
                 if (brevoRes.ok) {
-                    console.log(`\n📧 [BREVO HTTP API DELIVERED TO ANY USER] Sent OTP to ${email}: ${otp}\n`);
+                    console.log(`\n📧 [BREVO HTTP API DELIVERED TO ANY USER] Sent OTP to ${email}: ${otp} (Message ID: ${brevoData.messageId || 'OK'})\n`);
                     return { success: true, isRealSent: true };
                 } else {
-                    console.warn("Brevo API Warning (Fallback to secondary transport):", brevoData);
+                    console.warn("Brevo API Warning (Check sender verification in Brevo Dashboard):", brevoData);
                 }
             } catch (bErr) {
                 console.warn("Brevo API warning:", bErr.message);
