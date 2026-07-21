@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
 
-                let msg = `📧 OTP verification code sent to ${email}!`;
+                let msg = data.message || `📧 OTP verification code sent to ${email}!`;
                 if (data.demoOtp) {
                     msg += `\n\n🔑 Verification Code: ${data.demoOtp}`;
                 }
@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!response.ok) {
                     alert(data.message || "Failed to resend OTP.");
                 } else {
-                    let msg = `📧 OTP verification code resent to ${email}!`;
+                    let msg = data.message || `📧 OTP verification code resent to ${email}!`;
                     if (data.demoOtp) {
                         msg += `\n\n🔑 Verification Code: ${data.demoOtp}`;
                     }

@@ -247,7 +247,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!res.ok) {
                     alert(data.message || "Failed to send OTP.");
                 } else {
-                    let msg = `📧 OTP verification code sent to ${email}!`;
+                    let msg = data.message || `📧 OTP verification code sent to ${email}!`;
                     if (data.demoOtp) {
                         msg += `\n\n🔑 Verification Code: ${data.demoOtp}`;
                     }

@@ -133,9 +133,19 @@ const sendOtpEmail = async (email, otp) => {
                 </div>`
             };
 
-            // Attempt 1: Direct SSL Port 465 with family: 4 (IPv4)
+            // Attempt 1: Direct Service Gmail
             try {
                 const transporter1 = nodemailer.createTransport({
+                    service: "gmail",
+                    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+                });
+                await transporter1.sendMail(mailOptions);
+                console.log(`\n📧 [REAL EMAIL DELIVERED TO INBOX] Sent OTP to ${email}: ${otp}\n`);
+                return { success: true, isRealSent: true };
+            } catch (err1) {
+                console.warn("Attempt 1 (Service Gmail) warning:", err1.message, "Trying Attempt 2 (SSL 465)...");
+                // Attempt 2: SSL 465 Fallback
+                const transporter2 = nodemailer.createTransport({
                     host: "smtp.gmail.com",
                     port: 465,
                     secure: true,
@@ -144,16 +154,6 @@ const sendOtpEmail = async (email, otp) => {
                     connectionTimeout: 10000,
                     greetingTimeout: 10000,
                     socketTimeout: 10000
-                });
-                await transporter1.sendMail(mailOptions);
-                console.log(`\n📧 [REAL EMAIL DELIVERED TO INBOX] Sent OTP to ${email}: ${otp}\n`);
-                return { success: true, isRealSent: true };
-            } catch (err1) {
-                console.warn("Attempt 1 (465 SSL) warning:", err1.message, "Trying Attempt 2 (Service Fallback)...");
-                // Attempt 2: Service Fallback
-                const transporter2 = nodemailer.createTransport({
-                    service: "gmail",
-                    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
                 });
                 await transporter2.sendMail(mailOptions);
                 console.log(`\n📧 [REAL EMAIL DELIVERED TO INBOX] Sent OTP to ${email}: ${otp}\n`);
@@ -165,8 +165,13 @@ const sendOtpEmail = async (email, otp) => {
         }
     } catch (error) {
         console.error("Nodemailer error:", error.message);
-        console.log(`\n📧 [EMAIL FALLBACK] OTP for ${email}: ${otp}\n`);
-        return { success: false, isRealSent: false };
+        return { 
+            success: false, 
+            isRealSent: false, 
+            error: error.message.includes("535") 
+                ? "Gmail Login Failed: Invalid EMAIL_PASS or App Password in .env. Please update .env with a valid 16-character Google App Password."
+                : `Email delivery failed: ${error.message}` 
+        };
     }
 };
 
@@ -329,14 +334,17 @@ exports.login = async (req, res) => {
                     expiry: new Date(Date.now() + 10 * 60 * 1000)
                 };
                 await user.save();
-                await sendOtpEmail(user.email, otp);
+                const emailResult = await sendOtpEmail(user.email, otp);
+                if (!emailResult.success) {
+                    return res.status(500).json({ 
+                        message: emailResult.error || "Failed to send OTP email." 
+                    });
+                }
 
-                const isSimulated = process.env.EMAIL_USER === "mock_sender@gmail.com" || !process.env.EMAIL_USER;
                 return res.json({
                     mfaRequired: true,
                     mfaType: "email_otp",
-                    message: "OTP code sent to your email address.",
-                    demoOtp: isSimulated ? otp : undefined
+                    message: "📧 OTP verification code sent directly to your email address! (Please check your Inbox and Spam/Junk folder)"
                 });
             }
 
@@ -451,18 +459,15 @@ exports.forgotPassword = async (req, res) => {
         await user.save();
 
         const emailResult = await sendOtpEmail(user.email, otp);
-
-        const responseData = { 
-            message: emailResult.isRealSent 
-                ? "📧 OTP verification code sent directly to your email inbox!" 
-                : "📧 OTP generated! (Development Mode: Verification code attached below)" 
-        };
-        
-        if (!emailResult.isRealSent) {
-            responseData.demoOtp = otp;
+        if (!emailResult.success) {
+            return res.status(500).json({ 
+                message: emailResult.error || "Failed to send OTP email. Please check your EMAIL_PASS in .env" 
+            });
         }
 
-        res.json(responseData);
+        res.json({ 
+            message: "📧 OTP verification code sent directly to your email address! (Please check your Inbox and Spam/Junk folder)" 
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
