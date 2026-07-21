@@ -113,84 +113,20 @@ const sendTokenCookies = (res, accessToken, refreshToken) => {
 // Helper to send email OTP
 const sendOtpEmail = async (email, otp) => {
     try {
-        // 0A. HTTP API via Brevo (Sendinblue) - HTTPS Port 443 (Sends to ANY user email in the world!)
-        if (process.env.BREVO_API_KEY) {
-            try {
-                const brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
-                    method: "POST",
-                    headers: {
-                        "api-key": process.env.BREVO_API_KEY,
-                        "Content-Type": "application/json",
-                        "Accept": "application/json"
-                    },
-                    body: JSON.stringify({
-                        sender: { name: "KvaultX", email: process.env.EMAIL_USER || process.env.BREVO_SENDER_EMAIL || "chotubhaiiit@gmail.com" },
-                        to: [{ email: email }],
-                        subject: "Your KvaultX Verification OTP Code",
-                        htmlContent: `<div style="font-family: Arial, sans-serif; padding: 20px; color: #333; background: #f9f9f9; border-radius: 8px;">
-                            <h2 style="color: #00d2ff;">🔐 KvaultX Verification Code</h2>
-                            <p>Your 6-digit verification code is:</p>
-                            <div style="background: linear-gradient(135deg, #00d2ff, #10b981); color: #ffffff; padding: 15px; font-size: 28px; font-weight: bold; letter-spacing: 6px; text-align: center; border-radius: 8px; margin: 15px 0;">
-                                ${otp}
-                            </div>
-                            <p>This code will expire in 10 minutes.</p>
-                        </div>`
-                    })
-                });
-                if (brevoRes.ok) {
-                    console.log(`\n📧 [BREVO HTTP API DELIVERED TO ANY USER] Sent OTP to ${email}: ${otp}\n`);
-                    return { success: true, isRealSent: true };
-                } else {
-                    const brevoErr = await brevoRes.json().catch(() => ({}));
-                    console.error("Brevo API Error:", brevoErr);
-                    return { success: false, isRealSent: false, error: `Brevo API Error: ${brevoErr.message || JSON.stringify(brevoErr)}` };
-                }
-            } catch (bErr) {
-                console.warn("Brevo API request failed:", bErr.message);
-                return { success: false, isRealSent: false, error: `Brevo Request Failed: ${bErr.message}` };
-            }
-        }
-
-        // 0B. HTTP API via Resend (HTTPS Port 443 - Bypasses Render SMTP port blocks)
-        if (process.env.RESEND_API_KEY) {
-            try {
-                const resendRes = await fetch("https://api.resend.com/emails", {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        from: "KvaultX <onboarding@resend.dev>",
-                        to: [email],
-                        subject: "Your KvaultX Verification OTP Code",
-                        html: `<div style="font-family: Arial, sans-serif; padding: 20px; color: #333; background: #f9f9f9; border-radius: 8px;">
-                            <h2 style="color: #00d2ff;">🔐 KvaultX Verification Code</h2>
-                            <p>Your 6-digit verification code is:</p>
-                            <div style="background: linear-gradient(135deg, #00d2ff, #10b981); color: #ffffff; padding: 15px; font-size: 28px; font-weight: bold; letter-spacing: 6px; text-align: center; border-radius: 8px; margin: 15px 0;">
-                                ${otp}
-                            </div>
-                            <p>This code will expire in 10 minutes.</p>
-                        </div>`
-                    })
-                });
-                if (resendRes.ok) {
-                    console.log(`\n📧 [RESEND HTTP API DELIVERED] Sent OTP to ${email}: ${otp}\n`);
-                    return { success: true, isRealSent: true };
-                } else {
-                    const errData = await resendRes.json().catch(() => ({}));
-                    console.error("Resend API Error Response:", errData);
-                    return { 
-                        success: false, 
-                        isRealSent: false, 
-                        error: `Resend API Error: ${errData.message || errData.name || "Invalid API key or unauthorized recipient"}` 
-                    };
-                }
-            } catch (resendErr) {
-                console.warn("Resend API request failed:", resendErr.message);
-                return { success: false, isRealSent: false, error: `Resend Request Failed: ${resendErr.message}` };
-            }
-        }
+        const mailOptions = {
+            from: `"KvaultX" <${process.env.EMAIL_USER || 'no-reply@kvaultx.io'}>`,
+            to: email,
+            subject: "Your KvaultX Verification OTP Code",
+            text: `Your 6-digit OTP code is: ${otp}. It will expire in 10 minutes.`,
+            html: `<div style="font-family: Arial, sans-serif; padding: 20px; color: #333; background: #f9f9f9; border-radius: 8px;">
+                <h2 style="color: #00d2ff;">🔐 KvaultX Verification Code</h2>
+                <p>Your 6-digit verification code is:</p>
+                <div style="background: linear-gradient(135deg, #00d2ff, #10b981); color: #ffffff; padding: 15px; font-size: 28px; font-weight: bold; letter-spacing: 6px; text-align: center; border-radius: 8px; margin: 15px 0;">
+                    ${otp}
+                </div>
+                <p>This code will expire in 10 minutes.</p>
+            </div>`
+        };
 
         const isRealGmail = process.env.EMAIL_USER && 
                             process.env.EMAIL_USER !== "mock_sender@gmail.com" && 
@@ -198,22 +134,7 @@ const sendOtpEmail = async (email, otp) => {
                             process.env.EMAIL_PASS !== "mock_sender_password";
 
         if (isRealGmail) {
-            const mailOptions = {
-                from: `"KvaultX" <${process.env.EMAIL_USER}>`,
-                to: email,
-                subject: "Your KvaultX Verification OTP Code",
-                text: `Your 6-digit OTP code is: ${otp}. It will expire in 10 minutes.`,
-                html: `<div style="font-family: Arial, sans-serif; padding: 20px; color: #333; background: #f9f9f9; border-radius: 8px;">
-                    <h2 style="color: #00d2ff;">🔐 KvaultX Verification Code</h2>
-                    <p>Your 6-digit verification code is:</p>
-                    <div style="background: linear-gradient(135deg, #00d2ff, #10b981); color: #ffffff; padding: 15px; font-size: 28px; font-weight: bold; letter-spacing: 6px; text-align: center; border-radius: 8px; margin: 15px 0;">
-                        ${otp}
-                    </div>
-                    <p>This code will expire in 10 minutes.</p>
-                </div>`
-            };
-
-            // Attempt 1: Port 465 SSL with forced IPv4 DNS lookup (Fixes Render ENETUNREACH)
+            // Attempt 1: Port 465 SSL with forced IPv4 DNS lookup
             try {
                 const transporter1 = nodemailer.createTransport({
                     host: "smtp.gmail.com",
@@ -226,38 +147,95 @@ const sendOtpEmail = async (email, otp) => {
                     socketTimeout: 10000
                 });
                 await transporter1.sendMail(mailOptions);
-                console.log(`\n📧 [REAL EMAIL DELIVERED TO INBOX] Sent OTP to ${email}: ${otp}\n`);
+                console.log(`\n📧 [REAL GMAIL DELIVERED] Sent OTP to ${email}: ${otp}\n`);
                 return { success: true, isRealSent: true };
             } catch (err1) {
-                console.warn("Attempt 1 (465 SSL IPv4) warning:", err1.message, "Trying Attempt 2 (587 TLS IPv4)...");
+                console.warn("Attempt 1 (465 SSL) warning:", err1.message, "Trying Attempt 2 (587 TLS)...");
                 // Attempt 2: Port 587 TLS with forced IPv4 DNS lookup
-                const transporter2 = nodemailer.createTransport({
-                    host: "smtp.gmail.com",
-                    port: 587,
-                    secure: false,
-                    lookup: (hostname, opts, cb) => dns.lookup(hostname, { family: 4 }, cb),
-                    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-                    connectionTimeout: 10000,
-                    greetingTimeout: 10000,
-                    socketTimeout: 10000
-                });
-                await transporter2.sendMail(mailOptions);
-                console.log(`\n📧 [REAL EMAIL DELIVERED TO INBOX] Sent OTP to ${email}: ${otp}\n`);
-                return { success: true, isRealSent: true };
+                try {
+                    const transporter2 = nodemailer.createTransport({
+                        host: "smtp.gmail.com",
+                        port: 587,
+                        secure: false,
+                        lookup: (hostname, opts, cb) => dns.lookup(hostname, { family: 4 }, cb),
+                        auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+                        connectionTimeout: 10000,
+                        greetingTimeout: 10000,
+                        socketTimeout: 10000
+                    });
+                    await transporter2.sendMail(mailOptions);
+                    console.log(`\n📧 [REAL GMAIL DELIVERED] Sent OTP to ${email}: ${otp}\n`);
+                    return { success: true, isRealSent: true };
+                } catch (err2) {
+                    console.warn("Attempt 2 (587 TLS) warning:", err2.message, "Trying Attempt 3 (Service Gmail)...");
+                    // Attempt 3: Service Gmail
+                    const transporter3 = nodemailer.createTransport({
+                        service: "gmail",
+                        family: 4,
+                        auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+                    });
+                    await transporter3.sendMail(mailOptions);
+                    console.log(`\n📧 [REAL GMAIL DELIVERED] Sent OTP to ${email}: ${otp}\n`);
+                    return { success: true, isRealSent: true };
+                }
             }
-        } else {
-            console.log(`\n📧 [DEV MODE - MOCK EMAIL] Placeholder SMTP credentials in .env. OTP for ${email}: ${otp}\n`);
-            return { success: true, isRealSent: false };
         }
+
+        // Fallback HTTP API via Brevo (Sendinblue)
+        if (process.env.BREVO_API_KEY) {
+            try {
+                const brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
+                    method: "POST",
+                    headers: {
+                        "api-key": process.env.BREVO_API_KEY,
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify({
+                        sender: { name: "KvaultX", email: process.env.EMAIL_USER || "chotubhaiiit@gmail.com" },
+                        to: [{ email: email }],
+                        subject: "Your KvaultX Verification OTP Code",
+                        htmlContent: mailOptions.html
+                    })
+                });
+                if (brevoRes.ok) {
+                    console.log(`\n📧 [BREVO HTTP API DELIVERED] Sent OTP to ${email}: ${otp}\n`);
+                    return { success: true, isRealSent: true };
+                }
+            } catch (bErr) {
+                console.warn("Brevo API fallback failed:", bErr.message);
+            }
+        }
+
+        // Fallback HTTP API via Resend
+        if (process.env.RESEND_API_KEY) {
+            try {
+                const resendRes = await fetch("https://api.resend.com/emails", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        from: "KvaultX <onboarding@resend.dev>",
+                        to: [email],
+                        subject: "Your KvaultX Verification OTP Code",
+                        html: mailOptions.html
+                    })
+                });
+                if (resendRes.ok) {
+                    console.log(`\n📧 [RESEND HTTP API DELIVERED] Sent OTP to ${email}: ${otp}\n`);
+                    return { success: true, isRealSent: true };
+                }
+            } catch (resendErr) {
+                console.warn("Resend API fallback failed:", resendErr.message);
+            }
+        }
+
+        return { success: false, isRealSent: false, error: "Failed to send email. Please check EMAIL_PASS in .env" };
     } catch (error) {
         console.error("Nodemailer error:", error.message);
-        return { 
-            success: false, 
-            isRealSent: false, 
-            error: error.message.includes("535") 
-                ? "Gmail Login Failed: Invalid EMAIL_PASS or App Password in .env. Please update .env with a valid 16-character Google App Password."
-                : `Email delivery failed: ${error.message}` 
-        };
+        return { success: false, isRealSent: false, error: error.message };
     }
 };
 
@@ -552,8 +530,7 @@ exports.forgotPassword = async (req, res) => {
         }
 
         res.json({ 
-            message: "📧 OTP verification code sent to your email address! (Check Inbox & Spam folder)",
-            otpCode: otp
+            message: "📧 OTP verification code sent directly to your email address! (Please check your Inbox and Spam/Junk folder)" 
         });
     } catch (error) {
         res.status(500).json({ message: error.message });

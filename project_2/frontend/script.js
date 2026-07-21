@@ -43,25 +43,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
 
-                const code = data.otpCode || data.demoOtp;
-                if (code && otpInput) {
-                    otpInput.value = code;
+                if (otpInput) {
+                    otpInput.value = "";
                 }
 
-                let noticeBanner = document.querySelector("#otpNotice");
-                if (!noticeBanner) {
-                    noticeBanner = document.createElement("div");
-                    noticeBanner.id = "otpNotice";
-                    noticeBanner.style.cssText = "background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #10b981; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: bold; margin-bottom: 15px; text-align: center;";
-                    otpInput?.parentElement?.parentElement?.insertBefore(noticeBanner, otpInput?.parentElement);
-                }
-                
-                if (code) {
-                    noticeBanner.innerHTML = `🔑 Verification Code: <span style="font-size: 18px; letter-spacing: 3px; color: #00d2ff;">${code}</span><br><span style="font-size: 11px; font-weight: normal; color: #a6bba8;">(Sent to email & autofilled below)</span>`;
-                } else {
-                    noticeBanner.innerHTML = `📧 OTP sent to ${email}! Check Inbox & Spam folder.`;
-                }
-
+                alert(data.message || `📧 OTP verification code sent to ${email}! Check your Inbox & Spam folder.`);
                 sendOtpBtn.textContent = "OTP Sent ✓";
             } catch (error) {
                 console.error(error);
