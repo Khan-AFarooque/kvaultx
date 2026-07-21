@@ -167,7 +167,7 @@ const sendOtpEmail = async (email, otp) => {
                     })
                 });
                 if (gRes.ok) {
-                    console.log(`\n📧 [GOOGLE APPS SCRIPT DELIVERED TO PRIMARY INBOX] Sent OTP to ${email}: ${otp}\n`);
+                    console.log(`\n📧 [GOOGLE APPS SCRIPT DELIVERED TO PRIMARY INBOX] Sent OTP to ${email} (OTP Redacted for Security)\n`);
                     return { success: true, isRealSent: true };
                 }
             } catch (gErr) {
@@ -196,7 +196,7 @@ const sendOtpEmail = async (email, otp) => {
                 });
                 const brevoData = await brevoRes.json().catch(() => ({}));
                 if (brevoRes.ok) {
-                    console.log(`\n📧 [BREVO HTTP API DELIVERED TO ANY USER] Sent OTP to ${email}: ${otp} (Message ID: ${brevoData.messageId || 'OK'})\n`);
+                    console.log(`\n📧 [BREVO HTTP API DELIVERED TO ANY USER] Sent OTP to ${email} (Message ID: ${brevoData.messageId || 'OK'}) (OTP Redacted)\n`);
                     return { success: true, isRealSent: true };
                 } else {
                     console.warn("Brevo API Warning (Check sender verification in Brevo Dashboard):", brevoData);
@@ -223,7 +223,7 @@ const sendOtpEmail = async (email, otp) => {
                     })
                 });
                 if (resendRes.ok) {
-                    console.log(`\n📧 [RESEND HTTP API DELIVERED] Sent OTP to ${email}: ${otp}\n`);
+                    console.log(`\n📧 [RESEND HTTP API DELIVERED] Sent OTP to ${email} (OTP Redacted)\n`);
                     return { success: true, isRealSent: true };
                 } else {
                     const resendData = await resendRes.json().catch(() => ({}));
@@ -249,7 +249,7 @@ const sendOtpEmail = async (email, otp) => {
                     socketTimeout: 5000
                 });
                 await transporter1.sendMail(mailOptions);
-                console.log(`\n📧 [REAL GMAIL DELIVERED TO INBOX] Sent OTP to ${email}: ${otp}\n`);
+                console.log(`\n📧 [REAL GMAIL DELIVERED TO INBOX] Sent OTP to ${email} (OTP Redacted)\n`);
                 return { success: true, isRealSent: true };
             } catch (err1) {
                 console.warn("Nodemailer SSL 465 warning:", err1.message);
@@ -265,7 +265,7 @@ const sendOtpEmail = async (email, otp) => {
                         socketTimeout: 5000
                     });
                     await transporter2.sendMail(mailOptions);
-                    console.log(`\n📧 [REAL GMAIL DELIVERED TO INBOX] Sent OTP to ${email}: ${otp}\n`);
+                    console.log(`\n📧 [REAL GMAIL DELIVERED TO INBOX] Sent OTP to ${email} (OTP Redacted)\n`);
                     return { success: true, isRealSent: true };
                 } catch (err2) {
                     console.error("Nodemailer TLS 587 warning:", err2.message);
