@@ -458,17 +458,19 @@ exports.login = async (req, res) => {
     try {
         const { email, password, captchaInput, captchaToken, mfaCode } = req.body;
 
-        // 1. Verify CAPTCHA
-        if (!captchaInput || !captchaToken) {
-            return res.status(400).json({ message: "CAPTCHA is required" });
-        }
-        try {
-            const decoded = jwt.verify(captchaToken, process.env.JWT_SECRET);
-            if (decoded.text.toUpperCase() !== captchaInput.toUpperCase()) {
-                return res.status(400).json({ message: "Invalid CAPTCHA code" });
+        // 1. Verify CAPTCHA (Only required on initial login step before MFA submission)
+        if (!mfaCode) {
+            if (!captchaInput || !captchaToken) {
+                return res.status(400).json({ message: "CAPTCHA is required" });
             }
-        } catch (err) {
-            return res.status(400).json({ message: "CAPTCHA code expired. Please reload." });
+            try {
+                const decoded = jwt.verify(captchaToken, process.env.JWT_SECRET);
+                if (decoded.text.toUpperCase() !== captchaInput.toUpperCase()) {
+                    return res.status(400).json({ message: "Invalid CAPTCHA code" });
+                }
+            } catch (err) {
+                return res.status(400).json({ message: "CAPTCHA code expired. Please reload." });
+            }
         }
 
         // 2. Verify User
