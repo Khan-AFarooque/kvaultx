@@ -460,123 +460,36 @@ const sendWelcomeEmail = async (email, name) => {
 };
 
 const sendLoginAlertEmail = async (email, name, ip, userAgent) => {
-    try {
-        const emailUser = (process.env.EMAIL_USER || "chotubhaiiit@gmail.com").replace(/\r|\n/g, "").trim();
-        const emailPass = (process.env.EMAIL_PASS || "").replace(/\r|\n/g, "").trim();
+    const subject = "Security Alert: Successful Login to Your KvaultX Account 🔐";
+    const html = `<div style="font-family: Arial, sans-serif; padding: 25px; color: #333; background: #0f172a; border-radius: 12px; max-width: 600px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h1 style="color: #00d2ff; font-size: 28px; margin: 0;">🔐 KvaultX</h1>
+            <p style="color: #94a3b8; font-size: 13px; margin-top: 5px;">SECURITY LOGIN NOTIFICATION</p>
+        </div>
+        <div style="background: #1e293b; padding: 25px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); color: #f8fafc;">
+            <h2 style="color: #38bdf8; margin-top: 0;">Login Notification 🛡️</h2>
+            <p style="font-size: 14px; color: #cbd5e1;">Hello ${name || "User"},</p>
+            <p style="font-size: 14px; color: #cbd5e1;">
+                We detected a successful login to your <strong>KvaultX account</strong>:
+            </p>
+            <ul style="background: #0f172a; padding: 15px 20px; border-radius: 6px; font-size: 13px; color: #94a3b8; list-style: none; line-height: 1.8;">
+                <li><strong>🕒 Time:</strong> ${new Date().toLocaleString()}</li>
+                <li><strong>🌐 IP Address:</strong> ${ip || "127.0.0.1"}</li>
+                <li><strong>💻 Device / Browser:</strong> ${userAgent || "Web Browser"}</li>
+            </ul>
+            <div style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 12px 15px; border-radius: 6px; margin: 20px 0;">
+                <p style="margin: 0; color: #f87171; font-size: 13px;">
+                    ⚠️ <strong>Wasn't you?</strong> If an unknown person logged into your account, please log in immediately and change your master password.
+                </p>
+            </div>
+            <p style="font-size: 14px; color: #94a3b8; margin-bottom: 0;">
+                Stay vigilant,<br>
+                <strong>The KvaultX Security Team</strong>
+            </p>
+        </div>
+    </div>`;
 
-        const mailOptions = {
-            from: `"KvaultX Security" <${emailUser}>`,
-            to: email.trim(),
-            subject: "Security Alert: Successful Login to Your KvaultX Account 🔐",
-            html: `<div style="font-family: Arial, sans-serif; padding: 25px; color: #333; background: #0f172a; border-radius: 12px; max-width: 600px; margin: 0 auto;">
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <h1 style="color: #00d2ff; font-size: 28px; margin: 0;">🔐 KvaultX</h1>
-                    <p style="color: #94a3b8; font-size: 13px; margin-top: 5px;">SECURITY LOGIN NOTIFICATION</p>
-                </div>
-                <div style="background: #1e293b; padding: 25px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); color: #f8fafc;">
-                    <h2 style="color: #38bdf8; margin-top: 0;">Login Notification 🛡️</h2>
-                    <p style="font-size: 14px; color: #cbd5e1;">Hello ${name || "User"},</p>
-                    <p style="font-size: 14px; color: #cbd5e1;">
-                        We detected a successful login to your <strong>KvaultX account</strong>:
-                    </p>
-                    <ul style="background: #0f172a; padding: 15px 20px; border-radius: 6px; font-size: 13px; color: #94a3b8; list-style: none; line-height: 1.8;">
-                        <li><strong>🕒 Time:</strong> ${new Date().toLocaleString()}</li>
-                        <li><strong>🌐 IP Address:</strong> ${ip || "127.0.0.1"}</li>
-                        <li><strong>💻 Device / Browser:</strong> ${userAgent || "Web Browser"}</li>
-                    </ul>
-                    <div style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 12px 15px; border-radius: 6px; margin: 20px 0;">
-                        <p style="margin: 0; color: #f87171; font-size: 13px;">
-                            ⚠️ <strong>Wasn't you?</strong> If an unknown person logged into your account, please log in immediately and change your master password.
-                        </p>
-                    </div>
-                    <p style="font-size: 14px; color: #94a3b8; margin-bottom: 0;">
-                        Stay vigilant,<br>
-                        <strong>The KvaultX Security Team</strong>
-                    </p>
-                </div>
-            </div>`
-        };
-
-        // Priority 1: Brevo HTTP API (HTTPS Port 443 - Verified Sender)
-        if (process.env.BREVO_API_KEY) {
-            try {
-                const brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
-                    method: "POST",
-                    headers: {
-                        "api-key": process.env.BREVO_API_KEY.trim(),
-                        "Content-Type": "application/json",
-                        "Accept": "application/json"
-                    },
-                    body: JSON.stringify({
-                        sender: { name: "KvaultX Security", email: emailUser || "chotubhaiiit@gmail.com" },
-                        to: [{ email: email.trim() }],
-                        subject: mailOptions.subject,
-                        htmlContent: mailOptions.html
-                    })
-                });
-                const bData = await brevoRes.json().catch(() => ({}));
-                if (brevoRes.ok) {
-                    console.log(`\n📧 [LOGIN SECURITY ALERT DELIVERED VIA BREVO] Sent to ${email} (Message ID: ${bData.messageId || 'OK'})\n`);
-                    return { success: true };
-                } else {
-                    console.warn("Brevo API warning in sendLoginAlertEmail:", bData);
-                }
-            } catch (bErr) {
-                console.warn("Brevo API error in sendLoginAlertEmail:", bErr.message);
-            }
-        }
-
-        // Priority 2: Fast Resend HTTP API (HTTPS Port 443)
-        if (process.env.RESEND_API_KEY) {
-            try {
-                const resendRes = await fetch("https://api.resend.com/emails", {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${process.env.RESEND_API_KEY.trim()}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        from: "KvaultX <onboarding@resend.dev>",
-                        to: [email.trim()],
-                        subject: mailOptions.subject,
-                        html: mailOptions.html
-                    })
-                });
-                if (resendRes.ok) {
-                    console.log(`\n📧 [LOGIN SECURITY ALERT DELIVERED VIA RESEND] Sent to ${email}\n`);
-                    return { success: true };
-                } else {
-                    const rData = await resendRes.json().catch(() => ({}));
-                    console.warn("Resend API warning in sendLoginAlertEmail:", rData.message);
-                }
-            } catch (rErr) {
-                console.warn("Resend API error in sendLoginAlertEmail:", rErr.message);
-            }
-        }
-
-        // Priority 3: Direct Nodemailer Gmail SMTP with 3s Max Fast Timeout & Forced IPv4
-        if (emailUser && emailPass && emailUser !== "mock_sender@gmail.com") {
-            try {
-                const transporter = nodemailer.createTransport({
-                    host: "smtp.gmail.com",
-                    port: 465,
-                    secure: true,
-                    lookup: customLookupIPv4,
-                    auth: { user: emailUser, pass: emailPass },
-                    connectionTimeout: 3000,
-                    greetingTimeout: 3000,
-                    socketTimeout: 3000
-                });
-                await transporter.sendMail(mailOptions);
-                console.log(`\n📧 [LOGIN SECURITY ALERT DELIVERED VIA GMAIL SMTP] Sent to ${email}\n`);
-                return { success: true };
-            } catch (err) {
-                console.warn("Login security alert SMTP warning:", err.message);
-            }
-        }
-    } catch (err) {
-        console.error("sendLoginAlertEmail error:", err.message);
-    }
+    return sendGenericEmail(email, subject, html);
 };
 
 // Safety alias function for Passkey / WebAuthn handlers
