@@ -22,7 +22,7 @@ async function apiFetch(endpoint, options = {}) {
     options.headers["Content-Type"] = options.headers["Content-Type"] || "application/json";
     
     const accessToken = localStorage.getItem("accessToken");
-    if (accessToken) {
+    if (accessToken && accessToken !== "undefined" && accessToken !== "null") {
         options.headers["Authorization"] = `Bearer ${accessToken}`;
     }
 

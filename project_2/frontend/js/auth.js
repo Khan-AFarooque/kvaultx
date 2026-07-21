@@ -208,12 +208,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 // Store tokens and user details in localStorage
-                localStorage.setItem("accessToken", data.accessToken);
-                localStorage.setItem("refreshToken", data.refreshToken);
-                localStorage.setItem("user", JSON.stringify(data.user));
+                if (data.accessToken && data.accessToken !== "undefined") {
+                    localStorage.setItem("accessToken", data.accessToken);
+                    localStorage.setItem("refreshToken", data.refreshToken || "");
+                    localStorage.setItem("user", JSON.stringify(data.user || {}));
 
-                const targetDashboard = window.location.pathname.includes("/pages/") ? "dashboard.html" : "pages/dashboard.html";
-                window.location.href = targetDashboard;
+                    const targetDashboard = window.location.pathname.includes("/pages/") ? "dashboard.html" : "pages/dashboard.html";
+                    window.location.href = targetDashboard;
+                } else {
+                    alert(data.message || "Login failed: No access token received.");
+                }
             } catch (err) {
                 console.error("Login Error:", err);
                 alert("Server connection error. Is the backend server running?");

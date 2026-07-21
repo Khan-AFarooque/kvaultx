@@ -9,8 +9,9 @@ let inactivityTimer;
 
 document.addEventListener("DOMContentLoaded", () => {
     // Session Verification
-    const token = localStorage.getItem("accessToken") || localStorage.getItem("refreshToken");
-    if (!token && !window.location.pathname.endsWith("login.html") && !window.location.pathname.endsWith("signup.html") && !window.location.pathname.endsWith("terms.html") && !window.location.pathname.endsWith("privacy.html")) {
+    const token = localStorage.getItem("accessToken");
+    const isValidToken = token && token !== "undefined" && token !== "null";
+    if (!isValidToken && !window.location.pathname.endsWith("login.html") && !window.location.pathname.endsWith("signup.html") && !window.location.pathname.endsWith("terms.html") && !window.location.pathname.endsWith("privacy.html")) {
         window.location.href = "login.html";
         return;
     }
