@@ -139,9 +139,18 @@ const sendOtpEmail = async (email, otp) => {
                 if (resendRes.ok) {
                     console.log(`\n📧 [RESEND HTTP API DELIVERED] Sent OTP to ${email}: ${otp}\n`);
                     return { success: true, isRealSent: true };
+                } else {
+                    const errData = await resendRes.json().catch(() => ({}));
+                    console.error("Resend API Error Response:", errData);
+                    return { 
+                        success: false, 
+                        isRealSent: false, 
+                        error: `Resend API Error: ${errData.message || errData.name || "Invalid API key or unauthorized recipient"}` 
+                    };
                 }
             } catch (resendErr) {
-                console.warn("Resend API failed, falling back to Nodemailer:", resendErr.message);
+                console.warn("Resend API request failed:", resendErr.message);
+                return { success: false, isRealSent: false, error: `Resend Request Failed: ${resendErr.message}` };
             }
         }
 
