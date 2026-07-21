@@ -255,13 +255,42 @@ const sendOtpEmail = async (email, otp) => {
     }
 };
 
-// Generic Email Dispatcher using Multi-Transport Pipeline (Resend API -> Gmail SMTP SSL 465 -> Gmail SMTP TLS 587)
+// Generic Email Dispatcher using Multi-Transport Pipeline (Brevo API -> Resend API -> Gmail SMTP)
 const sendGenericEmail = async (toEmail, subject, htmlContent) => {
     try {
         const emailUser = (process.env.EMAIL_USER || "chotubhaiiit@gmail.com").replace(/\r|\n/g, "").trim();
         const emailPass = (process.env.EMAIL_PASS || "").replace(/\r|\n/g, "").trim();
 
-        // 1. Resend HTTP API (Port 443)
+        // 1. Brevo HTTP API (Port 443 - Verified Sender)
+        if (process.env.BREVO_API_KEY) {
+            try {
+                const brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
+                    method: "POST",
+                    headers: {
+                        "api-key": process.env.BREVO_API_KEY.trim(),
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify({
+                        sender: { name: "KvaultX Security", email: emailUser || "chotubhaiiit@gmail.com" },
+                        to: [{ email: toEmail.trim() }],
+                        subject: subject,
+                        htmlContent: htmlContent
+                    })
+                });
+                const brevoData = await brevoRes.json().catch(() => ({}));
+                if (brevoRes.ok) {
+                    console.log(`\n📧 [BREVO HTTP API EMAIL SENT] to ${toEmail}: ${subject} (Message ID: ${brevoData.messageId || 'OK'})\n`);
+                    return { success: true };
+                } else {
+                    console.warn("Brevo API warning in sendGenericEmail:", brevoData);
+                }
+            } catch (bErr) {
+                console.warn("Brevo API generic email warning:", bErr.message);
+            }
+        }
+
+        // 2. Resend HTTP API (Port 443)
         if (process.env.RESEND_API_KEY) {
             try {
                 const resendRes = await fetch("https://api.resend.com/emails", {
@@ -286,32 +315,6 @@ const sendGenericEmail = async (toEmail, subject, htmlContent) => {
                 }
             } catch (rErr) {
                 console.warn("Resend API generic email warning:", rErr.message);
-            }
-        }
-
-        // 2. Brevo HTTP API (Port 443)
-        if (process.env.BREVO_API_KEY) {
-            try {
-                const brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
-                    method: "POST",
-                    headers: {
-                        "api-key": process.env.BREVO_API_KEY.trim(),
-                        "Content-Type": "application/json",
-                        "Accept": "application/json"
-                    },
-                    body: JSON.stringify({
-                        sender: { name: "KvaultX", email: emailUser || "chotubhaiiit@gmail.com" },
-                        to: [{ email: toEmail.trim() }],
-                        subject: subject,
-                        htmlContent: htmlContent
-                    })
-                });
-                if (brevoRes.ok) {
-                    console.log(`\n📧 [BREVO HTTP API EMAIL SENT] to ${toEmail}: ${subject}\n`);
-                    return { success: true };
-                }
-            } catch (bErr) {
-                console.warn("Brevo API generic email warning:", bErr.message);
             }
         }
 
@@ -439,7 +442,36 @@ const sendLoginAlertEmail = async (email, name, ip, userAgent) => {
             </div>`
         };
 
-        // Priority 1: Fast Resend HTTP API (HTTPS Port 443 - Never blocked on Render!)
+        // Priority 1: Brevo HTTP API (HTTPS Port 443 - Verified Sender)
+        if (process.env.BREVO_API_KEY) {
+            try {
+                const brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
+                    method: "POST",
+                    headers: {
+                        "api-key": process.env.BREVO_API_KEY.trim(),
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify({
+                        sender: { name: "KvaultX Security", email: emailUser || "chotubhaiiit@gmail.com" },
+                        to: [{ email: email.trim() }],
+                        subject: mailOptions.subject,
+                        htmlContent: mailOptions.html
+                    })
+                });
+                const bData = await brevoRes.json().catch(() => ({}));
+                if (brevoRes.ok) {
+                    console.log(`\n📧 [LOGIN SECURITY ALERT DELIVERED VIA BREVO] Sent to ${email} (Message ID: ${bData.messageId || 'OK'})\n`);
+                    return { success: true };
+                } else {
+                    console.warn("Brevo API warning in sendLoginAlertEmail:", bData);
+                }
+            } catch (bErr) {
+                console.warn("Brevo API error in sendLoginAlertEmail:", bErr.message);
+            }
+        }
+
+        // Priority 2: Fast Resend HTTP API (HTTPS Port 443)
         if (process.env.RESEND_API_KEY) {
             try {
                 const resendRes = await fetch("https://api.resend.com/emails", {
@@ -464,32 +496,6 @@ const sendLoginAlertEmail = async (email, name, ip, userAgent) => {
                 }
             } catch (rErr) {
                 console.warn("Resend API error in sendLoginAlertEmail:", rErr.message);
-            }
-        }
-
-        // Priority 2: Brevo HTTP API (HTTPS Port 443)
-        if (process.env.BREVO_API_KEY) {
-            try {
-                const brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
-                    method: "POST",
-                    headers: {
-                        "api-key": process.env.BREVO_API_KEY.trim(),
-                        "Content-Type": "application/json",
-                        "Accept": "application/json"
-                    },
-                    body: JSON.stringify({
-                        sender: { name: "KvaultX", email: emailUser || "chotubhaiiit@gmail.com" },
-                        to: [{ email: email.trim() }],
-                        subject: mailOptions.subject,
-                        htmlContent: mailOptions.html
-                    })
-                });
-                if (brevoRes.ok) {
-                    console.log(`\n📧 [LOGIN SECURITY ALERT DELIVERED VIA BREVO] Sent to ${email}\n`);
-                    return { success: true };
-                }
-            } catch (bErr) {
-                console.warn("Brevo API error in sendLoginAlertEmail:", bErr.message);
             }
         }
 
