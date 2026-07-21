@@ -144,7 +144,41 @@ const sendOtpEmail = async (email, otp) => {
             </div>`
         };
 
-        // 1. Fast HTTP API via Brevo (HTTPS Port 443 - Bypasses Render outbound SMTP port blocks)
+        // 1. Fast HTTP API via Resend (HTTPS Port 443 - Fully DMARC Compliant & Bypasses Render Port Blocks)
+        if (process.env.RESEND_API_KEY) {
+            try {
+                const resendRes = await fetch("https://api.resend.com/emails", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${process.env.RESEND_API_KEY.trim()}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        from: "KvaultX <onboarding@resend.dev>",
+                        to: [email.trim()],
+                        subject: "Your KvaultX Verification OTP Code",
+                        html: mailOptions.html
+                    })
+                });
+                const resendData = await resendRes.json().catch(() => ({}));
+                if (resendRes.ok) {
+                    console.log(`\n📧 [RESEND HTTP API DELIVERED] Sent OTP to ${email}: ${otp}\n`);
+                    return { success: true, isRealSent: true };
+                } else {
+                    console.error("Resend API Error:", resendData);
+                    return { 
+                        success: false, 
+                        isRealSent: false, 
+                        error: `Resend Delivery Error: ${resendData.message || JSON.stringify(resendData)}` 
+                    };
+                }
+            } catch (resendErr) {
+                console.warn("Resend API warning:", resendErr.message);
+                return { success: false, isRealSent: false, error: `Resend Request Failed: ${resendErr.message}` };
+            }
+        }
+
+        // 2. Fast HTTP API via Brevo (HTTPS Port 443)
         if (process.env.BREVO_API_KEY) {
             try {
                 const brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
@@ -161,40 +195,15 @@ const sendOtpEmail = async (email, otp) => {
                         htmlContent: mailOptions.html
                     })
                 });
+                const brevoData = await brevoRes.json().catch(() => ({}));
                 if (brevoRes.ok) {
                     console.log(`\n📧 [BREVO HTTP API DELIVERED] Sent OTP to ${email}: ${otp}\n`);
                     return { success: true, isRealSent: true };
                 } else {
-                    const errJson = await brevoRes.json().catch(() => ({}));
-                    console.warn("Brevo API Error:", errJson);
+                    console.warn("Brevo API Error:", brevoData);
                 }
             } catch (bErr) {
                 console.warn("Brevo API warning:", bErr.message);
-            }
-        }
-
-        // 2. Fast HTTP API via Resend (HTTPS Port 443)
-        if (process.env.RESEND_API_KEY) {
-            try {
-                const resendRes = await fetch("https://api.resend.com/emails", {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${process.env.RESEND_API_KEY.trim()}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        from: "KvaultX <onboarding@resend.dev>",
-                        to: [email.trim()],
-                        subject: "Your KvaultX Verification OTP Code",
-                        html: mailOptions.html
-                    })
-                });
-                if (resendRes.ok) {
-                    console.log(`\n📧 [RESEND HTTP API DELIVERED] Sent OTP to ${email}: ${otp}\n`);
-                    return { success: true, isRealSent: true };
-                }
-            } catch (resendErr) {
-                console.warn("Resend API warning:", resendErr.message);
             }
         }
 
