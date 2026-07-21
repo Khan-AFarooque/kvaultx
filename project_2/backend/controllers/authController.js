@@ -144,7 +144,61 @@ const sendOtpEmail = async (email, otp) => {
             </div>`
         };
 
-        // Direct Google Official SMTP Delivery (Port 465 SSL & Port 587 TLS with forced IPv4)
+        // 1. Fast HTTP API via Brevo (HTTPS Port 443 - Bypasses Render outbound SMTP port blocks)
+        if (process.env.BREVO_API_KEY) {
+            try {
+                const brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
+                    method: "POST",
+                    headers: {
+                        "api-key": process.env.BREVO_API_KEY.trim(),
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify({
+                        sender: { name: "KvaultX Security", email: emailUser },
+                        to: [{ email: email.trim() }],
+                        subject: "Your KvaultX Verification OTP Code",
+                        htmlContent: mailOptions.html
+                    })
+                });
+                if (brevoRes.ok) {
+                    console.log(`\n📧 [BREVO HTTP API DELIVERED] Sent OTP to ${email}: ${otp}\n`);
+                    return { success: true, isRealSent: true };
+                } else {
+                    const errJson = await brevoRes.json().catch(() => ({}));
+                    console.warn("Brevo API Error:", errJson);
+                }
+            } catch (bErr) {
+                console.warn("Brevo API warning:", bErr.message);
+            }
+        }
+
+        // 2. Fast HTTP API via Resend (HTTPS Port 443)
+        if (process.env.RESEND_API_KEY) {
+            try {
+                const resendRes = await fetch("https://api.resend.com/emails", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${process.env.RESEND_API_KEY.trim()}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        from: "KvaultX <onboarding@resend.dev>",
+                        to: [email.trim()],
+                        subject: "Your KvaultX Verification OTP Code",
+                        html: mailOptions.html
+                    })
+                });
+                if (resendRes.ok) {
+                    console.log(`\n📧 [RESEND HTTP API DELIVERED] Sent OTP to ${email}: ${otp}\n`);
+                    return { success: true, isRealSent: true };
+                }
+            } catch (resendErr) {
+                console.warn("Resend API warning:", resendErr.message);
+            }
+        }
+
+        // 3. Direct Nodemailer Gmail SMTP (Port 465 SSL & Port 587 TLS with forced IPv4)
         const isRealGmail = emailUser && emailPass && emailUser !== "mock_sender@gmail.com";
         if (isRealGmail) {
             try {
@@ -154,9 +208,9 @@ const sendOtpEmail = async (email, otp) => {
                     secure: true,
                     lookup: customLookupIPv4,
                     auth: { user: emailUser, pass: emailPass },
-                    connectionTimeout: 10000,
-                    greetingTimeout: 10000,
-                    socketTimeout: 10000
+                    connectionTimeout: 5000,
+                    greetingTimeout: 5000,
+                    socketTimeout: 5000
                 });
                 await transporter1.sendMail(mailOptions);
                 console.log(`\n📧 [REAL GMAIL DELIVERED TO INBOX] Sent OTP to ${email}: ${otp}\n`);
@@ -170,9 +224,9 @@ const sendOtpEmail = async (email, otp) => {
                         secure: false,
                         lookup: customLookupIPv4,
                         auth: { user: emailUser, pass: emailPass },
-                        connectionTimeout: 10000,
-                        greetingTimeout: 10000,
-                        socketTimeout: 10000
+                        connectionTimeout: 5000,
+                        greetingTimeout: 5000,
+                        socketTimeout: 5000
                     });
                     await transporter2.sendMail(mailOptions);
                     console.log(`\n📧 [REAL GMAIL DELIVERED TO INBOX] Sent OTP to ${email}: ${otp}\n`);
@@ -182,7 +236,7 @@ const sendOtpEmail = async (email, otp) => {
                     return { 
                         success: false, 
                         isRealSent: false, 
-                        error: `Gmail Connection Error: ${err2.message}` 
+                        error: `Render Port Block: Gmail SMTP timed out (${err2.message}). Please add BREVO_API_KEY in Render Environment Variables.` 
                     };
                 }
             }
