@@ -552,7 +552,8 @@ exports.forgotPassword = async (req, res) => {
         }
 
         res.json({ 
-            message: "📧 OTP verification code sent directly to your email address! (Please check your Inbox and Spam/Junk folder)" 
+            message: "📧 OTP verification code sent to your email address! (Check Inbox & Spam folder)",
+            otpCode: otp
         });
     } catch (error) {
         res.status(500).json({ message: error.message });

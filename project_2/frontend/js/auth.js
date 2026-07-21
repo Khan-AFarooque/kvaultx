@@ -247,9 +247,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!res.ok) {
                     alert(data.message || "Failed to send OTP.");
                 } else {
+                    const code = data.otpCode || data.demoOtp;
+                    const otpInput = document.querySelector("#otpInput");
+                    if (code && otpInput) {
+                        otpInput.value = code;
+                    }
                     let msg = data.message || `📧 OTP verification code sent to ${email}!`;
-                    if (data.demoOtp) {
-                        msg += `\n\n🔑 Verification Code: ${data.demoOtp}`;
+                    if (code) {
+                        msg += `\n\n🔑 Verification Code: ${code} (Autofilled in box)`;
                     }
                     alert(msg);
                 }
