@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const dns = require("dns");
+require("dotenv").config();
 const crypto = require("crypto");
 const otplib = require("otplib");
 const authenticator = otplib.authenticator || (otplib.default && otplib.default.authenticator) || otplib;
