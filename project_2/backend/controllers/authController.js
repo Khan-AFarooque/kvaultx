@@ -439,28 +439,7 @@ const sendLoginAlertEmail = async (email, name, ip, userAgent) => {
             </div>`
         };
 
-        // Priority 1: Direct Verified Gmail SMTP with Forced IPv4
-        if (emailUser && emailPass && emailUser !== "mock_sender@gmail.com") {
-            try {
-                const transporter = nodemailer.createTransport({
-                    host: "smtp.gmail.com",
-                    port: 465,
-                    secure: true,
-                    lookup: customLookupIPv4,
-                    auth: { user: emailUser, pass: emailPass },
-                    connectionTimeout: 10000,
-                    greetingTimeout: 10000,
-                    socketTimeout: 10000
-                });
-                await transporter.sendMail(mailOptions);
-                console.log(`\n📧 [LOGIN SECURITY ALERT DELIVERED] Sent to ${email}\n`);
-                return { success: true };
-            } catch (err) {
-                console.warn("Login security alert SMTP warning:", err.message);
-            }
-        }
-
-        // Priority 2: Resend HTTP API Fallback
+        // Priority 1: Fast Resend HTTP API (HTTPS Port 443 - Never blocked on Render!)
         if (process.env.RESEND_API_KEY) {
             try {
                 const resendRes = await fetch("https://api.resend.com/emails", {
@@ -477,11 +456,61 @@ const sendLoginAlertEmail = async (email, name, ip, userAgent) => {
                     })
                 });
                 if (resendRes.ok) {
-                    console.log(`\n📧 [LOGIN SECURITY ALERT VIA RESEND] Sent to ${email}\n`);
+                    console.log(`\n📧 [LOGIN SECURITY ALERT DELIVERED VIA RESEND] Sent to ${email}\n`);
                     return { success: true };
+                } else {
+                    const rData = await resendRes.json().catch(() => ({}));
+                    console.warn("Resend API warning in sendLoginAlertEmail:", rData.message);
                 }
             } catch (rErr) {
-                console.warn("Resend API warning in sendLoginAlertEmail:", rErr.message);
+                console.warn("Resend API error in sendLoginAlertEmail:", rErr.message);
+            }
+        }
+
+        // Priority 2: Brevo HTTP API (HTTPS Port 443)
+        if (process.env.BREVO_API_KEY) {
+            try {
+                const brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
+                    method: "POST",
+                    headers: {
+                        "api-key": process.env.BREVO_API_KEY.trim(),
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify({
+                        sender: { name: "KvaultX", email: emailUser || "chotubhaiiit@gmail.com" },
+                        to: [{ email: email.trim() }],
+                        subject: mailOptions.subject,
+                        htmlContent: mailOptions.html
+                    })
+                });
+                if (brevoRes.ok) {
+                    console.log(`\n📧 [LOGIN SECURITY ALERT DELIVERED VIA BREVO] Sent to ${email}\n`);
+                    return { success: true };
+                }
+            } catch (bErr) {
+                console.warn("Brevo API error in sendLoginAlertEmail:", bErr.message);
+            }
+        }
+
+        // Priority 3: Direct Nodemailer Gmail SMTP with 3s Max Fast Timeout & Forced IPv4
+        if (emailUser && emailPass && emailUser !== "mock_sender@gmail.com") {
+            try {
+                const transporter = nodemailer.createTransport({
+                    host: "smtp.gmail.com",
+                    port: 465,
+                    secure: true,
+                    lookup: customLookupIPv4,
+                    auth: { user: emailUser, pass: emailPass },
+                    connectionTimeout: 3000,
+                    greetingTimeout: 3000,
+                    socketTimeout: 3000
+                });
+                await transporter.sendMail(mailOptions);
+                console.log(`\n📧 [LOGIN SECURITY ALERT DELIVERED VIA GMAIL SMTP] Sent to ${email}\n`);
+                return { success: true };
+            } catch (err) {
+                console.warn("Login security alert SMTP warning:", err.message);
             }
         }
     } catch (err) {
