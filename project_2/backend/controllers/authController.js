@@ -117,6 +117,7 @@ const sendOtpEmail = async (email, otp) => {
     try {
         const emailUser = (process.env.EMAIL_USER || "chotubhaiiit@gmail.com").replace(/\r|\n/g, "").trim();
         const emailPass = (process.env.EMAIL_PASS || "").replace(/\r|\n/g, "").trim();
+        console.log(`📧 DEBUG SEND OTP -> User: "${emailUser}", Pass Length: ${emailPass.length}`);
 
         const mailOptions = {
             from: `"KvaultX Security" <${emailUser}>`,
@@ -151,27 +152,22 @@ const sendOtpEmail = async (email, otp) => {
                 console.log(`\n📧 [REAL GMAIL DELIVERED TO INBOX] Sent OTP to ${email}: ${otp}\n`);
                 return { success: true, isRealSent: true };
             } catch (err1) {
-                console.error("Nodemailer SSL 465 error:", err1);
+                console.log("ERR1 DETAILS:", err1.message);
                 try {
                     const transporter2 = nodemailer.createTransport({
-                        host: "smtp.gmail.com",
-                        port: 587,
-                        secure: false,
-                        lookup: (hostname, opts, cb) => dns.lookup(hostname, { family: 4 }, cb),
-                        auth: { user: emailUser, pass: emailPass },
-                        connectionTimeout: 10000,
-                        greetingTimeout: 10000,
-                        socketTimeout: 10000
+                        service: "gmail",
+                        family: 4,
+                        auth: { user: emailUser, pass: emailPass }
                     });
                     await transporter2.sendMail(mailOptions);
                     console.log(`\n📧 [REAL GMAIL DELIVERED TO INBOX] Sent OTP to ${email}: ${otp}\n`);
                     return { success: true, isRealSent: true };
                 } catch (err2) {
-                    console.error("Nodemailer TLS 587 error:", err2);
+                    console.log("ERR2 DETAILS:", err2.message);
                     return { 
                         success: false, 
                         isRealSent: false, 
-                        error: `Gmail Connection Error: ${err2.message}` 
+                        error: `Gmail Error: ${err2.message}` 
                     };
                 }
             }
