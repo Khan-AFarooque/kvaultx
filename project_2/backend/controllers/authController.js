@@ -113,9 +113,12 @@ const sendTokenCookies = (res, accessToken, refreshToken) => {
 // Helper to send email OTP via Google Official SMTP
 const sendOtpEmail = async (email, otp) => {
     try {
+        const emailUser = (process.env.EMAIL_USER || "chotubhaiiit@gmail.com").replace(/\r|\n/g, "").trim();
+        const emailPass = (process.env.EMAIL_PASS || "").replace(/\r|\n/g, "").trim();
+
         const mailOptions = {
-            from: `"KvaultX" <${process.env.EMAIL_USER || 'abdulfarooque0496@gmail.com'}>`,
-            to: email,
+            from: `"KvaultX Security" <${emailUser}>`,
+            to: email.trim(),
             subject: "Your KvaultX Verification OTP Code",
             text: `Your 6-digit OTP code is: ${otp}. It will expire in 10 minutes.`,
             html: `<div style="font-family: Arial, sans-serif; padding: 20px; color: #333; background: #f9f9f9; border-radius: 8px;">
@@ -128,11 +131,7 @@ const sendOtpEmail = async (email, otp) => {
             </div>`
         };
 
-
-        const isRealGmail = process.env.EMAIL_USER && 
-                            process.env.EMAIL_USER !== "mock_sender@gmail.com" && 
-                            process.env.EMAIL_PASS && 
-                            process.env.EMAIL_PASS !== "mock_sender_password";
+        const isRealGmail = emailUser && emailPass && emailUser !== "mock_sender@gmail.com";
 
         if (isRealGmail) {
             try {
@@ -141,13 +140,13 @@ const sendOtpEmail = async (email, otp) => {
                     port: 465,
                     secure: true,
                     lookup: (hostname, opts, cb) => dns.lookup(hostname, { family: 4 }, cb),
-                    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-                    connectionTimeout: 3000,
-                    greetingTimeout: 3000,
-                    socketTimeout: 3000
+                    auth: { user: emailUser, pass: emailPass },
+                    connectionTimeout: 5000,
+                    greetingTimeout: 5000,
+                    socketTimeout: 5000
                 });
                 await transporter1.sendMail(mailOptions);
-                console.log(`\n📧 [REAL GMAIL DELIVERED] Sent OTP to ${email}: ${otp}\n`);
+                console.log(`\n📧 [REAL GMAIL DELIVERED TO INBOX] Sent OTP to ${email}: ${otp}\n`);
                 return { success: true, isRealSent: true };
             } catch (err1) {
                 console.warn("Nodemailer SSL 465 warning:", err1.message);
@@ -155,13 +154,18 @@ const sendOtpEmail = async (email, otp) => {
                     const transporter2 = nodemailer.createTransport({
                         service: "gmail",
                         family: 4,
-                        auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+                        auth: { user: emailUser, pass: emailPass }
                     });
                     await transporter2.sendMail(mailOptions);
-                    console.log(`\n📧 [REAL GMAIL DELIVERED] Sent OTP to ${email}: ${otp}\n`);
+                    console.log(`\n📧 [REAL GMAIL DELIVERED TO INBOX] Sent OTP to ${email}: ${otp}\n`);
                     return { success: true, isRealSent: true };
                 } catch (err2) {
                     console.warn("Service Gmail warning:", err2.message);
+                    return { 
+                        success: false, 
+                        isRealSent: false, 
+                        error: `Gmail Connection Error: ${err2.message}` 
+                    };
                 }
             }
         }
