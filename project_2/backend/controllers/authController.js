@@ -133,33 +133,7 @@ const sendOtpEmail = async (email, otp) => {
             </div>`
         };
 
-        // 1. Fast HTTP API via Brevo (Sendinblue) - HTTPS Port 443 (Instant < 300ms)
-        if (process.env.BREVO_API_KEY) {
-            try {
-                const brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
-                    method: "POST",
-                    headers: {
-                        "api-key": process.env.BREVO_API_KEY.trim(),
-                        "Content-Type": "application/json",
-                        "Accept": "application/json"
-                    },
-                    body: JSON.stringify({
-                        sender: { name: "KvaultX", email: emailUser },
-                        to: [{ email: email.trim() }],
-                        subject: "Your KvaultX Verification OTP Code",
-                        htmlContent: mailOptions.html
-                    })
-                });
-                if (brevoRes.ok) {
-                    console.log(`\n📧 [BREVO HTTP API DELIVERED] Sent OTP to ${email}: ${otp}\n`);
-                    return { success: true, isRealSent: true };
-                }
-            } catch (bErr) {
-                console.warn("Brevo API fallback warning:", bErr.message);
-            }
-        }
-
-        // 2. Direct Nodemailer Gmail SMTP (3s fast timeout)
+        // Direct Google Official SMTP Delivery (Port 465 SSL & Port 587 TLS with forced IPv4)
         const isRealGmail = emailUser && emailPass && emailUser !== "mock_sender@gmail.com";
         if (isRealGmail) {
             try {
@@ -169,9 +143,9 @@ const sendOtpEmail = async (email, otp) => {
                     secure: true,
                     lookup: (hostname, opts, cb) => dns.lookup(hostname, { family: 4 }, cb),
                     auth: { user: emailUser, pass: emailPass },
-                    connectionTimeout: 4000,
-                    greetingTimeout: 4000,
-                    socketTimeout: 4000
+                    connectionTimeout: 10000,
+                    greetingTimeout: 10000,
+                    socketTimeout: 10000
                 });
                 await transporter1.sendMail(mailOptions);
                 console.log(`\n📧 [REAL GMAIL DELIVERED TO INBOX] Sent OTP to ${email}: ${otp}\n`);
@@ -185,21 +159,26 @@ const sendOtpEmail = async (email, otp) => {
                         secure: false,
                         lookup: (hostname, opts, cb) => dns.lookup(hostname, { family: 4 }, cb),
                         auth: { user: emailUser, pass: emailPass },
-                        connectionTimeout: 4000,
-                        greetingTimeout: 4000,
-                        socketTimeout: 4000
+                        connectionTimeout: 10000,
+                        greetingTimeout: 10000,
+                        socketTimeout: 10000
                     });
                     await transporter2.sendMail(mailOptions);
                     console.log(`\n📧 [REAL GMAIL DELIVERED TO INBOX] Sent OTP to ${email}: ${otp}\n`);
                     return { success: true, isRealSent: true };
                 } catch (err2) {
-                    console.warn("Service Gmail warning:", err2.message);
+                    console.error("Nodemailer TLS 587 warning:", err2.message);
+                    return { 
+                        success: false, 
+                        isRealSent: false, 
+                        error: `Gmail Connection Error: ${err2.message}` 
+                    };
                 }
             }
         }
 
         console.log(`\n📧 [DEV MODE - MOCK EMAIL] OTP for ${email}: ${otp}\n`);
-        return { success: true, isRealSent: false };
+        return { success: false, isRealSent: false, error: "Please configure valid EMAIL_USER and EMAIL_PASS in .env" };
     } catch (error) {
         console.error("Nodemailer error:", error.message);
         return { success: false, isRealSent: false, error: error.message };
@@ -490,12 +469,13 @@ exports.forgotPassword = async (req, res) => {
         // Save OTP to user document
         await user.save();
 
-        // Dispatch email sending asynchronously in background (Non-blocking: instant UI response!)
-        sendOtpEmail(user.email, otp)
-            .then(r => console.log(`📧 [BACKGROUND EMAIL DISPATCH] Result for ${user.email}:`, r))
-            .catch(err => console.error(`❌ [BACKGROUND EMAIL DISPATCH ERROR]:`, err));
+        const emailResult = await sendOtpEmail(user.email, otp);
+        if (!emailResult.success) {
+            return res.status(500).json({ 
+                message: emailResult.error || "Failed to send OTP email. Please check your EMAIL_PASS in .env" 
+            });
+        }
 
-        // Return HTTP 200 response immediately to browser in < 50ms!
         res.json({ 
             message: "📧 OTP verification code sent directly to your email address! (Please check your Inbox and Spam/Junk folder)" 
         });
