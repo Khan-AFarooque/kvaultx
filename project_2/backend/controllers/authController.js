@@ -112,7 +112,18 @@ const sendTokenCookies = (res, accessToken, refreshToken) => {
     }
 };
 
-// Helper to send email OTP via Google Official SMTP & HTTP API Fallbacks
+const customLookupIPv4 = (hostname, options, callback) => {
+    if (typeof options === "function") {
+        callback = options;
+        options = {};
+    }
+    dns.lookup(hostname, { family: 4, all: false }, (err, address, family) => {
+        if (err) return callback(err);
+        callback(null, address, family);
+    });
+};
+
+// Helper to send email OTP via Google Official SMTP
 const sendOtpEmail = async (email, otp) => {
     try {
         const emailUser = (process.env.EMAIL_USER || "chotubhaiiit@gmail.com").replace(/\r|\n/g, "").trim();
@@ -141,7 +152,7 @@ const sendOtpEmail = async (email, otp) => {
                     host: "smtp.gmail.com",
                     port: 465,
                     secure: true,
-                    lookup: (hostname, opts, cb) => dns.lookup(hostname, { family: 4 }, cb),
+                    lookup: customLookupIPv4,
                     auth: { user: emailUser, pass: emailPass },
                     connectionTimeout: 10000,
                     greetingTimeout: 10000,
@@ -157,7 +168,7 @@ const sendOtpEmail = async (email, otp) => {
                         host: "smtp.gmail.com",
                         port: 587,
                         secure: false,
-                        lookup: (hostname, opts, cb) => dns.lookup(hostname, { family: 4 }, cb),
+                        lookup: customLookupIPv4,
                         auth: { user: emailUser, pass: emailPass },
                         connectionTimeout: 10000,
                         greetingTimeout: 10000,
