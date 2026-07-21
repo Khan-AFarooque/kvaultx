@@ -530,7 +530,8 @@ exports.getCaptcha = (req, res) => {
         }
         
         // Sign CAPTCHA text in temporary token
-        const captchaToken = jwt.sign({ text: captchaText }, process.env.JWT_SECRET, { expiresIn: "5m" });
+        const secret = process.env.JWT_SECRET || "kvaultx_secret_jwt_key_2026_super_secure";
+        const captchaToken = jwt.sign({ text: captchaText }, secret, { expiresIn: "5m" });
         res.json({ captchaText, captchaToken });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -678,7 +679,8 @@ exports.refreshToken = async (req, res) => {
             return res.status(400).json({ message: "Refresh token is required" });
         }
 
-        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+        const refreshSecret = process.env.JWT_REFRESH_SECRET || "kvaultx_refresh_secret_jwt_key_2026";
+        const decoded = jwt.verify(refreshToken, refreshSecret);
         
         const session = await Session.findById(decoded.sessionId);
         if (!session || !session.isValid || session.refreshToken !== refreshToken) {
