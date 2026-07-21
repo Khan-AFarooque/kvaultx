@@ -110,11 +110,11 @@ const sendTokenCookies = (res, accessToken, refreshToken) => {
     }
 };
 
-// Helper to send email OTP
+// Helper to send email OTP via Google Official SMTP
 const sendOtpEmail = async (email, otp) => {
     try {
         const mailOptions = {
-            from: `"KvaultX" <${process.env.EMAIL_USER || 'no-reply@kvaultx.io'}>`,
+            from: `"KvaultX" <${process.env.EMAIL_USER || 'abdulfarooque0496@gmail.com'}>`,
             to: email,
             subject: "Your KvaultX Verification OTP Code",
             text: `Your 6-digit OTP code is: ${otp}. It will expire in 10 minutes.`,
@@ -128,61 +128,7 @@ const sendOtpEmail = async (email, otp) => {
             </div>`
         };
 
-        // 1. Fast HTTP API via Brevo (Sendinblue) - HTTPS Port 443 (Instant < 300ms response on Render)
-        if (process.env.BREVO_API_KEY) {
-            try {
-                const brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
-                    method: "POST",
-                    headers: {
-                        "api-key": process.env.BREVO_API_KEY,
-                        "Content-Type": "application/json",
-                        "Accept": "application/json"
-                    },
-                    body: JSON.stringify({
-                        sender: { name: "KvaultX", email: process.env.EMAIL_USER || "chotubhaiiit@gmail.com" },
-                        to: [{ email: email }],
-                        subject: "Your KvaultX Verification OTP Code",
-                        htmlContent: mailOptions.html
-                    })
-                });
-                if (brevoRes.ok) {
-                    console.log(`\n📧 [BREVO HTTP API DELIVERED] Sent OTP to ${email}: ${otp}\n`);
-                    return { success: true, isRealSent: true };
-                } else {
-                    const brevoErr = await brevoRes.json().catch(() => ({}));
-                    console.error("Brevo API Error:", brevoErr);
-                }
-            } catch (bErr) {
-                console.warn("Brevo API fallback failed:", bErr.message);
-            }
-        }
 
-        // 2. Fast HTTP API via Resend (HTTPS Port 443)
-        if (process.env.RESEND_API_KEY) {
-            try {
-                const resendRes = await fetch("https://api.resend.com/emails", {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        from: "KvaultX <onboarding@resend.dev>",
-                        to: [email],
-                        subject: "Your KvaultX Verification OTP Code",
-                        html: mailOptions.html
-                    })
-                });
-                if (resendRes.ok) {
-                    console.log(`\n📧 [RESEND HTTP API DELIVERED] Sent OTP to ${email}: ${otp}\n`);
-                    return { success: true, isRealSent: true };
-                }
-            } catch (resendErr) {
-                console.warn("Resend API fallback failed:", resendErr.message);
-            }
-        }
-
-        // 3. Nodemailer Gmail SMTP (For Localhost or unblocked environments with short 3s timeouts)
         const isRealGmail = process.env.EMAIL_USER && 
                             process.env.EMAIL_USER !== "mock_sender@gmail.com" && 
                             process.env.EMAIL_PASS && 
