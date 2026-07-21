@@ -213,8 +213,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     localStorage.setItem("refreshToken", data.refreshToken || "");
                     localStorage.setItem("user", JSON.stringify(data.user || {}));
 
-                    const targetDashboard = window.location.pathname.includes("/pages/") ? "dashboard.html" : "pages/dashboard.html";
-                    window.location.href = targetDashboard;
+                    window.location.href = "/pages/dashboard.html";
                 } else {
                     alert(data.message || "Login failed: No access token received.");
                 }

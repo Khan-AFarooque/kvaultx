@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const token = localStorage.getItem("accessToken");
     const isValidToken = token && token !== "undefined" && token !== "null";
     if (!isValidToken && !window.location.pathname.endsWith("login.html") && !window.location.pathname.endsWith("signup.html") && !window.location.pathname.endsWith("terms.html") && !window.location.pathname.endsWith("privacy.html")) {
-        window.location.href = "login.html";
+        window.location.href = "/pages/login.html";
         return;
     }
 
