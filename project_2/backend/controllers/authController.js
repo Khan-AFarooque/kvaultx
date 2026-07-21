@@ -113,6 +113,38 @@ const sendTokenCookies = (res, accessToken, refreshToken) => {
 // Helper to send email OTP
 const sendOtpEmail = async (email, otp) => {
     try {
+        // 0. HTTP API via Resend (HTTPS Port 443 - Bypasses Render SMTP port blocks)
+        if (process.env.RESEND_API_KEY) {
+            try {
+                const resendRes = await fetch("https://api.resend.com/emails", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        from: "KvaultX <onboarding@resend.dev>",
+                        to: [email],
+                        subject: "Your KvaultX Verification OTP Code",
+                        html: `<div style="font-family: Arial, sans-serif; padding: 20px; color: #333; background: #f9f9f9; border-radius: 8px;">
+                            <h2 style="color: #00d2ff;">🔐 KvaultX Verification Code</h2>
+                            <p>Your 6-digit verification code is:</p>
+                            <div style="background: linear-gradient(135deg, #00d2ff, #10b981); color: #ffffff; padding: 15px; font-size: 28px; font-weight: bold; letter-spacing: 6px; text-align: center; border-radius: 8px; margin: 15px 0;">
+                                ${otp}
+                            </div>
+                            <p>This code will expire in 10 minutes.</p>
+                        </div>`
+                    })
+                });
+                if (resendRes.ok) {
+                    console.log(`\n📧 [RESEND HTTP API DELIVERED] Sent OTP to ${email}: ${otp}\n`);
+                    return { success: true, isRealSent: true };
+                }
+            } catch (resendErr) {
+                console.warn("Resend API failed, falling back to Nodemailer:", resendErr.message);
+            }
+        }
+
         const isRealGmail = process.env.EMAIL_USER && 
                             process.env.EMAIL_USER !== "mock_sender@gmail.com" && 
                             process.env.EMAIL_PASS && 
