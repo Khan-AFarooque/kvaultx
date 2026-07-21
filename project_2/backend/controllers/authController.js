@@ -155,7 +155,7 @@ const sendOtpEmail = async (email, otp) => {
                         "Accept": "application/json"
                     },
                     body: JSON.stringify({
-                        sender: { name: "KvaultX Security", email: emailUser },
+                        sender: { name: "KvaultX", email: emailUser || "chotubhaiiit@gmail.com" },
                         to: [{ email: email.trim() }],
                         subject: "Your KvaultX Verification OTP Code",
                         htmlContent: mailOptions.html
@@ -166,16 +166,10 @@ const sendOtpEmail = async (email, otp) => {
                     console.log(`\n📧 [BREVO HTTP API DELIVERED TO ANY USER] Sent OTP to ${email}: ${otp}\n`);
                     return { success: true, isRealSent: true };
                 } else {
-                    console.warn("Brevo API Error:", brevoData);
-                    return {
-                        success: false,
-                        isRealSent: false,
-                        error: `Brevo Delivery Error: ${brevoData.message || JSON.stringify(brevoData)}`
-                    };
+                    console.warn("Brevo API Warning (Fallback to secondary transport):", brevoData);
                 }
             } catch (bErr) {
                 console.warn("Brevo API warning:", bErr.message);
-                return { success: false, isRealSent: false, error: `Brevo Request Failed: ${bErr.message}` };
             }
         }
 
