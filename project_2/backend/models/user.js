@@ -57,7 +57,17 @@ const userSchema = new mongoose.Schema(
             counter: { type: Number, default: 0 },
             transports: [{ type: String }]
         }
-    ]
+    ],
+
+    // Last login timestamps for active session tracking
+    lastLoginAt: {
+        type: Date,
+        default: Date.now
+    },
+    previousLoginAt: {
+        type: Date,
+        default: Date.now
+    }
 },
 {
     timestamps: true

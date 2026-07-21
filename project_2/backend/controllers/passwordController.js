@@ -386,6 +386,8 @@ exports.getAnalytics = async (req, res) => {
             securityScore,
             categoryStats,
             recentlyAdded,
+            lastLoginAt: req.user ? (req.user.lastLoginAt || req.user.updatedAt || new Date()) : new Date(),
+            previousLoginAt: req.user ? (req.user.previousLoginAt || req.user.createdAt || new Date()) : new Date(),
             strengthBreakdown: {
                 Strong: strongCount,
                 Medium: mediumCount,

@@ -660,6 +660,11 @@ exports.login = async (req, res) => {
         session.refreshToken = refreshToken;
         await session.save();
 
+        // Update login timestamps
+        user.previousLoginAt = user.lastLoginAt || new Date();
+        user.lastLoginAt = new Date();
+        await user.save();
+
         // 5. Trigger Security & Login Alert Emails
         sendLoginAlertEmail(user.email, user.name, ip, userAgent)
             .then(() => console.log(`📧 [LOGIN ALERT EMAIL SENT] to ${user.email}`))

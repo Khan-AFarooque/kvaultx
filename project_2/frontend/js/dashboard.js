@@ -590,15 +590,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 notesCountEl.textContent = notesList.length;
             }
 
-            // Update last unlock elapsed time (m, h, d, mo, y)
+            // Update last unlock elapsed time based on user's actual login timestamp
             const lastUnlockEl = document.querySelector("#statLastUnlock");
             if (lastUnlockEl) {
-                let sessionStart = sessionStorage.getItem("sessionStart");
-                if (!sessionStart) {
-                    sessionStart = Date.now().toString();
-                    sessionStorage.setItem("sessionStart", sessionStart);
-                }
-                lastUnlockEl.textContent = formatLastUnlockTime(sessionStart);
+                const loginTimestamp = data.lastLoginAt ? new Date(data.lastLoginAt).getTime() : Date.now();
+                lastUnlockEl.textContent = formatLastUnlockTime(loginTimestamp);
             }
 
             // Trigger weak password notification if enabled
