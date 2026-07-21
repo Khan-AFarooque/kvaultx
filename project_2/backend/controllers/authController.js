@@ -128,60 +128,7 @@ const sendOtpEmail = async (email, otp) => {
             </div>`
         };
 
-        const isRealGmail = process.env.EMAIL_USER && 
-                            process.env.EMAIL_USER !== "mock_sender@gmail.com" && 
-                            process.env.EMAIL_PASS && 
-                            process.env.EMAIL_PASS !== "mock_sender_password";
-
-        if (isRealGmail) {
-            // Attempt 1: Port 465 SSL with forced IPv4 DNS lookup
-            try {
-                const transporter1 = nodemailer.createTransport({
-                    host: "smtp.gmail.com",
-                    port: 465,
-                    secure: true,
-                    lookup: (hostname, opts, cb) => dns.lookup(hostname, { family: 4 }, cb),
-                    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-                    connectionTimeout: 10000,
-                    greetingTimeout: 10000,
-                    socketTimeout: 10000
-                });
-                await transporter1.sendMail(mailOptions);
-                console.log(`\n📧 [REAL GMAIL DELIVERED] Sent OTP to ${email}: ${otp}\n`);
-                return { success: true, isRealSent: true };
-            } catch (err1) {
-                console.warn("Attempt 1 (465 SSL) warning:", err1.message, "Trying Attempt 2 (587 TLS)...");
-                // Attempt 2: Port 587 TLS with forced IPv4 DNS lookup
-                try {
-                    const transporter2 = nodemailer.createTransport({
-                        host: "smtp.gmail.com",
-                        port: 587,
-                        secure: false,
-                        lookup: (hostname, opts, cb) => dns.lookup(hostname, { family: 4 }, cb),
-                        auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-                        connectionTimeout: 10000,
-                        greetingTimeout: 10000,
-                        socketTimeout: 10000
-                    });
-                    await transporter2.sendMail(mailOptions);
-                    console.log(`\n📧 [REAL GMAIL DELIVERED] Sent OTP to ${email}: ${otp}\n`);
-                    return { success: true, isRealSent: true };
-                } catch (err2) {
-                    console.warn("Attempt 2 (587 TLS) warning:", err2.message, "Trying Attempt 3 (Service Gmail)...");
-                    // Attempt 3: Service Gmail
-                    const transporter3 = nodemailer.createTransport({
-                        service: "gmail",
-                        family: 4,
-                        auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
-                    });
-                    await transporter3.sendMail(mailOptions);
-                    console.log(`\n📧 [REAL GMAIL DELIVERED] Sent OTP to ${email}: ${otp}\n`);
-                    return { success: true, isRealSent: true };
-                }
-            }
-        }
-
-        // Fallback HTTP API via Brevo (Sendinblue)
+        // 1. Fast HTTP API via Brevo (Sendinblue) - HTTPS Port 443 (Instant < 300ms response on Render)
         if (process.env.BREVO_API_KEY) {
             try {
                 const brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
@@ -201,13 +148,16 @@ const sendOtpEmail = async (email, otp) => {
                 if (brevoRes.ok) {
                     console.log(`\n📧 [BREVO HTTP API DELIVERED] Sent OTP to ${email}: ${otp}\n`);
                     return { success: true, isRealSent: true };
+                } else {
+                    const brevoErr = await brevoRes.json().catch(() => ({}));
+                    console.error("Brevo API Error:", brevoErr);
                 }
             } catch (bErr) {
                 console.warn("Brevo API fallback failed:", bErr.message);
             }
         }
 
-        // Fallback HTTP API via Resend
+        // 2. Fast HTTP API via Resend (HTTPS Port 443)
         if (process.env.RESEND_API_KEY) {
             try {
                 const resendRes = await fetch("https://api.resend.com/emails", {
@@ -229,6 +179,44 @@ const sendOtpEmail = async (email, otp) => {
                 }
             } catch (resendErr) {
                 console.warn("Resend API fallback failed:", resendErr.message);
+            }
+        }
+
+        // 3. Nodemailer Gmail SMTP (For Localhost or unblocked environments with short 3s timeouts)
+        const isRealGmail = process.env.EMAIL_USER && 
+                            process.env.EMAIL_USER !== "mock_sender@gmail.com" && 
+                            process.env.EMAIL_PASS && 
+                            process.env.EMAIL_PASS !== "mock_sender_password";
+
+        if (isRealGmail) {
+            try {
+                const transporter1 = nodemailer.createTransport({
+                    host: "smtp.gmail.com",
+                    port: 465,
+                    secure: true,
+                    lookup: (hostname, opts, cb) => dns.lookup(hostname, { family: 4 }, cb),
+                    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+                    connectionTimeout: 3000,
+                    greetingTimeout: 3000,
+                    socketTimeout: 3000
+                });
+                await transporter1.sendMail(mailOptions);
+                console.log(`\n📧 [REAL GMAIL DELIVERED] Sent OTP to ${email}: ${otp}\n`);
+                return { success: true, isRealSent: true };
+            } catch (err1) {
+                console.warn("Nodemailer SSL 465 warning:", err1.message);
+                try {
+                    const transporter2 = nodemailer.createTransport({
+                        service: "gmail",
+                        family: 4,
+                        auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+                    });
+                    await transporter2.sendMail(mailOptions);
+                    console.log(`\n📧 [REAL GMAIL DELIVERED] Sent OTP to ${email}: ${otp}\n`);
+                    return { success: true, isRealSent: true };
+                } catch (err2) {
+                    console.warn("Service Gmail warning:", err2.message);
+                }
             }
         }
 
