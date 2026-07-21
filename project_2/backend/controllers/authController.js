@@ -489,6 +489,11 @@ const sendLoginAlertEmail = async (email, name, ip, userAgent) => {
     }
 };
 
+// Safety alias function for Passkey / WebAuthn handlers
+const sendSecurityAlertEmail = (email, title, body, ip, userAgent) => {
+    return sendLoginAlertEmail(email, "User", ip, userAgent);
+};
+
 // Sign Up
 exports.signup = async (req, res) => {
     try {
@@ -1101,7 +1106,7 @@ exports.webauthnLoginVerify = async (req, res) => {
         session.refreshToken = refreshToken;
         await session.save();
 
-        sendSecurityAlertEmail(user.email, "Passkey Account Login", "Account Login Alert (Passkey)", ip, userAgent);
+        sendLoginAlertEmail(user.email, user.name, ip, userAgent);
 
         res.json({
             message: "Login successful via Passkey",
@@ -1150,7 +1155,7 @@ exports.passkeySessionLogin = async (req, res) => {
         session.refreshToken = refreshToken;
         await session.save();
 
-        sendSecurityAlertEmail(user.email, "Passkey Device Security Login", "Account Login Alert (Passkey)", ip, userAgent);
+        sendLoginAlertEmail(user.email, user.name, ip, userAgent);
 
         // Set HttpOnly Cookies for XSS Security
         sendTokenCookies(res, accessToken, refreshToken);
