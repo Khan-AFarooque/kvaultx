@@ -113,7 +113,45 @@ const sendTokenCookies = (res, accessToken, refreshToken) => {
 // Helper to send email OTP
 const sendOtpEmail = async (email, otp) => {
     try {
-        // 0. HTTP API via Resend (HTTPS Port 443 - Bypasses Render SMTP port blocks)
+        // 0A. HTTP API via Brevo (Sendinblue) - HTTPS Port 443 (Sends to ANY user email in the world!)
+        if (process.env.BREVO_API_KEY) {
+            try {
+                const brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
+                    method: "POST",
+                    headers: {
+                        "api-key": process.env.BREVO_API_KEY,
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify({
+                        sender: { name: "KvaultX", email: process.env.EMAIL_USER || "no-reply@kvaultx.io" },
+                        to: [{ email: email }],
+                        subject: "Your KvaultX Verification OTP Code",
+                        htmlContent: `<div style="font-family: Arial, sans-serif; padding: 20px; color: #333; background: #f9f9f9; border-radius: 8px;">
+                            <h2 style="color: #00d2ff;">🔐 KvaultX Verification Code</h2>
+                            <p>Your 6-digit verification code is:</p>
+                            <div style="background: linear-gradient(135deg, #00d2ff, #10b981); color: #ffffff; padding: 15px; font-size: 28px; font-weight: bold; letter-spacing: 6px; text-align: center; border-radius: 8px; margin: 15px 0;">
+                                ${otp}
+                            </div>
+                            <p>This code will expire in 10 minutes.</p>
+                        </div>`
+                    })
+                });
+                if (brevoRes.ok) {
+                    console.log(`\n📧 [BREVO HTTP API DELIVERED TO ANY USER] Sent OTP to ${email}: ${otp}\n`);
+                    return { success: true, isRealSent: true };
+                } else {
+                    const brevoErr = await brevoRes.json().catch(() => ({}));
+                    console.error("Brevo API Error:", brevoErr);
+                    return { success: false, isRealSent: false, error: `Brevo API Error: ${brevoErr.message || JSON.stringify(brevoErr)}` };
+                }
+            } catch (bErr) {
+                console.warn("Brevo API request failed:", bErr.message);
+                return { success: false, isRealSent: false, error: `Brevo Request Failed: ${bErr.message}` };
+            }
+        }
+
+        // 0B. HTTP API via Resend (HTTPS Port 443 - Bypasses Render SMTP port blocks)
         if (process.env.RESEND_API_KEY) {
             try {
                 const resendRes = await fetch("https://api.resend.com/emails", {
