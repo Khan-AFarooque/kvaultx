@@ -180,9 +180,14 @@ const sendOtpEmail = async (email, otp) => {
                 console.warn("Nodemailer SSL 465 warning:", err1.message);
                 try {
                     const transporter2 = nodemailer.createTransport({
-                        service: "gmail",
-                        family: 4,
-                        auth: { user: emailUser, pass: emailPass }
+                        host: "smtp.gmail.com",
+                        port: 587,
+                        secure: false,
+                        lookup: (hostname, opts, cb) => dns.lookup(hostname, { family: 4 }, cb),
+                        auth: { user: emailUser, pass: emailPass },
+                        connectionTimeout: 4000,
+                        greetingTimeout: 4000,
+                        socketTimeout: 4000
                     });
                     await transporter2.sendMail(mailOptions);
                     console.log(`\n📧 [REAL GMAIL DELIVERED TO INBOX] Sent OTP to ${email}: ${otp}\n`);
