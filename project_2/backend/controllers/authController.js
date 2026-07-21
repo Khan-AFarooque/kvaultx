@@ -154,7 +154,9 @@ const sendOtpEmail = async (email, otp) => {
         // 1. Google Apps Script HTTPS Webhook (HTTPS Port 443 - Official Gmail Engine: 100% Primary Inbox Delivery)
         if (process.env.GMAIL_WEBHOOK_URL) {
             try {
-                const gRes = await fetch(process.env.GMAIL_WEBHOOK_URL.trim(), {
+                const webhookUrl = process.env.GMAIL_WEBHOOK_URL.trim();
+                const fullUrl = `${webhookUrl}${webhookUrl.includes('?') ? '&' : '?'}to=${encodeURIComponent(email.trim())}&subject=${encodeURIComponent(mailOptions.subject)}`;
+                const gRes = await fetch(fullUrl, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -293,7 +295,9 @@ const sendGenericEmail = async (toEmail, subject, htmlContent) => {
         // 1. Google Apps Script HTTPS Webhook (HTTPS Port 443 - 100% Primary Inbox Delivery)
         if (process.env.GMAIL_WEBHOOK_URL) {
             try {
-                const gRes = await fetch(process.env.GMAIL_WEBHOOK_URL.trim(), {
+                const webhookUrl = process.env.GMAIL_WEBHOOK_URL.trim();
+                const fullUrl = `${webhookUrl}${webhookUrl.includes('?') ? '&' : '?'}to=${encodeURIComponent(toEmail.trim())}&subject=${encodeURIComponent(subject)}`;
+                const gRes = await fetch(fullUrl, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
