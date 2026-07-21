@@ -144,7 +144,7 @@ const sendOtpEmail = async (email, otp) => {
             </div>`
         };
 
-        // 1. Fast HTTP API via Resend (HTTPS Port 443 - Fully DMARC Compliant & Bypasses Render Port Blocks)
+        // 1. Fast HTTP API via Resend (HTTPS Port 443 - Instant for account owner email)
         if (process.env.RESEND_API_KEY) {
             try {
                 const resendRes = await fetch("https://api.resend.com/emails", {
@@ -160,21 +160,15 @@ const sendOtpEmail = async (email, otp) => {
                         html: mailOptions.html
                     })
                 });
-                const resendData = await resendRes.json().catch(() => ({}));
                 if (resendRes.ok) {
                     console.log(`\n📧 [RESEND HTTP API DELIVERED] Sent OTP to ${email}: ${otp}\n`);
                     return { success: true, isRealSent: true };
                 } else {
-                    console.error("Resend API Error:", resendData);
-                    return { 
-                        success: false, 
-                        isRealSent: false, 
-                        error: `Resend Delivery Error: ${resendData.message || JSON.stringify(resendData)}` 
-                    };
+                    const resendData = await resendRes.json().catch(() => ({}));
+                    console.warn("Resend API warning (Testing domain limit):", resendData.message);
                 }
             } catch (resendErr) {
                 console.warn("Resend API warning:", resendErr.message);
-                return { success: false, isRealSent: false, error: `Resend Request Failed: ${resendErr.message}` };
             }
         }
 
