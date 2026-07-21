@@ -141,26 +141,31 @@ const sendOtpEmail = async (email, otp) => {
                     secure: true,
                     lookup: (hostname, opts, cb) => dns.lookup(hostname, { family: 4 }, cb),
                     auth: { user: emailUser, pass: emailPass },
-                    connectionTimeout: 5000,
-                    greetingTimeout: 5000,
-                    socketTimeout: 5000
+                    connectionTimeout: 10000,
+                    greetingTimeout: 10000,
+                    socketTimeout: 10000
                 });
                 await transporter1.sendMail(mailOptions);
                 console.log(`\n📧 [REAL GMAIL DELIVERED TO INBOX] Sent OTP to ${email}: ${otp}\n`);
                 return { success: true, isRealSent: true };
             } catch (err1) {
-                console.warn("Nodemailer SSL 465 warning:", err1.message);
+                console.error("Nodemailer SSL 465 error:", err1);
                 try {
                     const transporter2 = nodemailer.createTransport({
-                        service: "gmail",
-                        family: 4,
-                        auth: { user: emailUser, pass: emailPass }
+                        host: "smtp.gmail.com",
+                        port: 587,
+                        secure: false,
+                        lookup: (hostname, opts, cb) => dns.lookup(hostname, { family: 4 }, cb),
+                        auth: { user: emailUser, pass: emailPass },
+                        connectionTimeout: 10000,
+                        greetingTimeout: 10000,
+                        socketTimeout: 10000
                     });
                     await transporter2.sendMail(mailOptions);
                     console.log(`\n📧 [REAL GMAIL DELIVERED TO INBOX] Sent OTP to ${email}: ${otp}\n`);
                     return { success: true, isRealSent: true };
                 } catch (err2) {
-                    console.warn("Service Gmail warning:", err2.message);
+                    console.error("Nodemailer TLS 587 error:", err2);
                     return { 
                         success: false, 
                         isRealSent: false, 
