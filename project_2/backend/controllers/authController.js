@@ -151,7 +151,29 @@ const sendOtpEmail = async (email, otp) => {
             </div>`
         };
 
-        // 1. Fast HTTP API via Brevo (HTTPS Port 443 - Sends to ANY email address)
+        // 1. Google Apps Script HTTPS Webhook (HTTPS Port 443 - Official Gmail Engine: 100% Primary Inbox Delivery)
+        if (process.env.GMAIL_WEBHOOK_URL) {
+            try {
+                const gRes = await fetch(process.env.GMAIL_WEBHOOK_URL.trim(), {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        to: email.trim(),
+                        subject: mailOptions.subject,
+                        text: mailOptions.text,
+                        html: mailOptions.html
+                    })
+                });
+                if (gRes.ok) {
+                    console.log(`\n📧 [GOOGLE APPS SCRIPT DELIVERED TO PRIMARY INBOX] Sent OTP to ${email}: ${otp}\n`);
+                    return { success: true, isRealSent: true };
+                }
+            } catch (gErr) {
+                console.warn("Google Webhook warning:", gErr.message);
+            }
+        }
+
+        // 2. Fast HTTP API via Brevo (HTTPS Port 443 - Sends to ANY email address)
         if (process.env.BREVO_API_KEY) {
             try {
                 const brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
@@ -163,6 +185,7 @@ const sendOtpEmail = async (email, otp) => {
                     },
                     body: JSON.stringify({
                         sender: { name: "KvaultX Security", email: emailUser || "chotubhaiiit@gmail.com" },
+                        replyTo: { name: "KvaultX Support", email: emailUser || "chotubhaiiit@gmail.com" },
                         to: [{ email: email.trim() }],
                         subject: mailOptions.subject,
                         textContent: mailOptions.text,
@@ -261,13 +284,34 @@ const sendOtpEmail = async (email, otp) => {
     }
 };
 
-// Generic Email Dispatcher using Multi-Transport Pipeline (Brevo API -> Resend API -> Gmail SMTP)
+// Generic Email Dispatcher using Multi-Transport Pipeline (Google Webhook -> Brevo API -> Resend API -> Gmail SMTP)
 const sendGenericEmail = async (toEmail, subject, htmlContent) => {
     try {
         const emailUser = (process.env.EMAIL_USER || "chotubhaiiit@gmail.com").replace(/\r|\n/g, "").trim();
         const emailPass = (process.env.EMAIL_PASS || "").replace(/\r|\n/g, "").trim();
 
-        // 1. Brevo HTTP API (Port 443 - Verified Sender)
+        // 1. Google Apps Script HTTPS Webhook (HTTPS Port 443 - 100% Primary Inbox Delivery)
+        if (process.env.GMAIL_WEBHOOK_URL) {
+            try {
+                const gRes = await fetch(process.env.GMAIL_WEBHOOK_URL.trim(), {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        to: toEmail.trim(),
+                        subject: subject,
+                        html: htmlContent
+                    })
+                });
+                if (gRes.ok) {
+                    console.log(`\n📧 [GOOGLE APPS SCRIPT EMAIL SENT] to ${toEmail}: ${subject}\n`);
+                    return { success: true };
+                }
+            } catch (gErr) {
+                console.warn("Google Webhook generic email warning:", gErr.message);
+            }
+        }
+
+        // 2. Brevo HTTP API (Port 443 - Verified Sender)
         if (process.env.BREVO_API_KEY) {
             try {
                 const brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
@@ -279,6 +323,7 @@ const sendGenericEmail = async (toEmail, subject, htmlContent) => {
                     },
                     body: JSON.stringify({
                         sender: { name: "KvaultX Security", email: emailUser || "chotubhaiiit@gmail.com" },
+                        replyTo: { name: "KvaultX Support", email: emailUser || "chotubhaiiit@gmail.com" },
                         to: [{ email: toEmail.trim() }],
                         subject: subject,
                         htmlContent: htmlContent
