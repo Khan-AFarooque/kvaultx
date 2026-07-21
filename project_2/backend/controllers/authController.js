@@ -124,7 +124,7 @@ const sendOtpEmail = async (email, otp) => {
                         "Accept": "application/json"
                     },
                     body: JSON.stringify({
-                        sender: { name: "KvaultX", email: process.env.EMAIL_USER || "no-reply@kvaultx.io" },
+                        sender: { name: "KvaultX", email: process.env.EMAIL_USER || process.env.BREVO_SENDER_EMAIL || "chotubhaiiit@gmail.com" },
                         to: [{ email: email }],
                         subject: "Your KvaultX Verification OTP Code",
                         htmlContent: `<div style="font-family: Arial, sans-serif; padding: 20px; color: #333; background: #f9f9f9; border-radius: 8px;">
