@@ -128,7 +128,7 @@ const customLookupIPv4 = (hostname, options, callback) => {
 // Helper to send email OTP via Google Official SMTP
 const sendOtpEmail = async (email, otp) => {
     try {
-        const emailUser = (process.env.EMAIL_USER || "chotubhaiiit@gmail.com").replace(/\r|\n/g, "").trim();
+        const emailUser = (process.env.EMAIL_USER || "kvaultx.security@gmail.com").replace(/\r|\n/g, "").trim();
         const emailPass = (process.env.EMAIL_PASS || "").replace(/\r|\n/g, "").trim();
 
         const mailOptions = {
@@ -186,8 +186,8 @@ const sendOtpEmail = async (email, otp) => {
                         "Accept": "application/json"
                     },
                     body: JSON.stringify({
-                        sender: { name: "KvaultX Security", email: emailUser || "chotubhaiiit@gmail.com" },
-                        replyTo: { name: "KvaultX Support", email: emailUser || "chotubhaiiit@gmail.com" },
+                        sender: { name: "KvaultX Security", email: emailUser || "kvaultx.security@gmail.com" },
+                        replyTo: { name: "KvaultX Support", email: emailUser || "kvaultx.security@gmail.com" },
                         to: [{ email: email.trim() }],
                         subject: mailOptions.subject,
                         textContent: mailOptions.text,
@@ -289,7 +289,7 @@ const sendOtpEmail = async (email, otp) => {
 // Generic Email Dispatcher using Multi-Transport Pipeline (Google Webhook -> Brevo API -> Resend API -> Gmail SMTP)
 const sendGenericEmail = async (toEmail, subject, htmlContent) => {
     try {
-        const emailUser = (process.env.EMAIL_USER || "chotubhaiiit@gmail.com").replace(/\r|\n/g, "").trim();
+        const emailUser = (process.env.EMAIL_USER || "kvaultx.security@gmail.com").replace(/\r|\n/g, "").trim();
         const emailPass = (process.env.EMAIL_PASS || "").replace(/\r|\n/g, "").trim();
 
         // 1. Google Apps Script HTTPS Webhook (HTTPS Port 443 - 100% Primary Inbox Delivery)
@@ -326,8 +326,8 @@ const sendGenericEmail = async (toEmail, subject, htmlContent) => {
                         "Accept": "application/json"
                     },
                     body: JSON.stringify({
-                        sender: { name: "KvaultX Security", email: emailUser || "chotubhaiiit@gmail.com" },
-                        replyTo: { name: "KvaultX Support", email: emailUser || "chotubhaiiit@gmail.com" },
+                        sender: { name: "KvaultX Security", email: emailUser || "kvaultx.security@gmail.com" },
+                        replyTo: { name: "KvaultX Support", email: emailUser || "kvaultx.security@gmail.com" },
                         to: [{ email: toEmail.trim() }],
                         subject: subject,
                         htmlContent: htmlContent
