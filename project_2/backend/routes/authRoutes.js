@@ -23,7 +23,8 @@ const {
     revokeSession,
     getProfile,
     getSettings,
-    updateSettings
+    updateSettings,
+    reportAndBlockAccount
 } = require("../controllers/authController");
 
 // Public auth routes
@@ -35,6 +36,8 @@ router.post("/logout", logout);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 router.post("/mfa/login-qr", getLoginQr);
+router.get("/report-block", reportAndBlockAccount);
+router.post("/report-block", reportAndBlockAccount);
 
 // WebAuthn Public login routes
 router.post("/webauthn/login-challenge", webauthnLoginChallenge);

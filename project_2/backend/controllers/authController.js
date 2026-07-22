@@ -459,8 +459,10 @@ const sendWelcomeEmail = async (email, name) => {
     return sendGenericEmail(email, subject, html);
 };
 
-const sendLoginAlertEmail = async (email, name, ip, userAgent) => {
+const sendLoginAlertEmail = async (email, name, ip, userAgent, blockToken) => {
     const subject = "Security Alert: Successful Login to Your KvaultX Account 🔐";
+    const reportUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/pages/report-login.html?email=${encodeURIComponent(email)}&token=${blockToken || ''}`;
+
     const html = `<div style="font-family: Arial, sans-serif; padding: 25px; color: #333; background: #0f172a; border-radius: 12px; max-width: 600px; margin: 0 auto;">
         <div style="text-align: center; margin-bottom: 20px;">
             <h1 style="color: #00d2ff; font-size: 28px; margin: 0;">🔐 KvaultX</h1>
@@ -477,10 +479,13 @@ const sendLoginAlertEmail = async (email, name, ip, userAgent) => {
                 <li><strong>🌐 IP Address:</strong> ${ip || "127.0.0.1"}</li>
                 <li><strong>💻 Device / Browser:</strong> ${userAgent || "Web Browser"}</li>
             </ul>
-            <div style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 12px 15px; border-radius: 6px; margin: 20px 0;">
-                <p style="margin: 0; color: #f87171; font-size: 13px;">
-                    ⚠️ <strong>Wasn't you?</strong> If an unknown person logged into your account, please log in immediately and change your master password.
+            <div style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.4); padding: 18px; border-radius: 8px; margin: 20px 0; text-align: center;">
+                <p style="margin: 0 0 14px 0; color: #f87171; font-size: 13.5px; font-weight: 600;">
+                    ⚠️ Wasn't you? If another user logged into your account using your personal email, report it immediately to lock your account and revoke all sessions!
                 </p>
+                <a href="${reportUrl}" target="_blank" style="display: inline-block; background: #ef4444; color: #ffffff; padding: 12px 22px; border-radius: 8px; font-weight: bold; font-size: 14px; text-decoration: none; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);">
+                    🚨 Report & Block Account Immediately
+                </a>
             </div>
             <p style="font-size: 14px; color: #94a3b8; margin-bottom: 0;">
                 Stay vigilant,<br>
@@ -493,8 +498,8 @@ const sendLoginAlertEmail = async (email, name, ip, userAgent) => {
 };
 
 // Safety alias function for Passkey / WebAuthn handlers
-const sendSecurityAlertEmail = (email, title, body, ip, userAgent) => {
-    return sendLoginAlertEmail(email, "User", ip, userAgent);
+const sendSecurityAlertEmail = (email, title, body, ip, userAgent, blockToken) => {
+    return sendLoginAlertEmail(email, "User", ip, userAgent, blockToken);
 };
 
 // Sign Up
@@ -570,6 +575,13 @@ exports.login = async (req, res) => {
         const user = await User.findOne({ email: email.toLowerCase() });
         if (!user) {
             return res.status(400).json({ message: "Invalid email or password" });
+        }
+
+        if (user.isBlocked) {
+            return res.status(403).json({ 
+                message: "This account has been blocked due to a reported security incident. Please contact support to unblock.", 
+                isBlocked: true 
+            });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
@@ -666,7 +678,11 @@ exports.login = async (req, res) => {
         await user.save();
 
         // 5. Trigger Security & Login Alert Emails
-        sendLoginAlertEmail(user.email, user.name, ip, userAgent)
+        const blockToken = crypto.randomBytes(32).toString("hex");
+        user.blockToken = blockToken;
+        await user.save();
+
+        sendLoginAlertEmail(user.email, user.name, ip, userAgent, blockToken)
             .then(() => console.log(`📧 [LOGIN ALERT EMAIL SENT] to ${user.email}`))
             .catch(err => console.error("Login alert dispatch failed:", err));
 
@@ -1288,6 +1304,53 @@ exports.updateSettings = async (req, res) => {
             securityNotifications: user.securityNotifications
         });
     } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Report unauthorized login and block account immediately
+exports.reportAndBlockAccount = async (req, res) => {
+    try {
+        const email = req.query.email || req.body.email;
+        const token = req.query.token || req.body.token;
+
+        if (!email || !token) {
+            return res.status(400).json({ message: "Email address and report security token are required." });
+        }
+
+        const user = await User.findOne({ email: email.toLowerCase().trim() });
+        if (!user) {
+            return res.status(404).json({ message: "User account not found." });
+        }
+
+        if (user.isBlocked) {
+            return res.json({ 
+                success: true, 
+                alreadyBlocked: true,
+                message: "Account is already blocked. All active sessions remain revoked." 
+            });
+        }
+
+        if (!user.blockToken || user.blockToken !== token) {
+            return res.status(400).json({ message: "Invalid or expired security report token." });
+        }
+
+        // Block user account immediately
+        user.isBlocked = true;
+        user.blockToken = undefined;
+        await user.save();
+
+        // Revoke all active device sessions for this user immediately
+        await Session.deleteMany({ user: user._id });
+
+        console.log(`🚨 [SECURITY REPORT] User ${user.email} account has been BLOCKED and all sessions revoked.`);
+
+        res.json({
+            success: true,
+            message: "Account has been BLOCKED immediately. All active sessions have been terminated."
+        });
+    } catch (error) {
+        console.error("reportAndBlockAccount error:", error);
         res.status(500).json({ message: error.message });
     }
 };

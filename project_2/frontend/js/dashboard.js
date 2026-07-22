@@ -605,11 +605,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
-            // Update Vault Security Chart graph elements
-            const weakCount = data.weakCount || 0;
-            const totalCount = data.totalCount || 0;
-            const strongCount = Math.max(0, totalCount - weakCount - (data.duplicateCount || 0));
-            const moderateCount = Math.max(0, totalCount - strongCount - weakCount);
+            // Cache analytics data globally for redraw on tab switches
+            const breakdown = data.strengthBreakdown || {};
+            const weakCount = data.weakCount || breakdown.Weak || 0;
+            const strongCount = breakdown.Strong !== undefined ? breakdown.Strong : Math.max(0, (data.totalCount || 0) - weakCount);
+            const moderateCount = breakdown.Medium !== undefined ? breakdown.Medium : 0;
+            const score = data.securityScore !== undefined ? data.securityScore : 100;
+
+            window.cachedVaultAnalytics = { strongCount, moderateCount, weakCount, securityScore: score, categoryStats: data.categoryStats };
 
             const graphStrongEl = document.querySelector("#graphStrongCount");
             const graphModEl = document.querySelector("#graphModerateCount");
@@ -619,9 +622,9 @@ document.addEventListener("DOMContentLoaded", () => {
             if (graphStrongEl) graphStrongEl.textContent = strongCount;
             if (graphModEl) graphModEl.textContent = moderateCount;
             if (graphWeakEl) graphWeakEl.textContent = weakCount;
-            if (graphHealthScoreEl) graphHealthScoreEl.textContent = `Health: ${data.securityScore}%`;
+            if (graphHealthScoreEl) graphHealthScoreEl.textContent = `Health: ${score}%`;
 
-            drawVaultDonutChart(strongCount, moderateCount, weakCount);
+            drawVaultDonutChart(strongCount, moderateCount, weakCount, score);
 
             // Render recently added
             if (recentlyAddedList) {
@@ -753,6 +756,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 content.classList.add("hidden-tab");
             }
         });
+
+        if (tabName === "vault" || tabName === "analytics") {
+            setTimeout(() => {
+                if (window.cachedVaultAnalytics) {
+                    drawVaultDonutChart(
+                        window.cachedVaultAnalytics.strongCount,
+                        window.cachedVaultAnalytics.moderateCount,
+                        window.cachedVaultAnalytics.weakCount,
+                        window.cachedVaultAnalytics.securityScore
+                    );
+                    drawCanvasChart("categoryDistributionChart", window.cachedVaultAnalytics.categoryStats);
+                } else {
+                    loadAnalytics();
+                }
+            }, 60);
+        }
     }
 
     if (agentOptionPhishing) {
@@ -836,7 +855,7 @@ function debounce(func, wait) {
     };
 }
 
-function drawVaultDonutChart(strongCount, moderateCount, weakCount) {
+function drawVaultDonutChart(strongCount, moderateCount, weakCount, customScore) {
     const canvas = document.getElementById("vaultSecurityChart");
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -889,12 +908,12 @@ function drawVaultDonutChart(strongCount, moderateCount, weakCount) {
         }
     });
 
-    const healthPercent = Math.round((strongCount / total) * 100);
+    const displayScore = customScore !== undefined ? customScore : Math.round((strongCount / total) * 100);
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 16px Poppins, sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(`${healthPercent}%`, centerX, centerY - 6);
+    ctx.fillText(`${displayScore}%`, centerX, centerY - 6);
 
     ctx.fillStyle = "#a6bba8";
     ctx.font = "600 10px Poppins, sans-serif";

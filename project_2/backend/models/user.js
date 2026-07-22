@@ -67,6 +67,15 @@ const userSchema = new mongoose.Schema(
     previousLoginAt: {
         type: Date,
         default: Date.now
+    },
+
+    // Account Blocked status for reported unauthorized login
+    isBlocked: {
+        type: Boolean,
+        default: false
+    },
+    blockToken: {
+        type: String
     }
 },
 {

@@ -20,6 +20,10 @@ const authMiddleware = async (req, res, next) => {
                 return res.status(401).json({ message: "User not found, authorization denied" });
             }
 
+            if (user.isBlocked) {
+                return res.status(403).json({ message: "This account has been blocked due to a reported security incident. Please contact support.", isBlocked: true });
+            }
+
             req.user = user;
             req.sessionId = decoded.sessionId;
             next();
