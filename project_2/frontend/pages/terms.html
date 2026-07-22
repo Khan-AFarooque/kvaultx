@@ -3,224 +3,533 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terms & Conditions | KvaultX</title>
+    <title>Terms & Conditions | KvaultX Legal Portal</title>
     <link rel="stylesheet" href="../css/styles.css">
     <style>
         :root {
-            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
-            --card-bg: rgba(30, 41, 59, 0.75);
-            --border-color: rgba(255, 255, 255, 0.12);
+            --bg-dark: #090d16;
+            --bg-card: rgba(15, 23, 42, 0.75);
+            --border-color: rgba(255, 255, 255, 0.1);
             --accent-cyan: #00d2ff;
             --accent-green: #34e89e;
+            --accent-red: #ef4444;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
+            --text-secondary: #cbd5e1;
         }
 
         body {
             margin: 0;
             padding: 0;
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: var(--bg-gradient);
+            background: linear-gradient(135deg, #090d16 0%, #111827 50%, #090d16 100%);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            scroll-behavior: smooth;
+        }
+
+        /* Top Navbar */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(9, 13, 22, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 14px 40px;
+            display: flex;
+            justify-content: space-between;
             align-items: center;
         }
 
-        .terms-header {
-            width: 100%;
-            max-width: 900px;
-            padding: 40px 20px 20px;
-            text-align: center;
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
         }
 
-        .terms-logo {
-            height: 55px;
+        .nav-logo {
+            height: 36px;
             width: auto;
-            margin-bottom: 12px;
-            filter: drop-shadow(0 4px 14px rgba(0, 210, 255, 0.45));
+            filter: drop-shadow(0 2px 8px rgba(0, 210, 255, 0.4));
         }
 
-        .terms-title {
-            font-size: 32px;
+        .nav-title {
+            font-size: 20px;
             font-weight: 800;
-            margin: 0 0 8px;
             background: linear-gradient(135deg, var(--accent-cyan), var(--accent-green));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            margin: 0;
         }
 
-        .terms-subtitle {
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-link {
             color: var(--text-muted);
-            font-size: 14px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
+            text-decoration: none;
+            font-size: 13.5px;
+            font-weight: 500;
+            transition: color 0.2s ease;
         }
 
-        .terms-container {
-            width: 90%;
-            max-width: 900px;
-            background: var(--card-bg);
+        .nav-link:hover, .nav-link.active {
+            color: var(--accent-cyan);
+        }
+
+        .nav-badge {
+            background: rgba(0, 210, 255, 0.12);
+            border: 1px solid rgba(0, 210, 255, 0.3);
+            color: var(--accent-cyan);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Hero Banner */
+        .hero-banner {
+            max-width: 1100px;
+            margin: 40px auto 20px;
+            padding: 0 20px;
+            text-align: center;
+        }
+
+        .hero-title {
+            font-size: 36px;
+            font-weight: 800;
+            margin: 0 0 10px;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+        }
+
+        .hero-subtitle {
+            color: var(--text-muted);
+            font-size: 14.5px;
+            margin: 0 0 20px;
+        }
+
+        .meta-pills {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .meta-pill {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid var(--border-color);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12.5px;
+            color: var(--text-secondary);
+        }
+
+        /* Layout Grid */
+        .legal-layout {
+            max-width: 1150px;
+            width: 92%;
+            margin: 20px auto 60px;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 36px;
+            align-items: start;
+        }
+
+        /* Sidebar Table of Contents */
+        .toc-sidebar {
+            position: sticky;
+            top: 90px;
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .toc-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent-cyan);
+            margin: 0 0 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .toc-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toc-item a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 13px;
+            display: block;
+            padding: 6px 10px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            line-height: 1.4;
+        }
+
+        .toc-item a:hover {
+            color: var(--accent-cyan);
+            background: rgba(0, 210, 255, 0.08);
+        }
+
+        /* Main Content Container */
+        .content-card {
+            background: var(--bg-card);
             backdrop-filter: blur(16px);
             border: 1px solid var(--border-color);
             border-radius: 16px;
             padding: 40px;
-            margin-bottom: 50px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-            box-sizing: border-box;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
         }
 
-        .terms-section {
-            margin-bottom: 30px;
+        .summary-box {
+            background: linear-gradient(135deg, rgba(0, 210, 255, 0.08), rgba(52, 232, 158, 0.08));
+            border: 1px solid rgba(0, 210, 255, 0.3);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 36px;
         }
 
-        .terms-section h3 {
-            font-size: 20px;
+        .summary-title {
             color: var(--accent-cyan);
-            border-bottom: 1px solid rgba(0, 210, 255, 0.2);
-            padding-bottom: 8px;
-            margin-top: 0;
-            margin-bottom: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            margin: 0 0 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin-top: 12px;
+        }
+
+        .summary-item {
+            font-size: 13px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            line-height: 1.5;
+        }
+
+        .section-block {
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .section-block:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .section-heading {
+            font-size: 22px;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0 0 16px;
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .terms-section p, .terms-section li {
+        .section-heading span.num {
+            color: var(--accent-cyan);
+            font-size: 16px;
+            font-weight: 800;
+            background: rgba(0, 210, 255, 0.12);
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        .section-block p {
+            font-size: 14.5px;
+            line-height: 1.75;
+            color: var(--text-secondary);
+            margin: 0 0 14px;
+        }
+
+        .section-block ul {
+            padding-left: 20px;
+            margin: 0 0 16px;
+        }
+
+        .section-block li {
             font-size: 14px;
             line-height: 1.7;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .alert-card {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid var(--accent-red);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin: 20px 0;
+        }
+
+        .alert-card h4 {
+            color: #f87171;
+            margin: 0 0 6px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .alert-card p {
+            margin: 0;
+            font-size: 13.5px;
             color: #cbd5e1;
         }
 
-        .terms-section ul {
-            padding-left: 20px;
-            margin: 10px 0;
+        .contact-box {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            margin-top: 30px;
         }
 
-        .terms-section li {
-            margin-bottom: 8px;
-        }
-
-        .highlight-box {
-            background: rgba(0, 210, 255, 0.08);
-            border-left: 4px solid var(--accent-cyan);
-            padding: 14px 18px;
-            border-radius: 6px;
-            margin: 15px 0;
-            font-size: 13px;
-            color: #e2e8f0;
-        }
-
-        .btn-back {
+        .contact-email {
             display: inline-block;
-            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-green));
-            color: #0f172a;
+            color: var(--accent-cyan);
+            font-size: 16px;
             font-weight: 700;
-            padding: 12px 28px;
-            border-radius: 8px;
             text-decoration: none;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);
-            margin-top: 20px;
+            margin-top: 8px;
+            padding: 8px 18px;
+            background: rgba(0, 210, 255, 0.12);
+            border: 1px solid rgba(0, 210, 255, 0.3);
+            border-radius: 8px;
+            transition: all 0.2s ease;
         }
 
-        .btn-back:hover {
+        .contact-email:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(52, 232, 158, 0.4);
+            box-shadow: 0 4px 14px rgba(0, 210, 255, 0.3);
         }
 
-        .terms-footer {
+        .footer {
+            border-top: 1px solid var(--border-color);
+            padding: 30px;
             text-align: center;
             color: var(--text-muted);
-            font-size: 12px;
-            padding-bottom: 30px;
+            font-size: 13px;
+            margin-top: auto;
+        }
+
+        @media (max-width: 868px) {
+            .legal-layout {
+                grid-template-columns: 1fr;
+            }
+            .toc-sidebar {
+                position: static;
+            }
+            .navbar {
+                padding: 14px 20px;
+            }
         }
     </style>
 </head>
 <body>
 
-    <header class="terms-header">
-        <img src="../assets/logo.png" alt="KvaultX Logo" class="terms-logo">
-        <h1 class="terms-title">Terms & Conditions</h1>
-        <p class="terms-subtitle">Effective Date: July 2026 • KvaultX Security Platform</p>
+    <!-- Header Navbar -->
+    <header class="navbar">
+        <a href="../pages/login.html" class="nav-brand">
+            <img src="../assets/logo.png" alt="KvaultX Logo" class="nav-logo">
+            <h1 class="nav-title">KvaultX</h1>
+        </a>
+        <nav class="nav-links">
+            <a href="login.html" class="nav-link">Login</a>
+            <a href="terms.html" class="nav-link active">Terms & Conditions</a>
+            <a href="privacy.html" class="nav-link">Privacy Policy</a>
+            <span class="nav-badge">Zero-Knowledge Terms</span>
+        </nav>
     </header>
 
-    <main class="terms-container">
-
-        <div class="highlight-box">
-            🛡️ <strong>Welcome to KvaultX.</strong> Please read these Terms & Conditions carefully before creating an account or using our password management platform. By using KvaultX, you agree to be bound by these terms.
+    <!-- Hero Header -->
+    <div class="hero-banner">
+        <h1 class="hero-title">Terms & Conditions</h1>
+        <p class="hero-subtitle">Terms governing your use of KvaultX password management services and security features.</p>
+        
+        <div class="meta-pills">
+            <span class="meta-pill">📅 Effective Date: July 22, 2026</span>
+            <span class="meta-pill">⚖️ Standard: SaaS Security & Data Sovereignty</span>
+            <span class="meta-pill">📄 Version: 2.4 (Production)</span>
         </div>
+    </div>
 
-        <section class="terms-section">
-            <h3>1. Zero-Knowledge Architecture & User Responsibility</h3>
-            <p>KvaultX operates on a strict <strong>Zero-Knowledge Encryption Architecture</strong>. This means:</p>
-            <ul>
-                <li>Your master password and vault data are encrypted locally before being transmitted to our servers.</li>
-                <li>We do NOT hold, store, or have access to your master password or unencrypted vault credentials.</li>
-                <li><strong>Your Responsibility:</strong> You are solely responsible for maintaining the confidentiality of your master password and email credentials. If you lose your master password, KvaultX cannot recover your encrypted vault data.</li>
+    <!-- 2-Column Main Layout -->
+    <main class="legal-layout">
+
+        <!-- Table of Contents Sidebar -->
+        <aside class="toc-sidebar">
+            <div class="toc-title">
+                <span>📍</span> Table of Contents
+            </div>
+            <ul class="toc-list">
+                <li class="toc-item"><a href="#section-1">1. Zero-Knowledge Terms</a></li>
+                <li class="toc-item"><a href="#section-2">2. Account Creation & Email</a></li>
+                <li class="toc-item"><a href="#section-3">3. Acceptable Use Policy</a></li>
+                <li class="toc-item"><a href="#section-4">4. Data Ownership & Rights</a></li>
+                <li class="toc-item"><a href="#section-5">5. Authentication & MFA</a></li>
+                <li class="toc-item"><a href="#section-6">6. Security Alerts & Lock</a></li>
+                <li class="toc-item"><a href="#section-7">7. Uptime & Modifications</a></li>
+                <li class="toc-item"><a href="#section-8">8. Support & Contact</a></li>
             </ul>
-        </section>
+        </aside>
 
-        <section class="terms-section">
-            <h3>2. Account Creation & Email Verification</h3>
-            <p>To access KvaultX, you must register a valid email address. You agree to:</p>
-            <ul>
-                <li>Provide accurate, genuine email information that belongs to you.</li>
-                <li>Never register or create accounts using someone else's email address without explicit authority.</li>
-                <li>Receive automated account notifications, welcome verification emails, security login alerts, and one-time password (OTP) codes to your registered email address.</li>
-            </ul>
-        </section>
+        <!-- Main Content Area -->
+        <article class="content-card">
 
-        <section class="terms-section">
-            <h3>3. Acceptable Use Policy</h3>
-            <p>When using KvaultX, you agree NOT to:</p>
-            <ul>
-                <li>Use the platform for any illegal, fraudulent, or unauthorized activities.</li>
-                <li>Attempt to gain unauthorized access to other users' accounts, servers, or networks.</li>
-                <li>Interfere with or disrupt the security features, integrity, or performance of KvaultX.</li>
-                <li>Reverse-engineer, decompile, or copy KvaultX's security components or codebase.</li>
-            </ul>
-        </section>
+            <!-- Summary for Humans Callout Box -->
+            <div class="summary-box">
+                <div class="summary-title">
+                    <span>🛡️</span> Key Terms Overview (Plain English)
+                </div>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <span>🔑</span> <strong>You Control Keys:</strong> Only you possess your master password. If you lose it, we cannot recover your vault data.
+                    </div>
+                    <div class="summary-item">
+                        <span>👤</span> <strong>Genuine Email:</strong> You must register using your own personal email address to receive alerts and OTPs.
+                    </div>
+                    <div class="summary-item">
+                        <span>🚨</span> <strong>Report & Block:</strong> 1-click account locking in security emails instantly boots intruders off all devices.
+                    </div>
+                </div>
+            </div>
 
-        <section class="terms-section">
-            <h3>4. Data Ownership & Intellectual Property</h3>
-            <p>You retain 100% ownership of all credentials, notes, passwords, and data you store inside your KvaultX vault. KvaultX claims zero ownership over your personal data. All software, logos, designs, and brand assets associated with KvaultX remain the exclusive intellectual property of KvaultX.</p>
-        </section>
+            <!-- Section 1 -->
+            <section id="section-1" class="section-block">
+                <h2 class="section-heading">
+                    <span class="num">01</span> Zero-Knowledge Architecture & Master Password Responsibility
+                </h2>
+                <p>KvaultX operates strictly under a <strong>Zero-Knowledge Encryption Model</strong>. By using KvaultX, you acknowledge and agree to the following technical parameters:</p>
+                <ul>
+                    <li><strong>Client-Side Encryption:</strong> Your master password and vault items are encrypted locally on your browser/device before reaching our network.</li>
+                    <li><strong>Zero Password Access:</strong> KvaultX never receives, stores, or logs your plain-text master password or vault encryption keys.</li>
+                    <li><strong>User Responsibility:</strong> You are solely responsible for memorizing and securing your master password. Because KvaultX operates zero-knowledge servers, lost master passwords cannot be recovered by KvaultX support staff.</li>
+                </ul>
+            </section>
 
-        <section class="terms-section">
-            <h3>5. Security & Multi-Factor Authentication</h3>
-            <p>We recommend enabling Multi-Factor Authentication (MFA/TOTP) and using a strong, unique Master Password to protect your account. KvaultX disclaims liability for unauthorized account access resulting from weak passwords, compromised personal devices, or user negligence.</p>
-        </section>
+            <!-- Section 2 -->
+            <section id="section-2" class="section-block">
+                <h2 class="section-heading">
+                    <span class="num">02</span> Account Registration & Email Verification
+                </h2>
+                <p>To use KvaultX services, you must register using a valid, authentic email address. You agree to:</p>
+                <ul>
+                    <li>Provide genuine email information owned and controlled by you.</li>
+                    <li>Never register or attempt account creation using another individual's personal email address without explicit legal authority.</li>
+                    <li>Receive automated account verification messages, welcome emails, multi-factor OTP codes, and security login notifications dispatched to your registered address.</li>
+                </ul>
+            </section>
 
-        <section class="terms-section">
-            <h3>6. Unauthorized Login & Password Change Security Protocols</h3>
-            <p>For state-of-the-art security, KvaultX dispatches instant <strong>Security Notification Emails</strong> for every successful login attempt and every master password update or reset. If an unauthorized user attempts to access your account or change your master password using your personal email address:</p>
-            <ul>
-                <li>Every security alert email contains a prominent <strong>"🚨 Report & Block Account Immediately"</strong> button.</li>
-                <li>Triggering this security action instantly revokes <strong>all active device sessions across all browsers and devices</strong> and blocks any further access or authentication until identity verification is performed with KvaultX Security Support.</li>
-                <li>This ensures that an unauthorized user on a different device is immediately booted out and cannot log in or manipulate your password vault.</li>
-            </ul>
-        </section>
+            <!-- Section 3 -->
+            <section id="section-3" class="section-block">
+                <h2 class="section-heading">
+                    <span class="num">03</span> Acceptable Use Policy
+                </h2>
+                <p>When interacting with KvaultX infrastructure, applications, or API endpoints, you explicitly agree NOT to:</p>
+                <ul>
+                    <li>Engage in illegal activities, credential harvesting, phishing, or fraud.</li>
+                    <li>Attempt unauthorized access to other users' password vaults, database servers, or network APIs.</li>
+                    <li>Interfere with, disrupt, or launch denial-of-service (DoS) attacks against KvaultX services.</li>
+                    <li>Reverse-engineer, decompile, or copy KvaultX's security components, algorithms, or proprietary software codebase.</li>
+                </ul>
+            </section>
 
-        <section class="terms-section">
-            <h3>7. Service Availability & Modifications</h3>
-            <p>We continuously work to maintain 99.9% uptime for KvaultX services. However, we reserve the right to perform scheduled maintenance, update security features, or modify service components to maintain state-of-the-art security standards.</p>
-        </section>
+            <!-- Section 4 -->
+            <section id="section-4" class="section-block">
+                <h2 class="section-heading">
+                    <span class="num">04</span> Data Ownership & Intellectual Property
+                </h2>
+                <p>You retain 100% full ownership over all credentials, notes, passwords, and sensitive entries saved inside your KvaultX vault. KvaultX asserts zero ownership rights over user vault contents. All brand assets, software UI designs, and system code remain the exclusive intellectual property of KvaultX.</p>
+            </section>
 
-        <section class="terms-section">
-            <h3>8. Contact & Support</h3>
-            <p>If you have any questions regarding these Terms & Conditions or security practices, please contact our support team at <a href="mailto:kvaultx.security@gmail.com" style="color: var(--accent-cyan);">kvaultx.security@gmail.com</a>.</p>
-        </section>
+            <!-- Section 5 -->
+            <section id="section-5" class="section-block">
+                <h2 class="section-heading">
+                    <span class="num">05</span> Authentication & Multi-Factor Security
+                </h2>
+                <p>We strongly recommend enabling Multi-Factor Authentication (TOTP / Authenticator App / Passkeys) to safeguard your account. KvaultX disclaims liability for unauthorized access resulting from compromised local devices, weak user passwords, or shared master credentials.</p>
+            </section>
 
-        <div style="text-align: center; margin-top: 40px;">
-            <a href="signup.html" class="btn-back">← Back to Signup</a>
-        </div>
+            <!-- Section 6 -->
+            <section id="section-6" class="section-block">
+                <h2 class="section-heading">
+                    <span class="num">06</span> Unauthorized Login & Password Change Security Protocols
+                </h2>
+                <p>For state-of-the-art security, KvaultX dispatches instant <strong>Security Notification Emails</strong> for every successful authentication attempt and master password update:</p>
+                
+                <div class="alert-card">
+                    <h4>🚨 1-Click Report & Block Protocol</h4>
+                    <p>If an unauthorized user logs in or updates credentials using your personal email, every security email contains a direct <strong>"🚨 Report & Block Account Immediately"</strong> button. Clicking this link instantly revokes all active device sessions across all browsers and locks the account so the intruder cannot access your vault from any device.</p>
+                </div>
 
+                <ul>
+                    <li><strong>Global Session Revocation:</strong> Triggering an unauthorized report immediately terminates all JWT session tokens on all active devices.</li>
+                    <li><strong>Lockout State:</strong> The account remains in a protected blocked state until formal identity verification is conducted with KvaultX Support.</li>
+                </ul>
+            </section>
+
+            <!-- Section 7 -->
+            <section id="section-7" class="section-block">
+                <h2 class="section-heading">
+                    <span class="num">07</span> Service Uptime & Infrastructure Modifications
+                </h2>
+                <p>We strive to maintain 99.9% uptime for KvaultX services. However, KvaultX reserves the right to perform scheduled maintenance, apply security patches, or modify underlying infrastructure to maintain state-of-the-art protection standards.</p>
+            </section>
+
+            <!-- Section 8 -->
+            <section id="section-8" class="section-block">
+                <h2 class="section-heading">
+                    <span class="num">08</span> Legal Contact & Support Engineering
+                </h2>
+                <p>If you have questions regarding these Terms & Conditions or security procedures, contact our legal and support team:</p>
+                
+                <div class="contact-box">
+                    <div style="font-size: 28px; margin-bottom: 8px;">⚖️</div>
+                    <strong style="color: #ffffff; font-size: 15px;">KvaultX Legal & Security Desk</strong><br>
+                    <span style="font-size: 13px; color: var(--text-muted);">Direct Response within 24 Hours</span><br>
+                    <a href="mailto:kvaultx.security@gmail.com" class="contact-email">✉️ kvaultx.security@gmail.com</a>
+                </div>
+            </section>
+
+        </article>
     </main>
 
-    <footer class="terms-footer">
-        © 2026 KvaultX. All rights reserved. • Zero-Knowledge Password Vault
+    <!-- Footer -->
+    <footer class="footer">
+        © 2026 KvaultX Security Platform. All rights reserved. • Zero-Knowledge Password Vault • <a href="privacy.html" style="color: var(--accent-green); text-decoration: none;">Privacy Policy</a>
     </footer>
 
 </body>

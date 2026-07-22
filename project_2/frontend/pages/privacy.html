@@ -3,226 +3,542 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy Policy | KvaultX</title>
+    <title>Privacy Policy | KvaultX Legal Portal</title>
     <link rel="stylesheet" href="../css/styles.css">
     <style>
         :root {
-            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
-            --card-bg: rgba(30, 41, 59, 0.75);
-            --border-color: rgba(255, 255, 255, 0.12);
+            --bg-dark: #090d16;
+            --bg-card: rgba(15, 23, 42, 0.75);
+            --border-color: rgba(255, 255, 255, 0.1);
             --accent-cyan: #00d2ff;
             --accent-green: #34e89e;
+            --accent-red: #ef4444;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
+            --text-secondary: #cbd5e1;
         }
 
         body {
             margin: 0;
             padding: 0;
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: var(--bg-gradient);
+            background: linear-gradient(135deg, #090d16 0%, #111827 50%, #090d16 100%);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            scroll-behavior: smooth;
+        }
+
+        /* Top Navbar */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(9, 13, 22, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 14px 40px;
+            display: flex;
+            justify-content: space-between;
             align-items: center;
         }
 
-        .privacy-header {
-            width: 100%;
-            max-width: 900px;
-            padding: 40px 20px 20px;
-            text-align: center;
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
         }
 
-        .privacy-logo {
-            height: 55px;
+        .nav-logo {
+            height: 36px;
             width: auto;
-            margin-bottom: 12px;
-            filter: drop-shadow(0 4px 14px rgba(0, 210, 255, 0.45));
+            filter: drop-shadow(0 2px 8px rgba(0, 210, 255, 0.4));
         }
 
-        .privacy-title {
-            font-size: 32px;
+        .nav-title {
+            font-size: 20px;
             font-weight: 800;
-            margin: 0 0 8px;
             background: linear-gradient(135deg, var(--accent-cyan), var(--accent-green));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            margin: 0;
         }
 
-        .privacy-subtitle {
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-link {
             color: var(--text-muted);
-            font-size: 14px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
+            text-decoration: none;
+            font-size: 13.5px;
+            font-weight: 500;
+            transition: color 0.2s ease;
         }
 
-        .privacy-container {
-            width: 90%;
-            max-width: 900px;
-            background: var(--card-bg);
+        .nav-link:hover, .nav-link.active {
+            color: var(--accent-green);
+        }
+
+        .nav-badge {
+            background: rgba(52, 232, 158, 0.12);
+            border: 1px solid rgba(52, 232, 158, 0.3);
+            color: var(--accent-green);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Hero Banner */
+        .hero-banner {
+            max-width: 1100px;
+            margin: 40px auto 20px;
+            padding: 0 20px;
+            text-align: center;
+        }
+
+        .hero-title {
+            font-size: 36px;
+            font-weight: 800;
+            margin: 0 0 10px;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+        }
+
+        .hero-subtitle {
+            color: var(--text-muted);
+            font-size: 14.5px;
+            margin: 0 0 20px;
+        }
+
+        .meta-pills {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .meta-pill {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid var(--border-color);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12.5px;
+            color: var(--text-secondary);
+        }
+
+        /* Layout Grid */
+        .legal-layout {
+            max-width: 1150px;
+            width: 92%;
+            margin: 20px auto 60px;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 36px;
+            align-items: start;
+        }
+
+        /* Sidebar Table of Contents */
+        .toc-sidebar {
+            position: sticky;
+            top: 90px;
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .toc-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent-cyan);
+            margin: 0 0 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .toc-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toc-item a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 13px;
+            display: block;
+            padding: 6px 10px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            line-height: 1.4;
+        }
+
+        .toc-item a:hover {
+            color: var(--accent-green);
+            background: rgba(52, 232, 158, 0.08);
+        }
+
+        /* Main Content Container */
+        .content-card {
+            background: var(--bg-card);
             backdrop-filter: blur(16px);
             border: 1px solid var(--border-color);
             border-radius: 16px;
             padding: 40px;
-            margin-bottom: 50px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-            box-sizing: border-box;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
         }
 
-        .privacy-section {
-            margin-bottom: 30px;
+        .summary-box {
+            background: linear-gradient(135deg, rgba(52, 232, 158, 0.08), rgba(0, 210, 255, 0.08));
+            border: 1px solid rgba(52, 232, 158, 0.3);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 36px;
         }
 
-        .privacy-section h3 {
-            font-size: 20px;
+        .summary-title {
             color: var(--accent-green);
-            border-bottom: 1px solid rgba(52, 232, 158, 0.2);
-            padding-bottom: 8px;
-            margin-top: 0;
-            margin-bottom: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            margin: 0 0 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin-top: 12px;
+        }
+
+        .summary-item {
+            font-size: 13px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            line-height: 1.5;
+        }
+
+        .section-block {
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .section-block:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .section-heading {
+            font-size: 22px;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0 0 16px;
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .privacy-section p, .privacy-section li {
+        .section-heading span.num {
+            color: var(--accent-green);
+            font-size: 16px;
+            font-weight: 800;
+            background: rgba(52, 232, 158, 0.12);
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        .section-block p {
+            font-size: 14.5px;
+            line-height: 1.75;
+            color: var(--text-secondary);
+            margin: 0 0 14px;
+        }
+
+        .section-block ul {
+            padding-left: 20px;
+            margin: 0 0 16px;
+        }
+
+        .section-block li {
             font-size: 14px;
             line-height: 1.7;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .alert-card {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid var(--accent-red);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin: 20px 0;
+        }
+
+        .alert-card h4 {
+            color: #f87171;
+            margin: 0 0 6px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .alert-card p {
+            margin: 0;
+            font-size: 13.5px;
             color: #cbd5e1;
         }
 
-        .privacy-section ul {
-            padding-left: 20px;
-            margin: 10px 0;
+        .contact-box {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            margin-top: 30px;
         }
 
-        .privacy-section li {
-            margin-bottom: 8px;
-        }
-
-        .highlight-box {
-            background: rgba(52, 232, 158, 0.08);
-            border-left: 4px solid var(--accent-green);
-            padding: 14px 18px;
-            border-radius: 6px;
-            margin: 15px 0;
-            font-size: 13px;
-            color: #e2e8f0;
-        }
-
-        .btn-back {
+        .contact-email {
             display: inline-block;
-            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-green));
-            color: #0f172a;
+            color: var(--accent-green);
+            font-size: 16px;
             font-weight: 700;
-            padding: 12px 28px;
-            border-radius: 8px;
             text-decoration: none;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);
-            margin-top: 20px;
+            margin-top: 8px;
+            padding: 8px 18px;
+            background: rgba(52, 232, 158, 0.12);
+            border: 1px solid rgba(52, 232, 158, 0.3);
+            border-radius: 8px;
+            transition: all 0.2s ease;
         }
 
-        .btn-back:hover {
+        .contact-email:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(52, 232, 158, 0.4);
+            box-shadow: 0 4px 14px rgba(52, 232, 158, 0.3);
         }
 
-        .privacy-footer {
+        .footer {
+            border-top: 1px solid var(--border-color);
+            padding: 30px;
             text-align: center;
             color: var(--text-muted);
-            font-size: 12px;
-            padding-bottom: 30px;
+            font-size: 13px;
+            margin-top: auto;
+        }
+
+        @media (max-width: 868px) {
+            .legal-layout {
+                grid-template-columns: 1fr;
+            }
+            .toc-sidebar {
+                position: static;
+            }
+            .navbar {
+                padding: 14px 20px;
+            }
         }
     </style>
 </head>
 <body>
 
-    <header class="privacy-header">
-        <img src="../assets/logo.png" alt="KvaultX Logo" class="privacy-logo">
-        <h1 class="privacy-title">Privacy Policy</h1>
-        <p class="privacy-subtitle">Effective Date: July 2026 • KvaultX Zero-Knowledge Security</p>
+    <!-- Header Navbar -->
+    <header class="navbar">
+        <a href="../pages/login.html" class="nav-brand">
+            <img src="../assets/logo.png" alt="KvaultX Logo" class="nav-logo">
+            <h1 class="nav-title">KvaultX</h1>
+        </a>
+        <nav class="nav-links">
+            <a href="login.html" class="nav-link">Login</a>
+            <a href="terms.html" class="nav-link">Terms & Conditions</a>
+            <a href="privacy.html" class="nav-link active">Privacy Policy</a>
+            <span class="nav-badge">Zero-Knowledge Certified</span>
+        </nav>
     </header>
 
-    <main class="privacy-container">
-
-        <div class="highlight-box">
-            🔐 <strong>Your Privacy is Our Core Mission.</strong> At KvaultX, we believe your passwords, notes, and credentials belong strictly to you. We design our architecture so we NEVER sell, monetize, or read your private data.
+    <!-- Hero Header -->
+    <div class="hero-banner">
+        <h1 class="hero-title">Privacy Policy</h1>
+        <p class="hero-subtitle">How KvaultX collects, processes, and protects your data under zero-knowledge standards.</p>
+        
+        <div class="meta-pills">
+            <span class="meta-pill">📅 Effective Date: July 22, 2026</span>
+            <span class="meta-pill">🛡️ Architecture: Zero-Knowledge AES-256</span>
+            <span class="meta-pill">📄 Version: 2.4 (Production)</span>
         </div>
+    </div>
 
-        <section class="privacy-section">
-            <h3>1. Zero-Knowledge Encryption Guarantee</h3>
-            <p>KvaultX is engineered from the ground up on a <strong>Zero-Knowledge Architecture</strong>. This means:</p>
-            <ul>
-                <li>Your master password and vault items are encrypted client-side using industry-standard <strong>AES-256 GCM encryption</strong> before sending data to our servers.</li>
-                <li>Our servers store ONLY encrypted ciphertext blob data. We do NOT hold master encryption keys or unencrypted passwords.</li>
-                <li>Even if compelled by third parties or database breaches, unencrypted vault data cannot be read by anyone except YOU.</li>
+    <!-- 2-Column Main Layout -->
+    <main class="legal-layout">
+
+        <!-- Table of Contents Sidebar -->
+        <aside class="toc-sidebar">
+            <div class="toc-title">
+                <span>📍</span> Table of Contents
+            </div>
+            <ul class="toc-list">
+                <li class="toc-item"><a href="#section-1">1. Zero-Knowledge Architecture</a></li>
+                <li class="toc-item"><a href="#section-2">2. Information Collection</a></li>
+                <li class="toc-item"><a href="#section-3">3. Purpose & Data Usage</a></li>
+                <li class="toc-item"><a href="#section-4">4. Security Alerts & Account Lock</a></li>
+                <li class="toc-item"><a href="#section-5">5. Cookies & Session Storage</a></li>
+                <li class="toc-item"><a href="#section-6">6. Retention & Deletion Rights</a></li>
+                <li class="toc-item"><a href="#section-7">7. Third-Party Policy & Compliance</a></li>
+                <li class="toc-item"><a href="#section-8">8. Contact Privacy Team</a></li>
             </ul>
-        </section>
+        </aside>
 
-        <section class="privacy-section">
-            <h3>2. Information We Collect</h3>
-            <p>We minimize data collection to the absolute bare necessities required to operate the service:</p>
-            <ul>
-                <li><strong>Account Credentials:</strong> Full Name and Email Address (used for authentication, welcome emails, security alerts, and OTP verification).</li>
-                <li><strong>Master Password Hash:</strong> Cryptographically hashed using <strong>Bcrypt with 10 salt rounds</strong> (never plain-text).</li>
-                <li><strong>Security Logs:</strong> Basic security metadata (IP address, login timestamp, browser user-agent) stored strictly for security alert notifications and active session tracking.</li>
-            </ul>
-        </section>
+        <!-- Main Content Area -->
+        <article class="content-card">
 
-        <section class="privacy-section">
-            <h3>3. How We Use Your Information</h3>
-            <p>Your information is used strictly to:</p>
-            <ul>
-                <li>Authenticate your identity when logging in, changing credentials, or resetting passwords.</li>
-                <li>Send automated <strong>Welcome Emails</strong> upon new account signup.</li>
-                <li>Send automated <strong>Security Login Alerts</strong> and <strong>Master Password Change Notifications</strong> with instant account lock capabilities.</li>
-                <li>Send <strong>Verification OTP codes</strong> to your registered email address.</li>
-                <li>Protect your account against brute-force attacks, unauthorized credential changes, and intruder logins.</li>
-            </ul>
-            <p style="color: var(--accent-green); font-weight: 600;">We NEVER sell, rent, trade, or share your personal information or email address with any third-party advertisers.</p>
-        </section>
+            <!-- Summary for Humans Callout Box -->
+            <div class="summary-box">
+                <div class="summary-title">
+                    <span>💡</span> Executive Summary (Plain English)
+                </div>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <span>🔒</span> <strong>Zero Access:</strong> We cannot read your passwords or notes. Your master password never touches our servers.
+                    </div>
+                    <div class="summary-item">
+                        <span>🚫</span> <strong>Zero Sales:</strong> We never monetize, sell, or share your email address or personal data.
+                    </div>
+                    <div class="summary-item">
+                        <span>🚨</span> <strong>Instant Lock:</strong> Automated security emails allow 1-click immediate account block if someone accesses your account.
+                    </div>
+                </div>
+            </div>
 
-        <section class="privacy-section">
-            <h3>4. Cookies & Token Storage</h3>
-            <p>KvaultX uses secure, short-lived <strong>JWT (JSON Web Tokens)</strong> and <strong>HttpOnly, SameSite=Lax Cookies</strong> to maintain your authenticated session. We do NOT use tracking cookies or third-party advertising cookies.</p>
-        </section>
+            <!-- Section 1 -->
+            <section id="section-1" class="section-block">
+                <h2 class="section-heading">
+                    <span class="num">01</span> Zero-Knowledge Encryption Architecture
+                </h2>
+                <p>KvaultX is engineered from the ground up on a strict <strong>Zero-Knowledge Architecture</strong>. This fundamental design principal ensures that your master password, vault items, passkeys, and secure notes remain completely private and accessible exclusively to you.</p>
+                <ul>
+                    <li><strong>Client-Side Encryption:</strong> All sensitive vault entries are encrypted locally on your personal device using <strong>AES-256 GCM encryption</strong> before being transmitted across the network.</li>
+                    <li><strong>No Master Key Access:</strong> KvaultX servers store only encrypted ciphertext blobs. We do not store, possess, or have access to your unencrypted Master Password or cryptographic keys.</li>
+                    <li><strong>Impenetrable Storage:</strong> In the event of a database breach or law enforcement subpoena, unencrypted vault data cannot be provided because we possess no technical capability to decrypt it.</li>
+                </ul>
+            </section>
 
-        <section class="privacy-section">
-            <h3>5. Security Alerts & Immediate Account Blocking Protocol</h3>
-            <p>For maximum privacy and protection against unauthorized account takeovers:</p>
-            <ul>
-                <li>Whenever a successful login or master password modification occurs, an automated security notification is sent to your registered email address.</li>
-                <li>If an unauthorized person accesses your account using your personal email address, each security email contains a direct <strong>"🚨 Report & Block Account Immediately"</strong> button.</li>
-                <li>Clicking this button instantly revokes all active device sessions across all browsers/devices and locks the account to prevent unauthorized intruders from accessing your vault data.</li>
-            </ul>
-        </section>
+            <!-- Section 2 -->
+            <section id="section-2" class="section-block">
+                <h2 class="section-heading">
+                    <span class="num">02</span> Information We Collect & Process
+                </h2>
+                <p>We practice strict data minimization. We collect only the essential technical data necessary to authenticate your account and maintain service integrity:</p>
+                <ul>
+                    <li><strong>Account Credentials:</strong> Full Name and Primary Email Address, required for account creation, welcome verification, security notification dispatches, and OTP verification.</li>
+                    <li><strong>Master Password Hash:</strong> Stored strictly as a salted <strong>Bcrypt hash (10 salt rounds)</strong> used purely to verify your identity during login. Plain-text master passwords are never logged or stored.</li>
+                    <li><strong>Security Metadata:</strong> IP addresses, browser user-agent strings, and timestamp logs retained temporarily for active device session management and threat detection.</li>
+                </ul>
+            </section>
 
-        <section class="privacy-section">
-            <h3>6. Data Retention & Account Deletion</h3>
-            <p>You have full control over your data. You may edit, export, or permanently delete your stored vault items at any time through the KvaultX Dashboard. If you delete your account, all associated encrypted vault items and account metadata are permanently purged from our databases.</p>
-        </section>
+            <!-- Section 3 -->
+            <section id="section-3" class="section-block">
+                <h2 class="section-heading">
+                    <span class="num">03</span> How We Use Your Information
+                </h2>
+                <p>Personal metadata collected by KvaultX is processed strictly for legitimate operational purposes:</p>
+                <ul>
+                    <li>To authenticate your identity during login, passkey verification, and multi-factor authentication.</li>
+                    <li>To dispatch automated <strong>Security Login Alerts</strong> and <strong>Master Password Change Notifications</strong> whenever account activity is detected.</li>
+                    <li>To send 6-digit Email OTP codes when performing multi-factor login or password reset workflows.</li>
+                    <li>To detect and mitigate brute-force attacks, unauthorized credential manipulations, or suspicious active device sessions.</li>
+                </ul>
+            </section>
 
-        <section class="privacy-section">
-            <h3>7. Privacy Policy Updates</h3>
-            <p>We may update this Privacy Policy periodically to reflect enhancements in security protocols. Significant updates will be communicated via email notifications to all registered users.</p>
-        </section>
+            <!-- Section 4 -->
+            <section id="section-4" class="section-block">
+                <h2 class="section-heading">
+                    <span class="num">04</span> Security Login Alerts & Immediate Account Blocking Protocol
+                </h2>
+                <p>To prevent unauthorized account takeovers and credential abuse, KvaultX enforces an active <strong>Instant Threat Containment Protocol</strong>:</p>
+                
+                <div class="alert-card">
+                    <h4>🚨 Instant Account Block Capability</h4>
+                    <p>Every automated security alert email contains a direct <strong>"🚨 Report & Block Account Immediately"</strong> button. If an intruder logs in or updates credentials using your email address, clicking this button instantly locks your account and revokes all active device sessions.</p>
+                </div>
 
-        <section class="privacy-section">
-            <h3>8. Contact Privacy Team</h3>
-            <p>If you have any questions, concerns, or requests regarding this Privacy Policy or your data protection, please contact us at <a href="mailto:kvaultx.security@gmail.com" style="color: var(--accent-green);">kvaultx.security@gmail.com</a>.</p>
-        </section>
+                <ul>
+                    <li><strong>Immediate Session Termination:</strong> Triggering a security report destroys all active JWT authentication tokens across every device and browser globally.</li>
+                    <li><strong>Account Lockdown:</strong> The account status is set to `isBlocked: true`, rejecting subsequent login attempts until formal identity verification is completed.</li>
+                </ul>
+            </section>
 
-        <div style="text-align: center; margin-top: 40px;">
-            <a href="signup.html" class="btn-back">← Back to Signup</a>
-        </div>
+            <!-- Section 5 -->
+            <section id="section-5" class="section-block">
+                <h2 class="section-heading">
+                    <span class="num">05</span> Cookies & Session Token Policy
+                </h2>
+                <p>KvaultX utilizes modern web security tokens and strictly necessary cookies to keep you safely authenticated:</p>
+                <ul>
+                    <li><strong>JWT Tokens:</strong> Short-lived Access Tokens and Refresh Tokens generated upon successful multi-factor login.</li>
+                    <li><strong>HttpOnly, SameSite=Lax Cookies:</strong> Secured session cookies that prevent Cross-Site Scripting (XSS) and Cross-Site Request Forgery (CSRF) exploits.</li>
+                    <li><strong>No Tracking Cookies:</strong> We do NOT employ third-party tracking pixels, marketing cookies, or user tracking scripts.</li>
+                </ul>
+            </section>
 
+            <!-- Section 6 -->
+            <section id="section-6" class="section-block">
+                <h2 class="section-heading">
+                    <span class="num">06</span> Data Retention & Permanent Account Erasure
+                </h2>
+                <p>You retain full sovereignty over your vault contents at all times:</p>
+                <ul>
+                    <li><strong>Immediate Deletion:</strong> Items deleted from your vault inside the KvaultX Dashboard are purged immediately from database records.</li>
+                    <li><strong>Account Termination:</strong> If you request full account deletion, your encrypted vault items, user profile, and active session histories are permanently purged without recovery options.</li>
+                </ul>
+            </section>
+
+            <!-- Section 7 -->
+            <section id="section-7" class="section-block">
+                <h2 class="section-heading">
+                    <span class="num">07</span> Third-Party Disclosure & Global Regulations
+                </h2>
+                <p>We do not trade, sell, or rent user data. KvaultX complies with global data privacy frameworks (including GDPR principles) ensuring your personal email and encrypted payload remain secure.</p>
+            </section>
+
+            <!-- Section 8 -->
+            <section id="section-8" class="section-block">
+                <h2 class="section-heading">
+                    <span class="num">08</span> Contact Security & Privacy Officers
+                </h2>
+                <p>For security reports, privacy inquiries, or unblocking requests, contact our dedicated security engineering team:</p>
+                
+                <div class="contact-box">
+                    <div style="font-size: 28px; margin-bottom: 8px;">🛡️</div>
+                    <strong style="color: #ffffff; font-size: 15px;">KvaultX Security Operations Center</strong><br>
+                    <span style="font-size: 13px; color: var(--text-muted);">Direct Response within 24 Hours</span><br>
+                    <a href="mailto:kvaultx.security@gmail.com" class="contact-email">✉️ kvaultx.security@gmail.com</a>
+                </div>
+            </section>
+
+        </article>
     </main>
 
-    <footer class="privacy-footer">
-        © 2026 KvaultX. All rights reserved. • Zero-Knowledge Data Protection
+    <!-- Footer -->
+    <footer class="footer">
+        © 2026 KvaultX Security Platform. All rights reserved. • Zero-Knowledge Password Vault • <a href="terms.html" style="color: var(--accent-cyan); text-decoration: none;">Terms & Conditions</a>
     </footer>
 
 </body>
