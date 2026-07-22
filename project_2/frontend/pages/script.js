@@ -64,7 +64,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (toggleActions && actionButtons) {
         toggleActions.addEventListener("click", (e) => {
             e.stopPropagation();
-            actionButtons.classList.toggle("hidden");
+            const isHidden = actionButtons.style.display === "none" || getComputedStyle(actionButtons).display === "none";
+            actionButtons.style.display = isHidden ? "flex" : "none";
         });
         
         actionButtons.addEventListener("click", (e) => {
@@ -73,7 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
         
         // Hide panel when clicking outside
         document.addEventListener("click", () => {
-            actionButtons.classList.add("hidden");
+            if (actionButtons) actionButtons.style.display = "none";
         });
     }
 
