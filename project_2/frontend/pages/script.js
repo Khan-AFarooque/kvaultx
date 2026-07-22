@@ -60,11 +60,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const notesDisplay = document.querySelector("#notesDisplay");
     const closePopupBtn = document.querySelector("#closePopupBtn");
 
-    // Toggle Action Panel
+    // Toggle Action Panel via Three-Dots Button
     if (toggleActions && actionButtons) {
         toggleActions.addEventListener("click", (e) => {
             e.stopPropagation();
             actionButtons.classList.toggle("hidden");
+        });
+        
+        actionButtons.addEventListener("click", (e) => {
+            e.stopPropagation();
         });
         
         // Hide panel when clicking outside
