@@ -24,7 +24,8 @@ const {
     getProfile,
     getSettings,
     updateSettings,
-    reportAndBlockAccount
+    reportAndBlockAccount,
+    changePassword
 } = require("../controllers/authController");
 
 // Public auth routes
@@ -45,6 +46,7 @@ router.post("/webauthn/login-verify", webauthnLoginVerify);
 router.post("/passkey-session", passkeySessionLogin);
 
 // Protected auth routes
+router.post("/change-password", authMiddleware, changePassword);
 router.post("/mfa/setup", authMiddleware, setupMFA);
 router.post("/mfa/verify", authMiddleware, verifyMFA);
 router.post("/mfa/disable", authMiddleware, disableMFA);

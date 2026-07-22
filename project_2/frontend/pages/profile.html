@@ -333,14 +333,29 @@
             }
         }
 
-        function updatePassword() {
+        async function updatePassword() {
             const currentPass = document.getElementById("inputCurrentPass").value;
             const newPass = document.getElementById("inputNewPass").value;
             if (!currentPass || !newPass) return alert("Please enter current password and new password.");
             if (newPass.length < 8) return alert("New password must be at least 8 characters long.");
-            alert("🔒 Master password updated successfully!");
-            document.getElementById("inputCurrentPass").value = "";
-            document.getElementById("inputNewPass").value = "";
+            
+            try {
+                const res = await apiFetch("/auth/change-password", {
+                    method: "POST",
+                    body: JSON.stringify({ currentPassword: currentPass, newPassword: newPass })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast("Password Updated 🔒", "Master password changed successfully. Security notification email sent.");
+                    alert("🔒 Master password updated successfully! Other device sessions have been revoked.");
+                    document.getElementById("inputCurrentPass").value = "";
+                    document.getElementById("inputNewPass").value = "";
+                } else {
+                    alert(data.message || "Failed to update master password.");
+                }
+            } catch (err) {
+                alert("Failed to update master password. Please try again.");
+            }
         }
 
         async function handleLogout() {

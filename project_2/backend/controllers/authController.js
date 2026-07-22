@@ -459,9 +459,28 @@ const sendWelcomeEmail = async (email, name) => {
     return sendGenericEmail(email, subject, html);
 };
 
-const sendLoginAlertEmail = async (email, name, ip, userAgent, blockToken) => {
+// Helper to get base URL dynamically (handles localhost, Render, production domains)
+const getBaseUrl = (req) => {
+    if (process.env.FRONTEND_URL && !process.env.FRONTEND_URL.includes("localhost")) {
+        return process.env.FRONTEND_URL.replace(/\/$/, "");
+    }
+    if (process.env.RENDER_EXTERNAL_URL) {
+        return process.env.RENDER_EXTERNAL_URL.replace(/\/$/, "");
+    }
+    if (req && req.headers) {
+        const host = req.headers['x-forwarded-host'] || (req.get && req.get('host'));
+        const proto = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+        if (host && !host.includes("localhost")) {
+            return `${proto}://${host}`;
+        }
+    }
+    return (process.env.FRONTEND_URL || "https://kvaultx.onrender.com").replace(/\/$/, "");
+};
+
+const sendLoginAlertEmail = async (email, name, ip, userAgent, blockToken, req) => {
     const subject = "Security Alert: Successful Login to Your KvaultX Account 🔐";
-    const reportUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/pages/report-login.html?email=${encodeURIComponent(email)}&token=${blockToken || ''}`;
+    const baseUrl = getBaseUrl(req);
+    const reportUrl = `${baseUrl}/pages/report-login.html?email=${encodeURIComponent(email)}&token=${blockToken || ''}`;
 
     const html = `<div style="font-family: Arial, sans-serif; padding: 25px; color: #333; background: #0f172a; border-radius: 12px; max-width: 600px; margin: 0 auto;">
         <div style="text-align: center; margin-bottom: 20px;">
@@ -497,9 +516,49 @@ const sendLoginAlertEmail = async (email, name, ip, userAgent, blockToken) => {
     return sendGenericEmail(email, subject, html);
 };
 
+const sendPasswordChangeAlertEmail = async (email, name, ip, userAgent, blockToken, req) => {
+    const subject = "🚨 CRITICAL SECURITY ALERT: Master Password Changed";
+    const baseUrl = getBaseUrl(req);
+    const reportUrl = `${baseUrl}/pages/report-login.html?email=${encodeURIComponent(email)}&token=${blockToken || ''}`;
+
+    const html = `<div style="font-family: Arial, sans-serif; padding: 25px; color: #333; background: #0f172a; border-radius: 12px; max-width: 600px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h1 style="color: #00d2ff; font-size: 28px; margin: 0;">🔐 KvaultX</h1>
+            <p style="color: #ef4444; font-size: 13px; font-weight: bold; margin-top: 5px;">CRITICAL SECURITY ALERT</p>
+        </div>
+        <div style="background: #1e293b; padding: 25px; border-radius: 10px; border: 1px solid rgba(239, 68, 68, 0.4); color: #f8fafc;">
+            <h2 style="color: #f87171; margin-top: 0;">Master Password Changed ⚠️</h2>
+            <p style="font-size: 14px; color: #cbd5e1;">Hello ${name || "User"},</p>
+            <p style="font-size: 14px; color: #cbd5e1;">
+                The master password for your <strong>KvaultX account (${email})</strong> was recently updated.
+            </p>
+            <ul style="background: #0f172a; padding: 15px 20px; border-radius: 6px; font-size: 13px; color: #94a3b8; list-style: none; line-height: 1.8;">
+                <li><strong>🕒 Time:</strong> ${new Date().toLocaleString()}</li>
+                <li><strong>🌐 IP Address:</strong> ${ip || "127.0.0.1"}</li>
+                <li><strong>💻 Device / Browser:</strong> ${userAgent || "Web Browser"}</li>
+            </ul>
+            <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.5); padding: 18px; border-radius: 8px; margin: 20px 0; text-align: center;">
+                <p style="margin: 0 0 14px 0; color: #f87171; font-size: 14px; font-weight: bold;">
+                    🚨 WASN'T YOU? IF AN UNAUTHORIZED PERSON CHANGED YOUR PASSWORD, REPORT IT IMMEDIATELY TO LOCK YOUR ACCOUNT AND REVOKE ALL SESSIONS SO THEY CANNOT LOGIN FROM ANY DEVICE!
+                </p>
+                <a href="${reportUrl}" target="_blank" style="display: inline-block; background: #ef4444; color: #ffffff; padding: 14px 24px; border-radius: 8px; font-weight: bold; font-size: 14px; text-decoration: none; box-shadow: 0 4px 16px rgba(239, 68, 68, 0.5);">
+                    🚨 Report Unauthorized Change & Block Account Immediately
+                </a>
+            </div>
+            <p style="font-size: 13px; color: #94a3b8; margin-bottom: 0;">
+                If you initiated this change yourself, you can safely ignore this email.<br><br>
+                Stay safe,<br>
+                <strong>The KvaultX Security Team</strong>
+            </p>
+        </div>
+    </div>`;
+
+    return sendGenericEmail(email, subject, html);
+};
+
 // Safety alias function for Passkey / WebAuthn handlers
-const sendSecurityAlertEmail = (email, title, body, ip, userAgent, blockToken) => {
-    return sendLoginAlertEmail(email, "User", ip, userAgent, blockToken);
+const sendSecurityAlertEmail = (email, title, body, ip, userAgent, blockToken, req) => {
+    return sendPasswordChangeAlertEmail(email, "User", ip, userAgent, blockToken, req);
 };
 
 // Sign Up
@@ -682,7 +741,7 @@ exports.login = async (req, res) => {
         user.blockToken = blockToken;
         await user.save();
 
-        sendLoginAlertEmail(user.email, user.name, ip, userAgent, blockToken)
+        sendLoginAlertEmail(user.email, user.name, ip, userAgent, blockToken, req)
             .then(() => console.log(`📧 [LOGIN ALERT EMAIL SENT] to ${user.email}`))
             .catch(err => console.error("Login alert dispatch failed:", err));
 
@@ -805,14 +864,67 @@ exports.resetPassword = async (req, res) => {
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         user.password = hashedPassword;
         user.otp = undefined; // clear OTP fields
+
+        const blockToken = crypto.randomBytes(32).toString("hex");
+        user.blockToken = blockToken;
         await user.save();
 
-        // Security Alert: Password Changed
+        // Revoke all active device sessions so unauthorized users on different devices are booted out immediately!
+        await Session.deleteMany({ user: user._id });
+
+        // Security Alert: Password Changed with Report & Block Button
         const userAgent = req.headers["user-agent"] || "Unknown Browser";
         const ip = req.ip || "127.0.0.1";
-        sendSecurityAlertEmail(user.email, "Password Reset Successful", "Password Changed Alert", ip, userAgent);
+        sendPasswordChangeAlertEmail(user.email, user.name, ip, userAgent, blockToken, req)
+            .then(() => console.log(`📧 [PASSWORD RESET ALERT SENT] to ${user.email}`))
+            .catch(err => console.error("Password reset alert dispatch failed:", err));
 
         res.json({ message: "Password updated successfully. You can now login." });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Change Master Password (Authenticated User)
+exports.changePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ message: "Current password and new password are required." });
+        }
+
+        if (newPassword.length < 8) {
+            return res.status(400).json({ message: "New password must be at least 8 characters long." });
+        }
+
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: "Incorrect current password." });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
+
+        const blockToken = crypto.randomBytes(32).toString("hex");
+        user.blockToken = blockToken;
+        await user.save();
+
+        // Revoke all OTHER active device sessions except the current session
+        if (req.sessionId) {
+            await Session.deleteMany({ user: user._id, _id: { $ne: req.sessionId } });
+        }
+
+        const userAgent = req.headers["user-agent"] || "Unknown Browser";
+        const ip = req.ip || "127.0.0.1";
+        sendPasswordChangeAlertEmail(user.email, user.name, ip, userAgent, blockToken, req)
+            .then(() => console.log(`📧 [PASSWORD CHANGE ALERT SENT] to ${user.email}`))
+            .catch(err => console.error("Password change alert dispatch failed:", err));
+
+        res.json({ message: "Master password updated successfully. Other device sessions revoked." });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
