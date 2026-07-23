@@ -69,9 +69,11 @@ app.get("/pages/forgot.html", (req, res) => {
 app.use("/pages/assets", express.static(path.join(__dirname, "../frontend/assets")));
 
 app.get("/robots.txt", (req, res) => {
+    res.type("text/plain");
     res.sendFile(path.join(__dirname, "../frontend/robots.txt"));
 });
 app.get("/sitemap.xml", (req, res) => {
+    res.type("application/xml");
     res.sendFile(path.join(__dirname, "../frontend/sitemap.xml"));
 });
 
