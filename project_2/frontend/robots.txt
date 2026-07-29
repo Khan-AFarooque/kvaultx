@@ -1,8 +1,4 @@
 User-agent: *
 Allow: /
-Allow: /pages/login.html
-Allow: /pages/signup.html
-Allow: /pages/privacy.html
-Allow: /pages/terms.html
 
 Sitemap: https://kvaultx.onrender.com/sitemap.xml

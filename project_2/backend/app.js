@@ -69,7 +69,7 @@ app.get("/pages/forgot.html", (req, res) => {
 app.use("/pages/assets", express.static(path.join(__dirname, "../frontend/assets")));
 
 app.get("/robots.txt", (req, res) => {
-    res.type("text/plain");
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
     res.sendFile(path.join(__dirname, "../frontend/robots.txt"));
 });
 app.get("/sitemap.xml", (req, res) => {
@@ -77,9 +77,9 @@ app.get("/sitemap.xml", (req, res) => {
     res.sendFile(path.join(__dirname, "../frontend/sitemap.xml"));
 });
 
-// Redirect root to login page
+// Serve root login page directly (200 OK) to ensure search engines index the root URL
 app.get("/", (req, res) => {
-    res.redirect("/pages/login.html");
+    res.sendFile(path.join(__dirname, "../frontend/pages/login.html"));
 });
 
 module.exports = app;
