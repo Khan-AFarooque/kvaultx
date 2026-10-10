@@ -143,6 +143,16 @@ const detectPhishingLocal = (urlStr) => {
     }
 };
 
+// Helper to decrypt notes inside the database format `iv:ciphertext`
+function decryptNotesField(notesField) {
+    if (!notesField) return "";
+    if (notesField.includes(":")) {
+        const parts = notesField.split(":");
+        return encryption.decrypt(parts[1], parts[0]);
+    }
+    return notesField; // Fallback for unencrypted notes
+}
+
 /* =========================================================
    VAULT CRUD OPERATIONS
 ========================================================= */
@@ -166,7 +176,7 @@ exports.getPasswords = async (req, res) => {
                 username: item.username,
                 password: encryption.decrypt(item.password, item.iv),
                 url: item.url,
-                notes: item.notes ? encryption.decrypt(item.notes, item.iv) : "",
+                notes: decryptNotesField(item.notes),
                 category: item.category,
                 tags: item.tags,
                 isFavorite: item.isFavorite,
@@ -296,15 +306,7 @@ exports.deletePassword = async (req, res) => {
     }
 };
 
-// Helper helper to decrypt notes inside the database format `iv:ciphertext`
-const decryptNotesField = (notesField) => {
-    if (!notesField) return "";
-    if (notesField.includes(":")) {
-        const parts = notesField.split(":");
-        return encryption.decrypt(parts[1], parts[0]);
-    }
-    return notesField; // Fallback for unencrypted notes
-};
+
 
 /* =========================================================
    DASHBOARD & STATS ANALYTICS

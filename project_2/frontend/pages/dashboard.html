@@ -387,7 +387,7 @@
         © 2026 KvaultX. All rights reserved.
     </footer>
 
-    <script src="script.js"></script>
+    <script src="/pages/script.js"></script>
     <script src="../js/utils.js?v=3"></script>
     <script src="../js/password.js?v=3"></script>
     <script src="../js/dashboard.js?v=3"></script>
@@ -396,11 +396,8 @@
         window.addEventListener("DOMContentLoaded", () => {
             const urlParams = new URLSearchParams(window.location.search);
             const tabParam = urlParams.get("tab");
-            if (tabParam) {
-                const tabBtn = document.querySelector(`.tab-btn[data-tab="${tabParam}"]`);
-                if (tabBtn) {
-                    tabBtn.click();
-                }
+            if (tabParam && typeof window.switchTab === "function") {
+                window.switchTab(tabParam);
             }
         });
     </script>

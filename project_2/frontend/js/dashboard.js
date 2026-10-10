@@ -738,6 +738,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Tab switcher helper
     function switchTab(tabName) {
+        if (!tabName) tabName = "notes";
         const tabButtons = document.querySelectorAll(".tab-btn");
         const tabContents = document.querySelectorAll(".tab-content");
         
@@ -757,7 +758,14 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
-        if (tabName === "vault" || tabName === "analytics") {
+        if (tabName === "notes") {
+            const notesCountEl = document.querySelector("#statNotesCount");
+            if (notesCountEl) {
+                const notesList = JSON.parse(localStorage.getItem("secure_notes") || "[]");
+                notesCountEl.textContent = notesList.length;
+            }
+        } else if (tabName === "vault") {
+            loadVaultItems();
             setTimeout(() => {
                 if (window.cachedVaultAnalytics) {
                     drawVaultDonutChart(
@@ -766,12 +774,147 @@ document.addEventListener("DOMContentLoaded", () => {
                         window.cachedVaultAnalytics.weakCount,
                         window.cachedVaultAnalytics.securityScore
                     );
-                    drawCanvasChart("categoryDistributionChart", window.cachedVaultAnalytics.categoryStats);
                 } else {
                     loadAnalytics();
                 }
             }, 60);
+        } else if (tabName === "analytics") {
+            loadAnalytics();
+            setTimeout(() => {
+                if (window.cachedVaultAnalytics) {
+                    drawCanvasChart("categoryDistributionChart", window.cachedVaultAnalytics.categoryStats);
+                }
+            }, 60);
         }
+
+        try {
+            const url = new URL(window.location);
+            url.searchParams.set("tab", tabName);
+            window.history.replaceState({}, "", url);
+        } catch (e) {}
+    }
+
+    window.switchTab = switchTab;
+
+    // Attach click listeners to all tab buttons
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            e.preventDefault();
+            const tabName = btn.getAttribute("data-tab");
+            if (tabName) switchTab(tabName);
+        });
+    });
+
+    // Check query params on load
+    const initialUrlParams = new URLSearchParams(window.location.search);
+    const initialTabParam = initialUrlParams.get("tab");
+    if (initialTabParam && ["notes", "vault", "generator", "analytics"].includes(initialTabParam)) {
+        switchTab(initialTabParam);
+    }
+
+    // Direct Note Area Action Handlers
+    const toggleActions = document.querySelector("#toggleActions");
+    const actionButtons = document.querySelector("#actionButtons");
+    const saveNoteBtn = document.querySelector("#saveNoteBtn");
+    const showNotesBtn = document.querySelector("#showNotesBtn");
+    const downloadNotesBtn = document.querySelector("#downloadNotesBtn");
+    const copyNotesBtn = document.querySelector("#copyNotesBtn");
+    const shareNotesBtn = document.querySelector("#shareNotesBtn");
+    const deleteAllBtn = document.querySelector("#deleteAllBtn");
+    const noteInput = document.querySelector("#noteInput");
+    const notesPopup = document.querySelector("#notesPopup");
+    const notesDisplay = document.querySelector("#notesDisplay");
+    const closePopupBtn = document.querySelector("#closePopupBtn");
+
+    if (toggleActions && actionButtons) {
+        toggleActions.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const isHidden = actionButtons.style.display === "none" || getComputedStyle(actionButtons).display === "none";
+            actionButtons.style.display = isHidden ? "flex" : "none";
+        });
+        document.addEventListener("click", () => {
+            if (actionButtons) actionButtons.style.display = "none";
+        });
+    }
+
+    if (saveNoteBtn && noteInput) {
+        saveNoteBtn.addEventListener("click", () => {
+            const noteContent = noteInput.value.trim();
+            if (!noteContent) return alert("Note is empty.");
+            let notes = JSON.parse(localStorage.getItem("secure_notes") || "[]");
+            notes.push({ content: noteContent, timestamp: new Date().toLocaleString() });
+            localStorage.setItem("secure_notes", JSON.stringify(notes));
+            alert("🔒 Note saved securely!");
+            noteInput.value = "";
+            const notesCountEl = document.querySelector("#statNotesCount");
+            if (notesCountEl) notesCountEl.textContent = notes.length;
+        });
+    }
+
+    if (showNotesBtn && notesPopup && notesDisplay) {
+        showNotesBtn.addEventListener("click", () => {
+            let notes = JSON.parse(localStorage.getItem("secure_notes") || "[]");
+            if (notes.length === 0) {
+                notesDisplay.value = "No saved notes found.";
+            } else {
+                notesDisplay.value = notes.map((n, i) => `--- Note #${i + 1} (${n.timestamp}) ---\n${n.content}\n`).join("\n");
+            }
+            notesPopup.classList.remove("hidden");
+        });
+    }
+
+    if (closePopupBtn && notesPopup) {
+        closePopupBtn.addEventListener("click", () => {
+            notesPopup.classList.add("hidden");
+        });
+    }
+
+    if (downloadNotesBtn && noteInput) {
+        downloadNotesBtn.addEventListener("click", () => {
+            const content = noteInput.value || "No content to download.";
+            const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "kvaultx_note.txt";
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+    }
+
+    if (copyNotesBtn && noteInput) {
+        copyNotesBtn.addEventListener("click", () => {
+            const content = noteInput.value;
+            if (!content) return alert("Nothing to copy!");
+            navigator.clipboard.writeText(content).then(() => {
+                alert("📋 Note copied to clipboard!");
+            });
+        });
+    }
+
+    if (shareNotesBtn && noteInput) {
+        shareNotesBtn.addEventListener("click", () => {
+            const content = noteInput.value;
+            if (!content) return alert("Nothing to share!");
+            if (navigator.share) {
+                navigator.share({ title: 'KvaultX Note', text: content }).catch(() => {});
+            } else {
+                navigator.clipboard.writeText(content);
+                alert("Sharing not supported in browser. Copied to clipboard!");
+            }
+        });
+    }
+
+    if (deleteAllBtn && noteInput) {
+        deleteAllBtn.addEventListener("click", () => {
+            if (confirm("Are you sure you want to delete all saved notes?")) {
+                localStorage.removeItem("secure_notes");
+                noteInput.value = "";
+                alert("🗑️ All notes deleted.");
+                const notesCountEl = document.querySelector("#statNotesCount");
+                if (notesCountEl) notesCountEl.textContent = "0";
+            }
+        });
     }
 
     if (agentOptionPhishing) {

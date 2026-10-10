@@ -11,8 +11,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Session Verification
     const token = localStorage.getItem("accessToken");
     const isValidToken = token && token !== "undefined" && token !== "null";
-    if (!isValidToken && !window.location.pathname.endsWith("login.html") && !window.location.pathname.endsWith("signup.html") && !window.location.pathname.endsWith("terms.html") && !window.location.pathname.endsWith("privacy.html")) {
-        window.location.href = "/pages/login.html";
+    const publicPages = ["login.html", "signup.html", "forgot.html", "report-login.html", "terms.html", "privacy.html"];
+    const isPublic = publicPages.some(page => window.location.pathname.endsWith(page)) || window.location.pathname === "/" || window.location.pathname === "";
+    if (!isValidToken && !isPublic) {
+        window.location.href = "login.html";
         return;
     }
 
@@ -215,9 +217,10 @@ function resetInactivityTimer() {
 
 function logoutUser() {
     const refreshToken = localStorage.getItem("refreshToken");
+    const logoutUrl = typeof BASE_API_URL !== "undefined" ? `${BASE_API_URL}/auth/logout` : "/api/auth/logout";
     
     // Call server logout
-    fetch("http://localhost:5000/api/auth/logout", {
+    fetch(logoutUrl, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
