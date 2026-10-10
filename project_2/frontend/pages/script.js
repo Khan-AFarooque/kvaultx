@@ -11,18 +11,19 @@ document.addEventListener("DOMContentLoaded", () => {
     // Session Verification
     const token = localStorage.getItem("accessToken");
     const isValidToken = token && token !== "undefined" && token !== "null";
-    const publicPages = ["login.html", "signup.html", "forgot.html", "report-login.html", "terms.html", "privacy.html"];
+    const publicPages = ["login.html", "signup.html", "forgot.html", "report-login.html", "terms.html", "privacy.html", "dashboard.html"];
     const isPublic = publicPages.some(page => window.location.pathname.endsWith(page)) || window.location.pathname === "/" || window.location.pathname === "";
     if (!isValidToken && !isPublic) {
         window.location.href = "login.html";
         return;
     }
 
-    // --- Tab Switching Navigation Logic ---
+    // --- Tab Switching Navigation Logic (Only for non-dashboard pages if needed) ---
+    const isDashboardPage = window.location.pathname.endsWith("dashboard.html") || window.location.pathname === "/" || window.location.pathname === "";
     const tabButtons = document.querySelectorAll(".tab-btn");
     const tabContents = document.querySelectorAll(".tab-content");
 
-    if (tabButtons.length > 0) {
+    if (!isDashboardPage && tabButtons.length > 0) {
         tabButtons.forEach(btn => {
             btn.addEventListener("click", () => {
                 const targetTab = btn.getAttribute("data-tab");
@@ -44,7 +45,12 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // --- Day 8: Note Area Elements ---
+    // --- Day 8: Note Area Elements (Handled by dashboard.js on dashboard page) ---
+    if (isDashboardPage) {
+        // dashboard.js manages dashboard page actions to prevent listener collisions
+        return;
+    }
+
     const toggleActions = document.querySelector("#toggleActions");
     const actionButtons = document.querySelector("#actionButtons");
     const saveNoteBtn = document.querySelector("#saveNoteBtn");

@@ -11,21 +11,312 @@ const MEMORABLE_WORDS = [
     "tundra", "safari", "geyser", "planet", "galaxy", "comet", "nebula", "meteor"
 ];
 
+/* ---------- AUTH STATE & MODAL HELPERS ---------- */
+window.isUserLoggedIn = function() {
+    const token = localStorage.getItem("accessToken");
+    return Boolean(token && token !== "undefined" && token !== "null");
+};
+
+window.requireAuth = function(actionCallback, defaultTab = "login") {
+    if (!window.isUserLoggedIn()) {
+        window.openAuthModal(defaultTab);
+        return false;
+    }
+    if (typeof actionCallback === "function") {
+        actionCallback();
+    }
+    return true;
+};
+
+window.openAuthModal = function(tab = "login") {
+    const overlay = document.getElementById("authModalOverlay");
+    if (overlay) {
+        overlay.classList.add("active");
+        window.switchAuthModalTab(tab);
+        window.loadModalCaptcha();
+    }
+};
+
+window.closeAuthModal = function() {
+    const overlay = document.getElementById("authModalOverlay");
+    if (overlay) {
+        overlay.classList.remove("active");
+    }
+    const feedback = document.getElementById("modalAuthFeedback");
+    if (feedback) feedback.style.display = "none";
+};
+
+window.switchAuthModalTab = function(tab) {
+    const loginTabBtn = document.getElementById("tabAuthLogin");
+    const signupTabBtn = document.getElementById("tabAuthSignup");
+    const loginPanel = document.getElementById("modalLoginPanel");
+    const signupPanel = document.getElementById("modalSignupPanel");
+    const subtitle = document.getElementById("authModalSubtitle");
+    const feedback = document.getElementById("modalAuthFeedback");
+    if (feedback) feedback.style.display = "none";
+
+    if (tab === "signup") {
+        if (loginTabBtn) loginTabBtn.classList.remove("active");
+        if (signupTabBtn) signupTabBtn.classList.add("active");
+        if (loginPanel) loginPanel.classList.add("hidden");
+        if (signupPanel) signupPanel.classList.remove("hidden");
+        if (subtitle) subtitle.textContent = "Create a zero-knowledge encrypted vault in seconds.";
+    } else {
+        if (loginTabBtn) loginTabBtn.classList.add("active");
+        if (signupTabBtn) signupTabBtn.classList.remove("active");
+        if (loginPanel) loginPanel.classList.remove("hidden");
+        if (signupPanel) signupPanel.classList.add("hidden");
+        if (subtitle) subtitle.textContent = "Sign in to unlock your secure passwords and notes.";
+    }
+};
+
+window.loadModalCaptcha = async function() {
+    const textEl = document.getElementById("modalCaptchaText");
+    if (!textEl) return;
+    try {
+        const res = await fetch("/api/auth/captcha");
+        if (res.ok) {
+            const data = await res.json();
+            textEl.textContent = data.captchaText;
+            window.modalCaptchaToken = data.captchaToken;
+        } else {
+            textEl.textContent = "9X2B";
+        }
+    } catch (e) {
+        textEl.textContent = "7K4R";
+    }
+};
+
+window.toggleModalEye = function(inputId, eyeEl) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    if (input.type === "password") {
+        input.type = "text";
+        eyeEl.textContent = "🙈";
+    } else {
+        input.type = "password";
+        eyeEl.textContent = "👁️";
+    }
+};
+
+window.checkModalSignupStrength = function(pwd) {
+    const bar = document.getElementById("modalPasswordStrengthBar");
+    const fill = document.getElementById("modalPasswordStrengthFill");
+    const text = document.getElementById("modalPasswordStrengthText");
+    if (!bar || !fill || !text) return;
+    if (!pwd) {
+        bar.style.display = "none";
+        text.textContent = "";
+        return;
+    }
+    bar.style.display = "block";
+    let score = 0;
+    if (pwd.length >= 8) score += 25;
+    if (pwd.length >= 12) score += 25;
+    if (/[A-Z]/.test(pwd)) score += 20;
+    if (/[0-9]/.test(pwd)) score += 15;
+    if (/[^A-Za-z0-9]/.test(pwd)) score += 15;
+
+    fill.style.width = `${score}%`;
+    if (score < 50) {
+        fill.style.background = "#ef4444";
+        text.textContent = "Weak password (add uppercase, numbers, symbols)";
+        text.style.color = "#ef4444";
+    } else if (score < 75) {
+        fill.style.background = "#f59e0b";
+        text.textContent = "Moderate password";
+        text.style.color = "#f59e0b";
+    } else {
+        fill.style.background = "#10b981";
+        text.textContent = "Strong password (AES-256 ready)";
+        text.style.color = "#10b981";
+    }
+};
+
+window.handleModalLogin = async function(e) {
+    e.preventDefault();
+    const email = document.getElementById("modalLoginEmail").value.trim();
+    const password = document.getElementById("modalLoginPassword").value;
+    const captchaText = document.getElementById("modalCaptchaInput").value.trim();
+    const btn = document.getElementById("btnModalLoginSubmit");
+    const feedback = document.getElementById("modalAuthFeedback");
+
+    btn.disabled = true;
+    btn.textContent = "Verifying...";
+    if (feedback) feedback.style.display = "none";
+
+    try {
+        const res = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                email,
+                password,
+                captchaText,
+                captchaToken: window.modalCaptchaToken || ""
+            })
+        });
+        const data = await res.json();
+        if (res.ok && data.accessToken) {
+            localStorage.setItem("accessToken", data.accessToken);
+            if (data.refreshToken) localStorage.setItem("refreshToken", data.refreshToken);
+            if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
+            
+            if (typeof showToast === "function") {
+                showToast("Welcome Back! 🔓", "Vault unlocked successfully.");
+            }
+            window.closeAuthModal();
+            updateUserNavHeader();
+            if (typeof loadVaultItems === "function") loadVaultItems();
+            if (typeof loadAnalytics === "function") loadAnalytics();
+        } else {
+            if (feedback) {
+                feedback.style.display = "block";
+                feedback.style.background = "rgba(239, 68, 68, 0.15)";
+                feedback.style.color = "#f87171";
+                feedback.style.border = "1px solid rgba(239, 68, 68, 0.3)";
+                feedback.textContent = data.message || "Invalid credentials or verification code.";
+            }
+            window.loadModalCaptcha();
+        }
+    } catch (err) {
+        if (feedback) {
+            feedback.style.display = "block";
+            feedback.style.background = "rgba(239, 68, 68, 0.15)";
+            feedback.style.color = "#f87171";
+            feedback.textContent = "Network error. Please try again.";
+        }
+    } finally {
+        btn.disabled = false;
+        btn.textContent = "Unlock Vault";
+    }
+};
+
+window.handleModalSignup = async function(e) {
+    e.preventDefault();
+    const name = document.getElementById("modalSignupName").value.trim();
+    const email = document.getElementById("modalSignupEmail").value.trim();
+    const password = document.getElementById("modalSignupPassword").value;
+    const confirm = document.getElementById("modalSignupConfirm").value;
+    const agree = document.getElementById("modalAgreeTerms")?.checked;
+    const btn = document.getElementById("btnModalSignupSubmit");
+    const feedback = document.getElementById("modalAuthFeedback");
+
+    if (password !== confirm) {
+        if (feedback) {
+            feedback.style.display = "block";
+            feedback.style.background = "rgba(239, 68, 68, 0.15)";
+            feedback.style.color = "#f87171";
+            feedback.textContent = "Passwords do not match.";
+        }
+        return;
+    }
+    if (password.length < 8) {
+        if (feedback) {
+            feedback.style.display = "block";
+            feedback.style.background = "rgba(239, 68, 68, 0.15)";
+            feedback.style.color = "#f87171";
+            feedback.textContent = "Password must be at least 8 characters.";
+        }
+        return;
+    }
+    if (!agree) {
+        alert("Please accept the Terms & Privacy Policy to continue.");
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "Creating Vault...";
+    if (feedback) feedback.style.display = "none";
+
+    try {
+        const res = await fetch("/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            if (typeof showToast === "function") {
+                showToast("Vault Created! 🔒", "Account created successfully. Signing in...");
+            }
+            // Automatically log in with the new credentials
+            const loginRes = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password })
+            });
+            const loginData = await loginRes.json();
+            if (loginRes.ok && loginData.accessToken) {
+                localStorage.setItem("accessToken", loginData.accessToken);
+                if (loginData.refreshToken) localStorage.setItem("refreshToken", loginData.refreshToken);
+                if (loginData.user) localStorage.setItem("user", JSON.stringify(loginData.user));
+            }
+            window.closeAuthModal();
+            updateUserNavHeader();
+            if (typeof loadVaultItems === "function") loadVaultItems();
+            if (typeof loadAnalytics === "function") loadAnalytics();
+        } else {
+            if (feedback) {
+                feedback.style.display = "block";
+                feedback.style.background = "rgba(239, 68, 68, 0.15)";
+                feedback.style.color = "#f87171";
+                feedback.style.border = "1px solid rgba(239, 68, 68, 0.3)";
+                feedback.textContent = data.message || "Registration failed.";
+            }
+        }
+    } catch (err) {
+        if (feedback) {
+            feedback.style.display = "block";
+            feedback.style.background = "rgba(239, 68, 68, 0.15)";
+            feedback.style.color = "#f87171";
+            feedback.textContent = "Network error. Please try again.";
+        }
+    } finally {
+        btn.disabled = false;
+        btn.textContent = "Create Free Vault";
+    }
+};
+
+function updateUserNavHeader() {
+    const userMenuBtn = document.getElementById("userMenuBtn");
+    if (!userMenuBtn) return;
+    if (window.isUserLoggedIn()) {
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+        const name = user.name ? user.name.split(" ")[0] : "Account";
+        userMenuBtn.innerHTML = `<span>👤</span> ${name} ▾`;
+        userMenuBtn.onclick = (e) => toggleUserMenu(e);
+    } else {
+        userMenuBtn.innerHTML = `<span>🔐</span> Sign In`;
+        userMenuBtn.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            window.openAuthModal("login");
+        };
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     
-    // Redirect to profile settings page
+    updateUserNavHeader();
+
+    // Redirect to profile settings page (protected)
     const btnGoToProfile = document.querySelector("#btnGoToProfile");
     if (btnGoToProfile) {
         btnGoToProfile.addEventListener("click", () => {
-            window.location.href = "profile.html";
+            window.requireAuth(() => {
+                window.location.href = "profile.html";
+            }, "login");
         });
     }
 
-    // Redirect to add password page
+    // Redirect to add password page (protected)
     const btnAddPasswordRedirect = document.querySelector("#btnAddPasswordRedirect");
     if (btnAddPasswordRedirect) {
         btnAddPasswordRedirect.addEventListener("click", () => {
-            window.location.href = "add-password.html";
+            window.requireAuth(() => {
+                window.location.href = "add-password.html";
+            }, "login");
         });
     }
 
@@ -102,6 +393,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function loadVaultItems() {
         if (!passwordCardsContainer) return;
+
+        if (!window.isUserLoggedIn()) {
+            passwordCardsContainer.innerHTML = `
+                <div style="text-align: center; padding: 48px 24px; background: rgba(16, 185, 129, 0.04); border: 1px dashed rgba(16, 185, 129, 0.3); border-radius: 16px; margin: 16px 0;">
+                    <div style="font-size: 40px; margin-bottom: 12px;">🛡️</div>
+                    <h3 style="font-size: 19px; font-weight: 700; margin-bottom: 6px;">Zero-Knowledge Password Vault</h3>
+                    <p style="font-size: 13.5px; opacity: 0.8; max-width: 440px; margin: 0 auto 20px; line-height: 1.5;">
+                        Store, auto-generate, and audit passwords with military-grade AES-256 encryption. Sign in or create a free account to unlock your digital vault.
+                    </p>
+                    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                        <button onclick="window.openAuthModal('login')" style="background: linear-gradient(135deg, #10b981, #059669); color: #050a09; font-weight: 700; border: none; padding: 10px 24px; border-radius: 10px; cursor: pointer; font-size: 13.5px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
+                            🔐 Sign In to Vault
+                        </button>
+                        <button onclick="window.openAuthModal('signup')" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: inherit; font-weight: 600; padding: 10px 24px; border-radius: 10px; cursor: pointer; font-size: 13.5px;">
+                            ✨ Create Free Account
+                        </button>
+                    </div>
+                </div>
+            `;
+            const banner = document.querySelector("#aiVaultAuditBanner");
+            if (banner) banner.style.display = "none";
+            return;
+        }
 
         const searchQuery = vaultSearchInput.value.trim();
         const categoryQuery = vaultCategoryFilter.value;
@@ -556,6 +870,28 @@ document.addEventListener("DOMContentLoaded", () => {
     const recentlyAddedList = document.querySelector("#recentlyAddedList");
 
     async function loadAnalytics() {
+        if (!window.isUserLoggedIn()) {
+            if (statTotalCount) statTotalCount.textContent = "0";
+            if (statWeakCount) statWeakCount.textContent = "0";
+            if (statReusedCount) statReusedCount.textContent = "0";
+            if (statSecurityScore) statSecurityScore.textContent = "100%";
+
+            const dbTotal = document.querySelector("#statTotalCountDashboard");
+            const dbScore = document.querySelector("#statSecurityScoreDashboard");
+            if (dbTotal) dbTotal.textContent = "0";
+            if (dbScore) dbScore.textContent = "100%";
+
+            const notesCountEl = document.querySelector("#statNotesCount");
+            if (notesCountEl) {
+                const notesList = JSON.parse(localStorage.getItem("secure_notes") || "[]");
+                notesCountEl.textContent = notesList.length;
+            }
+
+            drawVaultDonutChart(0, 0, 0, 100);
+            drawCanvasChart("categoryDistributionChart", { Work: 0, Personal: 0, Finance: 0, Social: 0 });
+            return;
+        }
+
         try {
             const response = await apiFetch("/vault/analytics");
             const data = await response.json();
@@ -828,12 +1164,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (toggleActions && actionButtons) {
         toggleActions.addEventListener("click", (e) => {
+            e.preventDefault();
             e.stopPropagation();
-            const isHidden = actionButtons.style.display === "none" || getComputedStyle(actionButtons).display === "none";
-            actionButtons.style.display = isHidden ? "flex" : "none";
+            actionButtons.classList.toggle("hidden");
         });
-        document.addEventListener("click", () => {
-            if (actionButtons) actionButtons.style.display = "none";
+        document.addEventListener("click", (e) => {
+            if (actionButtons && !actionButtons.contains(e.target) && e.target !== toggleActions) {
+                actionButtons.classList.add("hidden");
+            }
         });
     }
 
@@ -844,15 +1182,26 @@ document.addEventListener("DOMContentLoaded", () => {
             let notes = JSON.parse(localStorage.getItem("secure_notes") || "[]");
             notes.push({ content: noteContent, timestamp: new Date().toLocaleString() });
             localStorage.setItem("secure_notes", JSON.stringify(notes));
-            alert("🔒 Note saved securely!");
+            if (typeof showToast === "function") {
+                showToast("Note Saved 🔒", "Encrypted and saved to your secure storage.");
+            } else {
+                alert("🔒 Note saved securely!");
+            }
             noteInput.value = "";
             const notesCountEl = document.querySelector("#statNotesCount");
             if (notesCountEl) notesCountEl.textContent = notes.length;
+
+            if (!window.isUserLoggedIn()) {
+                setTimeout(() => {
+                    window.openAuthModal("signup");
+                }, 800);
+            }
         });
     }
 
     if (showNotesBtn && notesPopup && notesDisplay) {
         showNotesBtn.addEventListener("click", () => {
+            if (actionButtons) actionButtons.classList.add("hidden");
             let notes = JSON.parse(localStorage.getItem("secure_notes") || "[]");
             if (notes.length === 0) {
                 notesDisplay.value = "No saved notes found.";
@@ -871,6 +1220,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (downloadNotesBtn && noteInput) {
         downloadNotesBtn.addEventListener("click", () => {
+            if (actionButtons) actionButtons.classList.add("hidden");
             const content = noteInput.value || "No content to download.";
             const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
             const url = URL.createObjectURL(blob);
@@ -879,38 +1229,56 @@ document.addEventListener("DOMContentLoaded", () => {
             a.download = "kvaultx_note.txt";
             a.click();
             URL.revokeObjectURL(url);
+            if (typeof showToast === "function") {
+                showToast("Exported 📥", "Note downloaded as kvaultx_note.txt");
+            }
         });
     }
 
     if (copyNotesBtn && noteInput) {
         copyNotesBtn.addEventListener("click", () => {
+            if (actionButtons) actionButtons.classList.add("hidden");
             const content = noteInput.value;
             if (!content) return alert("Nothing to copy!");
             navigator.clipboard.writeText(content).then(() => {
-                alert("📋 Note copied to clipboard!");
+                if (typeof showToast === "function") {
+                    showToast("Copied 📋", "Note copied to clipboard!");
+                } else {
+                    alert("📋 Note copied to clipboard!");
+                }
             });
         });
     }
 
     if (shareNotesBtn && noteInput) {
         shareNotesBtn.addEventListener("click", () => {
+            if (actionButtons) actionButtons.classList.add("hidden");
             const content = noteInput.value;
             if (!content) return alert("Nothing to share!");
             if (navigator.share) {
                 navigator.share({ title: 'KvaultX Note', text: content }).catch(() => {});
             } else {
                 navigator.clipboard.writeText(content);
-                alert("Sharing not supported in browser. Copied to clipboard!");
+                if (typeof showToast === "function") {
+                    showToast("Copied 📋", "Sharing not supported in this browser. Copied to clipboard!");
+                } else {
+                    alert("Sharing not supported in browser. Copied to clipboard!");
+                }
             }
         });
     }
 
     if (deleteAllBtn && noteInput) {
         deleteAllBtn.addEventListener("click", () => {
+            if (actionButtons) actionButtons.classList.add("hidden");
             if (confirm("Are you sure you want to delete all saved notes?")) {
                 localStorage.removeItem("secure_notes");
                 noteInput.value = "";
-                alert("🗑️ All notes deleted.");
+                if (typeof showToast === "function") {
+                    showToast("Notes Cleared 🗑️", "All local notes deleted.");
+                } else {
+                    alert("🗑️ All notes deleted.");
+                }
                 const notesCountEl = document.querySelector("#statNotesCount");
                 if (notesCountEl) notesCountEl.textContent = "0";
             }

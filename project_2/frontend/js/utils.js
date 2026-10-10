@@ -43,9 +43,15 @@ async function apiFetch(endpoint, options = {}) {
                 }
             }
             
-            // Refresh failed or no refreshToken, logout cleanly
-            localStorage.clear();
-            window.location.href = "login.html";
+            // Refresh failed or no refreshToken, clear session
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("refreshToken");
+            localStorage.removeItem("user");
+            
+            const isDashboard = window.location.pathname.endsWith("dashboard.html") || window.location.pathname === "/" || window.location.pathname === "";
+            if (!isDashboard) {
+                window.location.href = "login.html";
+            }
         }
 
         return response;

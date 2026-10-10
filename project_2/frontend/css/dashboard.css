@@ -1292,3 +1292,446 @@ body.dashboard-page.light-mode .nav-action-btn.theme-btn {
         width: 100% !important;
     }
 }
+
+/* =========================================================
+   QUICK NOTE MODERN DROPDOWN & THREE-DOT MENU
+========================================================= */
+.quick-note-menu-wrap {
+    position: relative;
+    display: inline-block;
+}
+
+.three-dots-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(22, 48, 42, 0.45);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    color: #a6bba8;
+    font-size: 19px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.three-dots-btn:hover, .three-dots-btn:focus {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: rgba(16, 185, 129, 0.5);
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+    transform: scale(1.05);
+}
+
+.quick-note-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 220px;
+    background: rgba(11, 22, 19, 0.96);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    border-radius: 14px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 6px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    animation: dropdownFadeIn 0.18s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.quick-note-dropdown.hidden {
+    display: none !important;
+}
+
+.quick-note-dropdown .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 9px 14px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: #e2e8f0;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s ease;
+    font-family: inherit;
+}
+
+.quick-note-dropdown .dropdown-item:hover {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    transform: translateX(3px);
+}
+
+.quick-note-dropdown .dropdown-item.danger-item {
+    color: #f87171;
+}
+
+.quick-note-dropdown .dropdown-item.danger-item:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+/* Light mode overrides for Quick Note */
+body.dashboard-page.light-mode .three-dots-btn {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+}
+
+body.dashboard-page.light-mode .three-dots-btn:hover {
+    background: #e2e8f0;
+    border-color: #10b981;
+    color: #0f172a;
+}
+
+body.dashboard-page.light-mode .quick-note-dropdown {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
+}
+
+body.dashboard-page.light-mode .quick-note-dropdown .dropdown-item {
+    color: #334155;
+}
+
+body.dashboard-page.light-mode .quick-note-dropdown .dropdown-item:hover {
+    background: #f1f5f9;
+    color: #059669;
+}
+
+body.dashboard-page.light-mode #noteInput {
+    background: #f8fafc !important;
+    border: 1.5px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+}
+
+body.dashboard-page.light-mode #noteInput::placeholder {
+    color: #94a3b8 !important;
+}
+
+/* =========================================================
+   USER PROFILE PAGE STYLES (MATCHES TOP ENTERPRISE DESIGN)
+========================================================= */
+.profile-card {
+    background: rgba(11, 22, 19, 0.8);
+    border: 1px solid rgba(22, 48, 42, 0.6);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+    margin-bottom: 24px;
+    transition: all 0.25s ease;
+}
+
+.profile-avatar-circle {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #10b981, #00d2ff);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: 800;
+    border: 4px solid rgba(16, 185, 129, 0.3);
+    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+    margin-bottom: 16px;
+}
+
+.session-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(8, 15, 13, 0.65);
+    border: 1px solid rgba(22, 48, 42, 0.5);
+    padding: 14px 18px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    transition: all 0.2s ease;
+}
+
+.session-item:hover {
+    border-color: rgba(16, 185, 129, 0.4);
+    background: rgba(11, 22, 19, 0.85);
+}
+
+.btn-revoke {
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    padding: 7px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-revoke:hover {
+    background: #ef4444;
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+    transform: translateY(-1px);
+}
+
+/* Light Mode Overrides for Profile Page */
+body.dashboard-page.light-mode .profile-card {
+    background: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06) !important;
+}
+
+body.dashboard-page.light-mode .profile-card h3 {
+    color: #0f172a !important;
+}
+
+body.dashboard-page.light-mode .field-label {
+    color: #475569 !important;
+}
+
+body.dashboard-page.light-mode .session-item {
+    background: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+}
+
+body.dashboard-page.light-mode .session-item:hover {
+    background: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+}
+
+body.dashboard-page.light-mode .session-info strong {
+    color: #0f172a !important;
+}
+
+body.dashboard-page.light-mode .session-info span {
+    color: #64748b !important;
+}
+
+body.dashboard-page.light-mode .btn-revoke {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #dc2626;
+}
+
+body.dashboard-page.light-mode .btn-revoke:hover {
+    background: #dc2626;
+    color: #ffffff;
+}
+
+body.dashboard-page.light-mode .profile-card input {
+    background: #f8fafc !important;
+    border: 1.5px solid #cbd5e1 !important;
+    color: #0f172a !important;
+}
+
+/* =========================================================
+   POPUP AUTH MODAL (SIGN IN / CREATE ACCOUNT)
+========================================================= */
+.auth-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(3, 7, 6, 0.75);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 99999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.auth-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.auth-modal-card {
+    background: rgba(11, 22, 19, 0.95);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    border-radius: 20px;
+    padding: 32px 28px;
+    max-width: 440px;
+    width: 100%;
+    position: relative;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.65), 0 0 35px rgba(16, 185, 129, 0.15);
+    transform: scale(0.95);
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.auth-modal-overlay.active .auth-modal-card {
+    transform: scale(1);
+}
+
+.auth-modal-close {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #a6bba8;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.auth-modal-close:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #ef4444;
+}
+
+.auth-modal-tabs {
+    display: flex;
+    background: rgba(8, 15, 13, 0.7);
+    border: 1px solid rgba(22, 48, 42, 0.6);
+    border-radius: 12px;
+    padding: 4px;
+    margin: 20px 0 24px;
+    gap: 4px;
+}
+
+.auth-modal-tab-btn {
+    flex: 1;
+    padding: 9px 12px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: #a6bba8;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    text-align: center;
+}
+
+.auth-modal-tab-btn.active {
+    background: #10b981;
+    color: #050a09;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+}
+
+.auth-modal-panel {
+    display: block;
+}
+
+.auth-modal-panel.hidden {
+    display: none !important;
+}
+
+.auth-modal-field {
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+.auth-modal-field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #a6bba8;
+    margin-bottom: 6px;
+    letter-spacing: 0.3px;
+}
+
+.auth-modal-field input[type="text"],
+.auth-modal-field input[type="email"],
+.auth-modal-field input[type="password"] {
+    width: 100%;
+    padding: 11px 14px;
+    background: rgba(8, 15, 13, 0.8);
+    border: 1px solid rgba(22, 48, 42, 0.7);
+    border-radius: 10px;
+    color: #ffffff;
+    font-size: 13.5px;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.auth-modal-field input:focus {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+}
+
+.auth-modal-btn-submit {
+    width: 100%;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #050a09;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35);
+    transition: all 0.2s ease;
+    margin-top: 6px;
+}
+
+.auth-modal-btn-submit:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.45);
+}
+
+/* Light mode for Auth Modal */
+body.dashboard-page.light-mode .auth-modal-card {
+    background: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2) !important;
+}
+
+body.dashboard-page.light-mode .auth-modal-tabs {
+    background: #f1f5f9 !important;
+    border-color: #e2e8f0 !important;
+}
+
+body.dashboard-page.light-mode .auth-modal-tab-btn {
+    color: #64748b !important;
+}
+
+body.dashboard-page.light-mode .auth-modal-tab-btn.active {
+    background: #10b981 !important;
+    color: #ffffff !important;
+}
+
+body.dashboard-page.light-mode .auth-modal-field label {
+    color: #475569 !important;
+}
+
+body.dashboard-page.light-mode .auth-modal-field input {
+    background: #f8fafc !important;
+    border: 1.5px solid #cbd5e1 !important;
+    color: #0f172a !important;
+}

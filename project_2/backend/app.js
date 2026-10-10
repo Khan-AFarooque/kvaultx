@@ -101,9 +101,9 @@ app.get("/sitemap.xml", (req, res) => {
     res.sendFile(path.join(__dirname, "../frontend/sitemap.xml"));
 });
 
-// Serve root login page directly (200 OK) to ensure search engines index the root URL
+// Serve direct main dashboard page on root URL
 app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "../frontend/pages/login.html"));
+    res.sendFile(path.join(__dirname, "../frontend/pages/dashboard.html"));
 });
 
 module.exports = app;
