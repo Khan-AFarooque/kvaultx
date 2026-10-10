@@ -1074,7 +1074,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Tab switcher helper
     function switchTab(tabName) {
-        if (!tabName) tabName = "notes";
+        if (!tabName) tabName = "analytics";
         const tabButtons = document.querySelectorAll(".tab-btn");
         const tabContents = document.querySelectorAll(".tab-content");
         
@@ -1093,6 +1093,25 @@ document.addEventListener("DOMContentLoaded", () => {
                 content.classList.add("hidden-tab");
             }
         });
+
+        // Update Dashboard Header Title and Subtitle dynamically based on active tab
+        const headerTitle = document.getElementById("dashboardHeaderTitle");
+        const headerSubtitle = document.getElementById("dashboardHeaderSubtitle");
+        if (headerTitle && headerSubtitle) {
+            if (tabName === "analytics") {
+                headerTitle.innerHTML = "✨ Dashboard Analytics";
+                headerSubtitle.textContent = "Welcome back — real-time cryptographic audit & vault health status.";
+            } else if (tabName === "notes") {
+                headerTitle.innerHTML = "✨ Secure Notes";
+                headerSubtitle.textContent = "Client-side encrypted scratchpad for confidential thoughts and PINs.";
+            } else if (tabName === "vault") {
+                headerTitle.innerHTML = "✨ Password Vault";
+                headerSubtitle.textContent = "Zero-knowledge encrypted credential database with AES-256.";
+            } else if (tabName === "generator") {
+                headerTitle.innerHTML = "✨ Password Generator";
+                headerSubtitle.textContent = "Cryptographically secure random password and passphrase engine.";
+            }
+        }
 
         if (tabName === "notes") {
             const notesCountEl = document.querySelector("#statNotesCount");
@@ -1141,10 +1160,10 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // Check query params on load
+    // Check query params on load (defaults to analytics as requested)
     const initialUrlParams = new URLSearchParams(window.location.search);
-    const initialTabParam = initialUrlParams.get("tab");
-    if (initialTabParam && ["notes", "vault", "generator", "analytics"].includes(initialTabParam)) {
+    const initialTabParam = initialUrlParams.get("tab") || "analytics";
+    if (["notes", "vault", "generator", "analytics"].includes(initialTabParam)) {
         switchTab(initialTabParam);
     }
 
