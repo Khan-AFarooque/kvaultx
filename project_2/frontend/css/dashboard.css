@@ -68,13 +68,13 @@ body.dashboard-page::after {
     border-right: 1px solid rgba(22, 48, 42, 0.5) !important;
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    padding: 30px 24px;
+    padding: 26px 20px;
     display: flex;
     flex-direction: column;
-    gap: 32px;
+    gap: 24px;
     position: sticky;
-    top: 0;
-    height: 100vh;
+    top: 32px;
+    height: calc(100vh - 32px);
     z-index: 10;
 }
 
@@ -1026,18 +1026,32 @@ body.dashboard-page.light-mode p {
 
 .top-banner {
     width: 100%;
-    height: 30px;
-    background: linear-gradient(90deg, #10b981, #059669, #047857);
-    color: #ffffff;
-    font-size: 12px;
+    min-height: 32px;
+    height: 32px;
+    background: linear-gradient(90deg, #059669 0%, #10b981 50%, #047857 100%) !important;
+    color: #ffffff !important;
+    font-size: 12.5px;
     font-weight: 600;
     overflow: hidden;
     white-space: nowrap;
-    position: relative;
-    z-index: 950;
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10000;
     display: flex;
     align-items: center;
-    box-shadow: 0 2px 10px rgba(16, 185, 129, 0.2);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.top-banner marquee {
+    width: 100%;
+    display: block;
+    line-height: 32px;
+    color: #ffffff !important;
+    font-weight: 600;
+    letter-spacing: 0.3px;
 }
 
 .nav-brand {
