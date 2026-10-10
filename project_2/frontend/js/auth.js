@@ -5,13 +5,16 @@
 let isStrongPassword = false;
 window.currentCaptchaToken = "";
 
-const API_AUTH_URL = typeof BASE_API_URL !== "undefined" ? `${BASE_API_URL}/auth` : "http://localhost:5000/api/auth";
+const API_AUTH_URL = typeof BASE_API_URL !== "undefined" 
+    ? `${BASE_API_URL}/auth` 
+    : (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" ? "http://localhost:5000/api/auth" : "/api/auth");
 
 /**
  * Loads a fresh CAPTCHA and token from the backend
  */
 async function loadBackendCaptcha() {
     const captchaTextEl = document.querySelector("#captchaText");
+    const captchaInputEl = document.querySelector("#captchaInput");
     if (!captchaTextEl) return;
 
     try {
@@ -20,6 +23,9 @@ async function loadBackendCaptcha() {
             const data = await res.json();
             captchaTextEl.textContent = data.captchaText;
             window.currentCaptchaToken = data.captchaToken;
+            if (captchaInputEl) {
+                captchaInputEl.value = "";
+            }
         } else {
             captchaTextEl.textContent = "ERR";
         }
@@ -151,7 +157,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 loginBtn.disabled = true;
                 loginBtn.textContent = "Logging in...";
 
-                const payload = { email, password, captchaInput, captchaToken };
+                const payload = { 
+                    email, 
+                    password, 
+                    captchaInput, 
+                    captchaText: captchaInput, 
+                    captchaToken 
+                };
                 if (mfaCode) payload.mfaCode = mfaCode;
 
                 const res = await fetch(`${API_AUTH_URL}/login`, {
@@ -225,6 +237,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 loginBtn.textContent = "Login";
             }
         });
+
+        const loginForm = document.querySelector("#loginForm");
+        if (loginForm) {
+            loginForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+                loginBtn.click();
+            });
+        }
     }
 
     /* ---------- FORGOT PASSWORD – SEND OTP ---------- */

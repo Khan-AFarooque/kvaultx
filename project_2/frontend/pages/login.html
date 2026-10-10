@@ -15,13 +15,6 @@
 
 <body class="login-page">
 
-    <!-- Scrolling Marquee Security Quote Banner -->
-    <div class="top-banner">
-        <marquee behavior="scroll" direction="left" scrollamount="7" style="font-weight: 600; color: #ffffff; font-size: 13.5px; width: 100%; line-height: 32px;">
-            🔐 "Saving your notes is saving your privacy — Protect your passwords with zero-knowledge AES-256 encryption — KvaultX" 🔐 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 🔐 "Saving your notes is saving your privacy — Protect your passwords with zero-knowledge AES-256 encryption — KvaultX" 🔐
-        </marquee>
-    </div>
-
     <div class="login-wrapper">
 
         <div class="login-card">
@@ -54,7 +47,7 @@
                         <span id="captchaText">Loading...</span>
                         <button type="button" id="reloadCaptcha" title="Refresh captcha">↻</button>
                     </div>
-                    <input type="text" id="captchaInput" placeholder="Enter CAPTCHA" required />
+                    <input type="text" id="captchaInput" placeholder="Enter CAPTCHA" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" required />
                 </div>
 
                 <!-- MFA Code (Hidden by default, shown when MFA is enabled) -->
@@ -68,7 +61,7 @@
                     </div>
                 </div>
 
-                <button id="loginBtn" type="button">Login</button>
+                <button id="loginBtn" type="submit">Login</button>
                 <button type="button" onclick="loginWithPasskey()" style="background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.3); margin-top: 10px; font-weight: 600;">
                     🔑 Login with Device Passkey (Windows Hello / PIN)
                 </button>

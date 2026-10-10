@@ -82,9 +82,12 @@ const verifyTotpCode = (token, secret) => {
     return false;
 };
 
+// Helper to reliably retrieve JWT secret with resilient fallback
+const getJwtSecret = () => process.env.JWT_SECRET || "kvaultx_secret_jwt_key_2026_super_secure";
+
 // Generate access token (expires in 15 minutes)
 const generateAccessToken = (userId, sessionId) => {
-    const secret = process.env.JWT_SECRET || "kvaultx_secret_jwt_key_2026_super_secure";
+    const secret = getJwtSecret();
     return jwt.sign({ id: userId, sessionId }, secret, { expiresIn: "15m" });
 };
 
@@ -595,14 +598,15 @@ exports.signup = async (req, res) => {
 // Generate CAPTCHA
 exports.getCaptcha = (req, res) => {
     try {
-        const chars = "ABCDEFGHJKLMNOPQRSTUVWXYZ23456789";
+        // Distinctive characters avoiding 0, O, 1, I, L confusion
+        const chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
         let captchaText = "";
         for (let i = 0; i < 4; i++) {
             captchaText += chars.charAt(Math.floor(Math.random() * chars.length));
         }
         
         // Sign CAPTCHA text in temporary token
-        const secret = process.env.JWT_SECRET || "kvaultx_secret_jwt_key_2026_super_secure";
+        const secret = getJwtSecret();
         const captchaToken = jwt.sign({ text: captchaText }, secret, { expiresIn: "5m" });
         res.json({ captchaText, captchaToken });
     } catch (error) {
@@ -613,17 +617,24 @@ exports.getCaptcha = (req, res) => {
 // Log In
 exports.login = async (req, res) => {
     try {
-        const { email, password, captchaInput, captchaToken, mfaCode } = req.body;
+        const { email, password, captchaInput, captchaText, captcha, captchaToken, mfaCode } = req.body;
+        const enteredCaptcha = (captchaInput || captchaText || captcha || "").toString().trim().toUpperCase();
 
         // 1. Verify CAPTCHA (Only required on initial login step before MFA submission)
         if (!mfaCode) {
-            if (!captchaInput || !captchaToken) {
-                return res.status(400).json({ message: "CAPTCHA is required" });
+            if (!enteredCaptcha || !captchaToken) {
+                return res.status(400).json({ message: "Security CAPTCHA is required" });
             }
             try {
-                const decoded = jwt.verify(captchaToken, process.env.JWT_SECRET);
-                if (decoded.text.toUpperCase() !== captchaInput.toUpperCase()) {
-                    return res.status(400).json({ message: "Invalid CAPTCHA code" });
+                const secret = getJwtSecret();
+                const decoded = jwt.verify(captchaToken, secret);
+                const expectedCaptcha = (decoded.text || "").toString().trim().toUpperCase();
+
+                // Normalize minor ambiguous characters (0 <-> O, 1 <-> I <-> L)
+                const normalize = (str) => str.replace(/[0O]/g, "O").replace(/[1IL]/g, "I");
+
+                if (expectedCaptcha !== enteredCaptcha && normalize(expectedCaptcha) !== normalize(enteredCaptcha)) {
+                    return res.status(400).json({ message: "Invalid CAPTCHA code. Please enter the characters shown." });
                 }
             } catch (err) {
                 return res.status(400).json({ message: "CAPTCHA code expired. Please reload." });
@@ -1093,7 +1104,7 @@ exports.webauthnRegisterChallenge = async (req, res) => {
         });
 
         // Sign challenge into JWT to be state-independent
-        const challengeToken = jwt.sign({ challenge: options.challenge }, process.env.JWT_SECRET, { expiresIn: "5m" });
+        const challengeToken = jwt.sign({ challenge: options.challenge }, getJwtSecret(), { expiresIn: "5m" });
 
         res.json({
             options,
@@ -1112,7 +1123,7 @@ exports.webauthnRegisterVerify = async (req, res) => {
         // Decode challenge
         let expectedChallenge;
         try {
-            const decoded = jwt.verify(challengeToken, process.env.JWT_SECRET);
+            const decoded = jwt.verify(challengeToken, getJwtSecret());
             expectedChallenge = decoded.challenge;
         } catch (err) {
             return res.status(400).json({ message: "Challenge expired or invalid" });
@@ -1172,7 +1183,7 @@ exports.webauthnLoginChallenge = async (req, res) => {
             userVerification: "preferred"
         });
 
-        const challengeToken = jwt.sign({ challenge: options.challenge, email: user.email }, process.env.JWT_SECRET, { expiresIn: "5m" });
+        const challengeToken = jwt.sign({ challenge: options.challenge, email: user.email }, getJwtSecret(), { expiresIn: "5m" });
 
         res.json({
             options,
@@ -1190,7 +1201,7 @@ exports.webauthnLoginVerify = async (req, res) => {
 
         let expectedChallenge, email;
         try {
-            const decoded = jwt.verify(challengeToken, process.env.JWT_SECRET);
+            const decoded = jwt.verify(challengeToken, getJwtSecret());
             expectedChallenge = decoded.challenge;
             email = decoded.email;
         } catch (err) {

@@ -78,40 +78,7 @@ body.signup-page::after {
     50% { transform: translate(30px, 20px) scale(1.08); }
 }
 
-/* ----------------------- TOP SCROLLING BANNER ----------------------- */
-/* Replaces the deprecated <marquee> tag with a CSS-animated version
-   (same visual effect, purely presentational — no JS involved). */
-.top-banner {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 40px;
-    overflow: hidden;
-    background: #283e51;
-    z-index: 20;
-    display: flex;
-    align-items: center;
-}
-
-.top-banner-track {
-    display: flex;
-    white-space: nowrap;
-    animation: marqueeScroll 14s linear infinite;
-}
-
-.top-banner-track span {
-    padding-right: 60px;
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: 0.4px;
-    color: #ffffff;
-}
-
-@keyframes marqueeScroll {
-    from { transform: translateX(0); }
-    to { transform: translateX(-50%); }
-}
+/* ----------------------- SIGNUP WRAPPER ----------------------- */
 
 /* ----------------------- WRAPPER / CARD ----------------------- */
 .signup-wrapper {

@@ -72,18 +72,22 @@ window.switchAuthModalTab = function(tab) {
 
 window.loadModalCaptcha = async function() {
     const textEl = document.getElementById("modalCaptchaText");
+    const inputEl = document.getElementById("modalCaptchaInput");
     if (!textEl) return;
+    textEl.textContent = "...";
     try {
-        const res = await fetch("/api/auth/captcha");
+        const captchaUrl = typeof BASE_API_URL !== "undefined" ? `${BASE_API_URL}/auth/captcha` : "/api/auth/captcha";
+        const res = await fetch(captchaUrl);
         if (res.ok) {
             const data = await res.json();
             textEl.textContent = data.captchaText;
             window.modalCaptchaToken = data.captchaToken;
+            if (inputEl) inputEl.value = "";
         } else {
-            textEl.textContent = "9X2B";
+            textEl.textContent = "↻";
         }
     } catch (e) {
-        textEl.textContent = "7K4R";
+        textEl.textContent = "↻";
     }
 };
 
@@ -146,12 +150,14 @@ window.handleModalLogin = async function(e) {
     if (feedback) feedback.style.display = "none";
 
     try {
-        const res = await fetch("/api/auth/login", {
+        const loginUrl = typeof BASE_API_URL !== "undefined" ? `${BASE_API_URL}/auth/login` : "/api/auth/login";
+        const res = await fetch(loginUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 email,
                 password,
+                captchaInput: captchaText,
                 captchaText,
                 captchaToken: window.modalCaptchaToken || ""
             })
