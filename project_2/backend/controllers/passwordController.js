@@ -312,32 +312,74 @@ exports.deletePassword = async (req, res) => {
    DASHBOARD & STATS ANALYTICS
 ========================================================= */
 
+// Shannon Entropy calculator: H = -sum(p * log2(p)) in bits
+const calculateShannonEntropy = (str) => {
+    if (!str) return 0;
+    const len = str.length;
+    const freq = {};
+    for (let i = 0; i < len; i++) {
+        freq[str[i]] = (freq[str[i]] || 0) + 1;
+    }
+    let entropy = 0;
+    for (const char in freq) {
+        const p = freq[char] / len;
+        entropy -= p * Math.log2(p);
+    }
+    return Math.round(entropy * len); // total bits of entropy
+};
+
 exports.getAnalytics = async (req, res) => {
     try {
         const items = await Password.find({ user: req.user.id });
 
         // Decrypt all passwords for analysis
         const decryptedList = items.map(item => ({
+            id: item._id,
+            title: item.title,
+            username: item.username,
             password: encryption.decrypt(item.password, item.iv),
-            category: item.category,
-            createdAt: item.createdAt
+            category: item.category || "Uncategorized",
+            createdAt: item.createdAt,
+            updatedAt: item.updatedAt
         }));
 
         const totalCount = decryptedList.length;
 
-        // Weak Password detection
+        // Password Strength & Shannon Entropy analysis
         let weakCount = 0;
         let strongCount = 0;
         let mediumCount = 0;
+        let totalWeightedScore = 0;
 
-        decryptedList.forEach(item => {
+        const evaluatedItems = decryptedList.map(item => {
             const analysis = evaluatePasswordStrength(item.password);
-            if (analysis.label === "Weak") weakCount++;
-            else if (analysis.label === "Medium") mediumCount++;
-            else if (analysis.label === "Strong") strongCount++;
+            const entropyBits = calculateShannonEntropy(item.password);
+
+            if (analysis.label === "Weak") {
+                weakCount++;
+                totalWeightedScore += 0; // 0% contribution
+            } else if (analysis.label === "Medium") {
+                mediumCount++;
+                totalWeightedScore += 50; // 50% contribution
+            } else if (analysis.label === "Strong") {
+                strongCount++;
+                totalWeightedScore += 100; // 100% contribution
+            }
+
+            return {
+                id: item.id,
+                title: item.title,
+                username: item.username,
+                category: item.category,
+                strength: analysis.label,
+                score: analysis.score,
+                entropyBits,
+                feedback: analysis.feedback,
+                createdAt: item.createdAt
+            };
         });
 
-        // Duplicate Password detection
+        // Duplicate Password detection (Credential Stuffing Risk)
         const passwordMap = {};
         decryptedList.forEach(item => {
             if (item.password) {
@@ -352,14 +394,52 @@ exports.getAnalytics = async (req, res) => {
             }
         });
 
-        // Calculate security score
-        // Base: 100
-        // Deduct 5 points per weak password
-        // Deduct 8 points per duplicate password entry
+        // Stale Passwords (>90 days old - NIST SP 800-63B rotation standard)
+        const ninetyDaysMs = 90 * 24 * 60 * 60 * 1000;
+        const now = Date.now();
+        let staleCount = 0;
+        decryptedList.forEach(item => {
+            const itemTime = item.createdAt ? new Date(item.createdAt).getTime() : now;
+            if (now - itemTime > ninetyDaysMs) {
+                staleCount++;
+            }
+        });
+
+        // Mathematically Rigorous Security Posture Calculation:
+        // Base: Weighted average of individual password strengths: (Strong*100 + Med*50 + Weak*0) / Total
+        // Example: 1 Strong, 0 Med, 2 Weak out of 3 = (100 + 0 + 0) / 3 = 33.3% => 33%
         let securityScore = 100;
         if (totalCount > 0) {
-            const deduction = (weakCount * 5) + (duplicateCount * 8);
-            securityScore = Math.max(0, 100 - deduction);
+            const averageStrength = totalWeightedScore / totalCount;
+            // Deduct proportional penalty for credential reuse (max 30% penalty)
+            const reusePenalty = Math.round((duplicateCount / totalCount) * 35);
+            // Deduct minor penalty for stale passwords (max 10% penalty)
+            const stalePenalty = Math.round((staleCount / totalCount) * 10);
+            
+            securityScore = Math.max(0, Math.min(100, Math.round(averageStrength - reusePenalty - stalePenalty)));
+        }
+
+        // Executive Security Grade & Posture Rating (Microsoft Entra / Defender Aligned)
+        let securityRating = "A+ (Optimal)";
+        let securityStatus = "Bank-Grade Cryptographic Health";
+        let statusBadgeColor = "#10b981";
+
+        if (securityScore >= 85) {
+            securityRating = "A+ (Optimal)";
+            securityStatus = "Bank-Grade Cryptographic Posture";
+            statusBadgeColor = "#10b981";
+        } else if (securityScore >= 70) {
+            securityRating = "B (Good)";
+            securityStatus = "Strong Posture — Minor Improvements Recommended";
+            statusBadgeColor = "#34d399";
+        } else if (securityScore >= 50) {
+            securityRating = "C (Moderate)";
+            securityStatus = "Elevated Risk — Password Upgrades Required";
+            statusBadgeColor = "#f59e0b";
+        } else {
+            securityRating = "D / F (Critical)";
+            securityStatus = "Critical Exposure — Urgent Vault Rotation Required";
+            statusBadgeColor = "#ef4444";
         }
 
         // Category breakdown
@@ -381,13 +461,64 @@ exports.getAnalytics = async (req, res) => {
                 createdAt: item.createdAt
             }));
 
+        // Microsoft Defender-Style Security Recommendations
+        const recommendations = [];
+        if (weakCount > 0) {
+            recommendations.push({
+                severity: "critical",
+                icon: "🚨",
+                title: `${weakCount} Weak & Compromised Password${weakCount > 1 ? 's' : ''}`,
+                description: `Vulnerable to dictionary and automated brute-force attacks. Rotate immediately using the CSPRNG 20-character generator.`,
+                actionText: "Fix Weak Passwords",
+                actionTab: "vault"
+            });
+        }
+        if (duplicateCount > 0) {
+            recommendations.push({
+                severity: "warning",
+                icon: "⚠️",
+                title: `${duplicateCount} Reused Password${duplicateCount > 1 ? 's' : ''} Detected`,
+                description: `Credential stuffing danger: If one online service suffers a data breach, your other accounts are immediately exposed.`,
+                actionText: "Resolve Duplicates",
+                actionTab: "vault"
+            });
+        }
+        if (staleCount > 0) {
+            recommendations.push({
+                severity: "info",
+                icon: "🕒",
+                title: `${staleCount} Password${staleCount > 1 ? 's' : ''} Aging Over 90 Days`,
+                description: `NIST SP 800-63B standards advise periodic credential cycling for high-privilege services.`,
+                actionText: "Review Aged Credentials",
+                actionTab: "vault"
+            });
+        }
+        if (recommendations.length === 0) {
+            recommendations.push({
+                severity: "success",
+                icon: "🛡️",
+                title: "Optimal Cryptographic Posture",
+                description: "All passwords satisfy NIST enterprise complexity criteria with zero detected reuse. Exceptional vault hygiene!",
+                actionText: "Vault Fully Protected",
+                actionTab: "vault"
+            });
+        }
+
         res.json({
             totalCount,
             weakCount,
+            mediumCount,
+            strongCount,
             duplicateCount,
+            staleCount,
             securityScore,
+            securityRating,
+            securityStatus,
+            statusBadgeColor,
             categoryStats,
             recentlyAdded,
+            vulnerableItems: evaluatedItems.filter(item => item.strength === "Weak" || item.strength === "Medium"),
+            recommendations,
             lastLoginAt: req.user ? (req.user.lastLoginAt || req.user.updatedAt || new Date()) : new Date(),
             previousLoginAt: req.user ? (req.user.previousLoginAt || req.user.createdAt || new Date()) : new Date(),
             strengthBreakdown: {

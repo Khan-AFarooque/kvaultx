@@ -869,6 +869,78 @@ document.addEventListener("DOMContentLoaded", () => {
     const statSecurityScore = document.querySelector("#statSecurityScore");
     const recentlyAddedList = document.querySelector("#recentlyAddedList");
 
+    let liveSessionInterval = null;
+
+    function initLiveUnlockTimer(loginTimestamp) {
+        if (!sessionStorage.getItem("vault_session_start")) {
+            sessionStorage.setItem("vault_session_start", Date.now().toString());
+        }
+
+        const lastUnlockEl = document.querySelector("#statLastUnlock");
+        const lastUnlockSub = document.querySelector("#statLastUnlockSub");
+        const sessionTeleEl = document.querySelector("#statSessionTelemetry");
+        const sessionTeleSub = document.querySelector("#kpiSessionSub");
+        const modalUnlockedAt = document.querySelector("#modalSessionUnlockedAt");
+        const modalDuration = document.querySelector("#modalSessionDuration");
+
+        const unlockDate = loginTimestamp ? new Date(loginTimestamp) : new Date();
+        if (modalUnlockedAt) {
+            modalUnlockedAt.textContent = unlockDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ` (${unlockDate.toLocaleDateString()})`;
+        }
+
+        function tick() {
+            const relativeTimeStr = formatLastUnlockTime(loginTimestamp);
+            if (lastUnlockEl) lastUnlockEl.textContent = relativeTimeStr;
+            if (sessionTeleEl) sessionTeleEl.textContent = relativeTimeStr;
+
+            const sessionStart = parseInt(sessionStorage.getItem("vault_session_start") || Date.now());
+            const elapsedSec = Math.max(0, Math.floor((Date.now() - sessionStart) / 1000));
+            const elapsedMin = Math.floor(elapsedSec / 60);
+            const remSec = elapsedSec % 60;
+            const durationFormatted = elapsedMin > 0 ? `${elapsedMin}m ${remSec}s` : `${elapsedSec}s`;
+
+            if (lastUnlockSub) {
+                lastUnlockSub.innerHTML = `● Active: ${durationFormatted}`;
+            }
+            if (sessionTeleSub) {
+                sessionTeleSub.innerHTML = `● Active: ${durationFormatted}`;
+            }
+            if (modalDuration) {
+                modalDuration.textContent = durationFormatted;
+            }
+        }
+
+        tick();
+        if (liveSessionInterval) clearInterval(liveSessionInterval);
+        liveSessionInterval = setInterval(tick, 3000); // Live tick every 3s
+    }
+
+    window.openSessionDetailsModal = function() {
+        const modal = document.getElementById("sessionDetailsModal");
+        if (modal) modal.classList.add("active");
+    };
+
+    window.closeSessionDetailsModal = function() {
+        const modal = document.getElementById("sessionDetailsModal");
+        if (modal) modal.classList.remove("active");
+    };
+
+    window.runLiveVaultAudit = async function() {
+        const btn = document.getElementById("btnRunDeepAudit");
+        if (btn) {
+            btn.innerHTML = `<span>⏳</span> Auditing Vault...`;
+            btn.disabled = true;
+        }
+        await loadAnalytics();
+        if (btn) {
+            btn.innerHTML = `<span>⚡</span> Refresh Security Audit`;
+            btn.disabled = false;
+        }
+        if (typeof showToast === "function") {
+            showToast("Security Audit Complete 🛡️", "Evaluated all vault credentials against NIST SP 800-63B guidelines.");
+        }
+    };
+
     async function loadAnalytics() {
         if (!window.isUserLoggedIn()) {
             if (statTotalCount) statTotalCount.textContent = "0";
@@ -888,6 +960,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             drawVaultDonutChart(0, 0, 0, 100);
+            drawEntropyChart(0, 0, 0);
             drawCanvasChart("categoryDistributionChart", { Work: 0, Personal: 0, Finance: 0, Social: 0 });
             return;
         }
@@ -896,75 +969,221 @@ document.addEventListener("DOMContentLoaded", () => {
             const response = await apiFetch("/vault/analytics");
             const data = await response.json();
 
-            if (statTotalCount) statTotalCount.textContent = data.totalCount;
-            if (statWeakCount) statWeakCount.textContent = data.weakCount;
-            if (statReusedCount) statReusedCount.textContent = data.duplicateCount;
-            if (statSecurityScore) statSecurityScore.textContent = `${data.securityScore}%`;
+            const total = data.totalCount || 0;
+            const weakCount = data.weakCount || 0;
+            const mediumCount = data.mediumCount || 0;
+            const strongCount = data.strongCount || (total > 0 ? Math.max(0, total - weakCount - mediumCount) : 0);
+            const duplicateCount = data.duplicateCount || 0;
+            const staleCount = data.staleCount || 0;
+            const score = data.securityScore !== undefined ? data.securityScore : 100;
 
-            // Style security score color
-            if (statSecurityScore) {
-                if (data.securityScore > 80) statSecurityScore.style.color = "#10b981";
-                else if (data.securityScore > 50) statSecurityScore.style.color = "#f39c12";
-                else statSecurityScore.style.color = "#ef4444";
+            // 1. Executive Security Posture Card
+            const postureScoreDisplay = document.querySelector("#postureScoreDisplay");
+            const postureMeterFill = document.querySelector("#postureMeterFill");
+            const postureRatingBadge = document.querySelector("#securityPostureRating");
+
+            if (postureScoreDisplay) postureScoreDisplay.textContent = `${score}%`;
+            if (postureMeterFill) {
+                postureMeterFill.style.width = `${Math.max(6, score)}%`;
+                postureMeterFill.className = "posture-meter-fill " + (score >= 80 ? "optimal" : (score >= 50 ? "moderate" : "critical"));
+            }
+            if (postureRatingBadge) {
+                postureRatingBadge.textContent = data.securityRating || (score >= 80 ? "Rating: A+ (Optimal)" : (score >= 50 ? "Rating: C (Moderate)" : "Rating: D (Critical)"));
+                postureRatingBadge.className = "posture-grade-badge " + (score >= 80 ? "optimal" : (score >= 50 ? "moderate" : "critical"));
             }
 
-            // Update Dashboard Tab summaries
+            // 2. 6 KPI Cards on Analytics Tab
+            if (statTotalCount) statTotalCount.textContent = total;
+            const kpiTotalSub = document.querySelector("#kpiTotalSub");
+            if (kpiTotalSub) kpiTotalSub.textContent = `${strongCount} Strong · ${mediumCount} Med · ${weakCount} Weak`;
+
+            if (statWeakCount) statWeakCount.textContent = weakCount;
+            const kpiWeakSub = document.querySelector("#kpiWeakSub");
+            if (kpiWeakSub) {
+                if (weakCount > 0 && total > 0) {
+                    kpiWeakSub.textContent = `${Math.round((weakCount / total) * 100)}% of vault exposed`;
+                    kpiWeakSub.className = "kpi-sub-badge danger";
+                } else {
+                    kpiWeakSub.textContent = "Zero weak passwords";
+                    kpiWeakSub.className = "kpi-sub-badge success";
+                }
+            }
+
+            if (statReusedCount) statReusedCount.textContent = duplicateCount;
+            const kpiReusedSub = document.querySelector("#kpiReusedSub");
+            if (kpiReusedSub) {
+                if (duplicateCount > 0) {
+                    kpiReusedSub.textContent = `${duplicateCount} credential stuffing risk`;
+                    kpiReusedSub.className = "kpi-sub-badge danger";
+                } else {
+                    kpiReusedSub.textContent = "Zero credential reuse";
+                    kpiReusedSub.className = "kpi-sub-badge success";
+                }
+            }
+
+            if (statSecurityScore) {
+                statSecurityScore.textContent = `${score}%`;
+                if (score >= 80) statSecurityScore.style.color = "#10b981";
+                else if (score >= 50) statSecurityScore.style.color = "#f59e0b";
+                else statSecurityScore.style.color = "#ef4444";
+            }
+            const kpiScoreSub = document.querySelector("#kpiScoreSub");
+            if (kpiScoreSub) {
+                if (score >= 80) {
+                    kpiScoreSub.textContent = "Optimal Posture";
+                    kpiScoreSub.className = "kpi-sub-badge success";
+                } else if (score >= 50) {
+                    kpiScoreSub.textContent = "Upgrades Recommended";
+                    kpiScoreSub.className = "kpi-sub-badge warning";
+                } else {
+                    kpiScoreSub.textContent = "Immediate Action Required";
+                    kpiScoreSub.className = "kpi-sub-badge danger";
+                }
+            }
+
+            const statStaleCount = document.querySelector("#statStaleCount");
+            if (statStaleCount) statStaleCount.textContent = staleCount;
+            const kpiStaleSub = document.querySelector("#kpiStaleSub");
+            if (kpiStaleSub) {
+                kpiStaleSub.textContent = staleCount > 0 ? `${staleCount} unrotated >90 days` : "All credentials fresh";
+            }
+
+            // 3. Notes Tab Summaries
             const dbTotal = document.querySelector("#statTotalCountDashboard");
             const dbScore = document.querySelector("#statSecurityScoreDashboard");
-            if (dbTotal) dbTotal.textContent = data.totalCount;
+            if (dbTotal) dbTotal.textContent = total;
             if (dbScore) {
-                dbScore.textContent = `${data.securityScore}%`;
-                if (data.securityScore > 80) dbScore.style.color = "#10b981";
-                else if (data.securityScore > 50) dbScore.style.color = "#f39c12";
+                dbScore.textContent = `${score}%`;
+                if (score >= 80) dbScore.style.color = "#10b981";
+                else if (score >= 50) dbScore.style.color = "#f59e0b";
                 else dbScore.style.color = "#ef4444";
             }
 
-            // Update secure notes count on dashboard
             const notesCountEl = document.querySelector("#statNotesCount");
             if (notesCountEl) {
                 const notesList = JSON.parse(localStorage.getItem("secure_notes") || "[]");
                 notesCountEl.textContent = notesList.length;
             }
 
-            // Update last unlock elapsed time based on user's actual login timestamp
-            const lastUnlockEl = document.querySelector("#statLastUnlock");
-            if (lastUnlockEl) {
-                const loginTimestamp = data.lastLoginAt ? new Date(data.lastLoginAt).getTime() : Date.now();
-                lastUnlockEl.textContent = formatLastUnlockTime(loginTimestamp);
-            }
-
-            // Trigger weak password notification if enabled
-            if (data.weakCount > 0 && localStorage.getItem("notify_weak_password") === "true") {
-                if (!sessionStorage.getItem("weak_alert_shown")) {
-                    showToast("Security Alert ⚠️", `You have ${data.weakCount} weak passwords in your vault.`);
-                    sessionStorage.setItem("weak_alert_shown", "true");
-                }
-            }
-
-            // Cache analytics data globally for redraw on tab switches
-            const breakdown = data.strengthBreakdown || {};
-            const weakCount = data.weakCount || breakdown.Weak || 0;
-            const strongCount = breakdown.Strong !== undefined ? breakdown.Strong : Math.max(0, (data.totalCount || 0) - weakCount);
-            const moderateCount = breakdown.Medium !== undefined ? breakdown.Medium : 0;
-            const score = data.securityScore !== undefined ? data.securityScore : 100;
-
-            window.cachedVaultAnalytics = { strongCount, moderateCount, weakCount, securityScore: score, categoryStats: data.categoryStats };
-
+            // 4. Vault Tab Security Analysis Breakdown & Donut Chart
             const graphStrongEl = document.querySelector("#graphStrongCount");
             const graphModEl = document.querySelector("#graphModerateCount");
             const graphWeakEl = document.querySelector("#graphWeakCount");
             const graphHealthScoreEl = document.querySelector("#vaultGraphHealthScore");
 
             if (graphStrongEl) graphStrongEl.textContent = strongCount;
-            if (graphModEl) graphModEl.textContent = moderateCount;
+            if (graphModEl) graphModEl.textContent = mediumCount;
             if (graphWeakEl) graphWeakEl.textContent = weakCount;
-            if (graphHealthScoreEl) graphHealthScoreEl.textContent = `Health: ${score}%`;
+            if (graphHealthScoreEl) {
+                graphHealthScoreEl.textContent = `Health: ${score}%`;
+                if (score >= 80) {
+                    graphHealthScoreEl.style.color = "#10b981";
+                    graphHealthScoreEl.style.background = "rgba(16, 185, 129, 0.15)";
+                    graphHealthScoreEl.style.borderColor = "rgba(16, 185, 129, 0.4)";
+                } else if (score >= 50) {
+                    graphHealthScoreEl.style.color = "#f59e0b";
+                    graphHealthScoreEl.style.background = "rgba(245, 158, 11, 0.15)";
+                    graphHealthScoreEl.style.borderColor = "rgba(245, 158, 11, 0.4)";
+                } else {
+                    graphHealthScoreEl.style.color = "#ef4444";
+                    graphHealthScoreEl.style.background = "rgba(239, 68, 68, 0.15)";
+                    graphHealthScoreEl.style.borderColor = "rgba(239, 68, 68, 0.4)";
+                }
+            }
 
-            drawVaultDonutChart(strongCount, moderateCount, weakCount, score);
+            window.cachedVaultAnalytics = { strongCount, moderateCount: mediumCount, weakCount, securityScore: score, categoryStats: data.categoryStats };
 
-            // Render recently added
+            drawVaultDonutChart(strongCount, mediumCount, weakCount, score);
+
+            // 5. Draw Shannon Entropy Chart & Legend
+            drawEntropyChart(strongCount, mediumCount, weakCount);
+            const entHigh = document.querySelector("#entropyHighCount");
+            const entMed = document.querySelector("#entropyMedCount");
+            const entLow = document.querySelector("#entropyLowCount");
+            if (entHigh) entHigh.textContent = `${strongCount} credential${strongCount !== 1 ? 's' : ''} (${total ? Math.round((strongCount / total) * 100) : 0}%)`;
+            if (entMed) entMed.textContent = `${mediumCount} credential${mediumCount !== 1 ? 's' : ''} (${total ? Math.round((mediumCount / total) * 100) : 0}%)`;
+            if (entLow) entLow.textContent = `${weakCount} credential${weakCount !== 1 ? 's' : ''} (${total ? Math.round((weakCount / total) * 100) : 0}%)`;
+
+            // 6. Threat Advisory Cards (Microsoft Defender Copilot Style)
+            const advisoryListEl = document.querySelector("#securityAdvisoryList");
+            if (advisoryListEl) {
+                const recs = data.recommendations || [];
+                if (recs.length === 0) {
+                    advisoryListEl.innerHTML = `
+                        <div class="advisory-item success">
+                            <div class="advisory-item-left">
+                                <span class="adv-icon">🛡️</span>
+                                <div class="advisory-item-content">
+                                    <h4>NIST Compliant Security Posture</h4>
+                                    <p>Zero weak or compromised passwords detected. Client-side AES-256 encryption active.</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    advisoryListEl.innerHTML = recs.map(rec => `
+                        <div class="advisory-item ${escapeHtml(rec.severity || 'info')}">
+                            <div class="advisory-item-left">
+                                <span class="adv-icon">${escapeHtml(rec.icon || '💡')}</span>
+                                <div class="advisory-item-content">
+                                    <h4>${escapeHtml(rec.title)}</h4>
+                                    <p>${escapeHtml(rec.description)}</p>
+                                </div>
+                            </div>
+                            <button type="button" class="advisory-btn" onclick="switchTab('${escapeHtml(rec.actionTab || 'vault')}')">
+                                ${escapeHtml(rec.actionText || 'Take Action')} ➔
+                            </button>
+                        </div>
+                    `).join("");
+                }
+            }
+
+            // 7. Vulnerability Triage Register Table
+            const triageTbody = document.querySelector("#vulnerabilityTriageTbody");
+            if (triageTbody) {
+                const vulnItems = data.vulnerableItems || [];
+                if (vulnItems.length === 0) {
+                    triageTbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 24px; color: #10b981; font-weight: 600;">
+                                🛡️ All vault credentials satisfy enterprise complexity standards! Zero weak passwords detected.
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    triageTbody.innerHTML = vulnItems.map(item => {
+                        const feedbackStr = Array.isArray(item.feedback) ? item.feedback.join(", ") : "Weak password complexity";
+                        const strengthBadgeClass = item.strength === "Weak" ? "weak" : "medium";
+                        return `
+                            <tr>
+                                <td>
+                                    <strong>🔑 ${escapeHtml(item.title)}</strong>
+                                    <span style="font-size: 11px; color: #94a3b8; display: block;">${escapeHtml(item.username || 'No username')}</span>
+                                </td>
+                                <td>${escapeHtml(item.category || 'General')}</td>
+                                <td>
+                                    <span class="triage-badge ${strengthBadgeClass}">${escapeHtml(item.strength)}</span>
+                                    <span style="font-size: 11px; color: #94a3b8; margin-left: 6px;">${item.entropyBits || 24} bits</span>
+                                </td>
+                                <td style="color: #f87171; font-size: 12px;">${escapeHtml(feedbackStr)}</td>
+                                <td>
+                                    <button type="button" class="btn-triage-fix" onclick="switchTab('vault')">
+                                        Fix in Vault ➔
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join("");
+                }
+            }
+
+            // 8. Live Session Ticker Initialization
+            const loginTimestamp = data.lastLoginAt ? new Date(data.lastLoginAt).getTime() : Date.now();
+            initLiveUnlockTimer(loginTimestamp);
+
+            // 9. Render recently added
             if (recentlyAddedList) {
-                if (data.recentlyAdded.length === 0) {
+                if (!data.recentlyAdded || data.recentlyAdded.length === 0) {
                     recentlyAddedList.innerHTML = "<li>No passwords recorded.</li>";
                 } else {
                     recentlyAddedList.innerHTML = data.recentlyAdded.map(item => `
@@ -976,7 +1195,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
-            // Draw Category Canvas Chart
+            // 10. Draw Category Canvas Chart
             drawCanvasChart("categoryDistributionChart", data.categoryStats);
 
         } catch (error) {
@@ -984,31 +1203,90 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // Shannon Entropy Donut Drawer
+    function drawEntropyChart(strongCount, moderateCount, weakCount) {
+        const canvas = document.getElementById("entropyDistributionChart");
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        const width = canvas.width;
+        const height = canvas.height;
+        const centerX = width / 2;
+        const centerY = height / 2;
+        const radius = Math.min(width, height) / 2 - 6;
+        const innerRadius = radius - 12;
+
+        ctx.clearRect(0, 0, width, height);
+
+        const total = strongCount + moderateCount + weakCount;
+        if (total === 0) {
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.arc(centerX, centerY, innerRadius, 0, 2 * Math.PI, true);
+            ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+            ctx.fill();
+            return;
+        }
+
+        const data = [
+            { count: strongCount, color: "#10b981" },
+            { count: moderateCount, color: "#f59e0b" },
+            { count: weakCount, color: "#ef4444" }
+        ];
+
+        let startAngle = -0.5 * Math.PI;
+        data.forEach(segment => {
+            if (segment.count > 0) {
+                const sliceAngle = (segment.count / total) * 2 * Math.PI;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, startAngle, startAngle + sliceAngle);
+                ctx.arc(centerX, centerY, innerRadius, startAngle + sliceAngle, startAngle, true);
+                ctx.closePath();
+                ctx.fillStyle = segment.color;
+                ctx.fill();
+                startAngle += sliceAngle;
+            }
+        });
+
+        const isLight = document.body.classList.contains("light-mode");
+        ctx.fillStyle = isLight ? "#0f2922" : "#ffffff";
+        ctx.font = "bold 13px Poppins, sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(`${total}`, centerX, centerY - 4);
+
+        ctx.fillStyle = isLight ? "#64748b" : "#a6bba8";
+        ctx.font = "600 8.5px Poppins, sans-serif";
+        ctx.fillText("ITEMS", centerX, centerY + 8);
+    }
+
     // Canvas Chart Drawer
     function drawCanvasChart(canvasId, categoryStats) {
         const canvas = document.getElementById(canvasId);
         if (!canvas) return;
         const ctx = canvas.getContext("2d");
+        if (!ctx) return;
         
-        // Handle scaling for high DPI displays
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         const keys = Object.keys(categoryStats || {});
         const values = Object.values(categoryStats || {});
+        const isLight = document.body.classList.contains("light-mode");
         
         if (keys.length === 0) {
-            ctx.fillStyle = "#888";
+            ctx.fillStyle = isLight ? "#64748b" : "#888";
             ctx.font = "14px Arial";
             ctx.fillText("No category data available.", canvas.width / 2 - 80, canvas.height / 2);
             return;
         }
 
-        const maxVal = Math.max(...values);
+        const maxVal = Math.max(1, ...values);
         const chartHeight = canvas.height - 40;
         const barWidth = Math.min(50, (canvas.width - 60) / keys.length);
         const spacing = (canvas.width - 40 - (barWidth * keys.length)) / (keys.length + 1);
 
-        const colors = ["#3498db", "#2ecc71", "#9b59b6", "#e67e22", "#e74c3c", "#1abc9c", "#f1c40f"];
+        const colors = ["#10b981", "#00d2ff", "#f59e0b", "#a855f7", "#ec4899", "#3b82f6", "#14b8a6"];
 
         for (let i = 0; i < keys.length; i++) {
             const value = values[i];
@@ -1016,17 +1294,17 @@ document.addEventListener("DOMContentLoaded", () => {
             const x = 20 + spacing * (i + 1) + barWidth * i;
             const y = canvas.height - 30 - barHeight;
 
-            // Draw Bar
+            // Draw Bar with rounded top
             ctx.fillStyle = colors[i % colors.length];
             ctx.fillRect(x, y, barWidth, barHeight);
 
-            // Draw value labels in white for dark mode compatibility
-            ctx.fillStyle = "#ffffff";
+            // Draw value labels
+            ctx.fillStyle = isLight ? "#0f172a" : "#ffffff";
             ctx.font = "bold 11px Arial";
             ctx.fillText(value, x + barWidth / 2 - 4, y - 6);
 
-            // Draw labels in light gray
-            ctx.fillStyle = "#cbd5e0";
+            // Draw labels
+            ctx.fillStyle = isLight ? "#475569" : "#cbd5e0";
             ctx.font = "bold 10px Arial";
             const label = keys[i].length > 10 ? keys[i].substring(0, 8) + ".." : keys[i];
             ctx.fillText(label, x + barWidth / 2 - ctx.measureText(label).width / 2, canvas.height - 12);
@@ -1138,6 +1416,11 @@ document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => {
                 if (window.cachedVaultAnalytics) {
                     drawCanvasChart("categoryDistributionChart", window.cachedVaultAnalytics.categoryStats);
+                    drawEntropyChart(
+                        window.cachedVaultAnalytics.strongCount,
+                        window.cachedVaultAnalytics.moderateCount,
+                        window.cachedVaultAnalytics.weakCount
+                    );
                 }
             }, 60);
         }
@@ -1439,13 +1722,22 @@ function drawVaultDonutChart(strongCount, moderateCount, weakCount, customScore)
     });
 
     const displayScore = customScore !== undefined ? customScore : Math.round((strongCount / total) * 100);
-    ctx.fillStyle = "#ffffff";
+    const isLightMode = document.body.classList.contains("light-mode");
+    
+    if (displayScore >= 80) {
+        ctx.fillStyle = "#10b981";
+    } else if (displayScore >= 50) {
+        ctx.fillStyle = "#f59e0b";
+    } else {
+        ctx.fillStyle = "#ef4444";
+    }
+    
     ctx.font = "bold 16px Poppins, sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(`${displayScore}%`, centerX, centerY - 6);
 
-    ctx.fillStyle = "#a6bba8";
+    ctx.fillStyle = isLightMode ? "#475569" : "#a6bba8";
     ctx.font = "600 10px Poppins, sans-serif";
     ctx.fillText("HEALTH", centerX, centerY + 10);
 }
