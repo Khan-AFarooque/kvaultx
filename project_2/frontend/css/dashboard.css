@@ -61,70 +61,80 @@ body.dashboard-page::after {
     z-index: 1;
 }
 
-/* ----------------------- SIDEBAR ----------------------- */
-.sidebar {
-    width: 280px;
-    background: rgba(11, 22, 19, 0.8) !important;
-    border-right: 1px solid rgba(22, 48, 42, 0.5) !important;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    padding: 26px 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    position: sticky;
-    top: 32px;
-    height: calc(100vh - 32px);
-    z-index: 10;
-}
-
-.sidebar-brand {
+/* ----------------------- SIDEBAR & TOGGLE ----------------------- */
+.sidebar-toggle-btn {
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #ffffff;
+    font-size: 18px;
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 12px;
+    justify-content: center;
+    transition: all 0.2s ease;
+    user-select: none;
 }
 
-.brand-icon {
-    font-size: 24px;
-    background: linear-gradient(135deg, #10b981, #00d2ff) !important;
-    padding: 6px;
-    border-radius: 12px;
-    box-shadow: 0 8px 18px rgba(16, 185, 129, 0.25);
+.sidebar-toggle-btn:hover {
+    background: rgba(16, 185, 129, 0.25);
+    border-color: #10b981;
+    transform: scale(1.05);
 }
 
-.brand-name {
-    font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif !important;
-    font-size: 20px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    background: linear-gradient(135deg, #ffffff 0%, #00d2ff 45%, #10b981 100%) !important;
-    -webkit-background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
-    animation: twinklingGlow 3.5s ease-in-out infinite;
+.sidebar {
+    width: 250px;
+    background: rgba(11, 22, 19, 0.85) !important;
+    border-right: 1px solid rgba(22, 48, 42, 0.6) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: sticky;
+    top: 80px; /* 32px marquee + 48px top-navbar */
+    height: calc(100vh - 80px);
+    z-index: 100;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: visible;
+}
+
+/* Collapsed Sidebar State */
+.sidebar.collapsed {
+    width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-right: none !important;
+    opacity: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
 }
 
 .tab-nav-container {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 }
 
 .tab-btn {
     width: 100%;
     margin-top: 0 !important;
-    padding: 12px 16px;
+    padding: 11px 16px;
     border-radius: 10px;
-    border: 1px solid rgba(22, 48, 42, 0.3) !important;
+    border: 1px solid rgba(22, 48, 42, 0.4) !important;
     background: rgba(255, 255, 255, 0.02) !important;
     color: #a6bba8 !important;
-    font-size: 14.5px;
+    font-size: 14px;
     font-weight: 500;
     text-align: left;
     display: flex;
     align-items: center;
     gap: 12px;
     cursor: pointer;
-    transition: all 0.25s ease;
+    transition: all 0.22s ease;
     max-width: unset !important;
 }
 
@@ -133,81 +143,157 @@ body.dashboard-page::after {
 }
 
 .tab-btn:hover {
-    background: rgba(16, 185, 129, 0.05) !important;
+    background: rgba(16, 185, 129, 0.08) !important;
     color: #ffffff !important;
     transform: translateX(4px);
     box-shadow: none !important;
 }
 
 .tab-btn.active {
-    background: rgba(16, 185, 129, 0.1) !important;
+    background: rgba(16, 185, 129, 0.15) !important;
     color: #10b981 !important;
-    font-weight: 600;
-    border-color: rgba(16, 185, 129, 0.3) !important;
-    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.15) !important;
+    font-weight: 700;
+    border-color: rgba(16, 185, 129, 0.4) !important;
+    box-shadow: 0 4px 18px rgba(16, 185, 129, 0.2) !important;
 }
 
-.sidebar-footer {
+/* ----------------------- SIDEBAR ACCOUNT DROPDOWN (4 OPTIONS CONSOLIDATED) ----------------------- */
+.sidebar-account-dropdown-wrap {
     margin-top: auto;
+    position: relative;
+}
+
+.sidebar-account-btn {
+    width: 100%;
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    border-radius: 12px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #ffffff;
+}
+
+.sidebar-account-btn:hover {
+    background: rgba(16, 185, 129, 0.16);
+    border-color: #10b981;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.15);
+}
+
+.account-user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-avatar-mini {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #10b981, #00d2ff);
+    color: #050a09;
+    font-weight: 800;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+}
+
+.user-details-mini {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    align-items: flex-start;
+    text-align: left;
+    line-height: 1.25;
 }
 
-.sidebar-btn {
+.user-name-mini {
+    font-size: 13px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.user-role-mini {
+    font-size: 11px;
+    color: #a6bba8;
+}
+
+.dropdown-chevron {
+    font-size: 12px;
+    color: #a6bba8;
+    transition: transform 0.2s ease;
+}
+
+.sidebar-account-dropdown {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 0;
+    right: 0;
+    background: #0d1a16;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    border-radius: 14px;
+    padding: 8px;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(16, 185, 129, 0.1);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    backdrop-filter: blur(20px);
+    animation: dropdownPopUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dropdownPopUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.sidebar-account-dropdown.hidden {
+    display: none !important;
+}
+
+.sidebar-account-dropdown .dropdown-item {
     width: 100%;
-    padding: 11px 16px;
-    border-radius: 10px;
+    padding: 10px 12px;
+    background: transparent;
     border: none;
-    font-size: 14px;
+    border-radius: 8px;
+    color: #e2e8f0;
+    font-size: 13.5px;
     font-weight: 500;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     cursor: pointer;
-    transition: all 0.2s ease;
-    max-width: unset !important;
+    transition: all 0.15s ease;
+    text-align: left;
 }
 
-.profile-btn {
-    background: rgba(16, 185, 129, 0.05) !important;
-    border: 1px solid rgba(16, 185, 129, 0.2) !important;
-    color: #a6bba8 !important;
+.sidebar-account-dropdown .dropdown-item:hover {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    transform: translateX(3px);
 }
 
-.profile-btn:hover {
-    background: rgba(16, 185, 129, 0.12) !important;
-    color: #ffffff !important;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(16, 185, 129, 0.1) !important;
+.sidebar-account-dropdown .dropdown-item.danger-item:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
 }
 
-.theme-btn {
-    background: rgba(22, 48, 42, 0.25) !important;
-    border: 1px solid rgba(22, 48, 42, 0.5) !important;
-    color: #a6bba8 !important;
-}
-
-.theme-btn:hover {
-    background: rgba(22, 48, 42, 0.4) !important;
-    color: #ffffff !important;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(22, 48, 42, 0.2) !important;
-}
-
-.logout-btn {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: rgba(255, 255, 255, 0.8);
-    margin-top: 8px;
-}
-
-.logout-btn:hover {
-    background: rgba(235, 87, 87, 0.15);
-    border-color: rgba(235, 87, 87, 0.3);
-    color: #fc8181;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(235, 87, 87, 0.15);
+.dropdown-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+    margin: 4px 0;
 }
 
 /* ----------------------- MAIN CONTENT ----------------------- */

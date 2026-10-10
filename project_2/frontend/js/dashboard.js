@@ -1461,3 +1461,89 @@ function formatLastUnlockTime(startMs) {
     const diffYears = Math.floor(diffDays / 365);
     return `${diffYears}y ago`;
 }
+
+/* =========================================================
+   TOGGLE SIDEBAR & CONSOLIDATED ACCOUNT DROPDOWN LOGIC
+========================================================= */
+document.addEventListener("DOMContentLoaded", () => {
+    // 1. Sidebar Toggle Button
+    const sidebarToggleBtn = document.getElementById("sidebarToggleBtn");
+    const dashboardSidebar = document.getElementById("dashboardSidebar");
+    const dashboardLayout = document.querySelector(".dashboard-layout");
+
+    if (sidebarToggleBtn && dashboardSidebar) {
+        sidebarToggleBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dashboardSidebar.classList.toggle("collapsed");
+            if (dashboardLayout) {
+                dashboardLayout.classList.toggle("sidebar-collapsed");
+            }
+            try {
+                localStorage.setItem("kvault_sidebar_collapsed", dashboardSidebar.classList.contains("collapsed"));
+            } catch (err) {}
+        });
+
+        // Restore saved collapsed state
+        try {
+            if (localStorage.getItem("kvault_sidebar_collapsed") === "true") {
+                dashboardSidebar.classList.add("collapsed");
+                if (dashboardLayout) dashboardLayout.classList.add("sidebar-collapsed");
+            }
+        } catch (err) {}
+    }
+
+    // 2. Load User Profile for Sidebar Dropdown Pill
+    loadSidebarUserInfo();
+});
+
+// Global Sidebar Account Dropdown Trigger ("below 4 option hi uska drop down bna do ok")
+window.toggleSidebarAccountMenu = function(e) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    const dropdown = document.getElementById("sidebarAccountDropdown");
+    const caret = document.getElementById("sidebarCaret");
+    if (dropdown) {
+        const isHidden = dropdown.classList.contains("hidden");
+        dropdown.classList.toggle("hidden");
+        if (caret) {
+            caret.style.transform = isHidden ? "rotate(180deg)" : "rotate(0deg)";
+        }
+    }
+};
+
+// Close dropdown on outside click
+document.addEventListener("click", (e) => {
+    const dropdown = document.getElementById("sidebarAccountDropdown");
+    const trigger = document.getElementById("sidebarAccountBtn");
+    const caret = document.getElementById("sidebarCaret");
+    if (dropdown && !dropdown.classList.contains("hidden")) {
+        if (!dropdown.contains(e.target) && trigger && !trigger.contains(e.target)) {
+            dropdown.classList.add("hidden");
+            if (caret) caret.style.transform = "rotate(0deg)";
+        }
+    }
+});
+
+// Load User info to populate sidebar avatar and name
+async function loadSidebarUserInfo() {
+    try {
+        const token = localStorage.getItem("accessToken");
+        if (!token) return;
+        const res = await apiFetch("/auth/profile");
+        if (res.ok) {
+            const user = await res.json();
+            const name = user.name || "Sameer";
+            const initial = name.charAt(0).toUpperCase();
+            const avatarEl = document.getElementById("sidebarAvatarCircle");
+            const nameEl = document.getElementById("sidebarUserNameLabel");
+            if (avatarEl) avatarEl.textContent = initial;
+            if (nameEl) nameEl.textContent = name;
+        }
+    } catch (e) {
+        console.error("Failed to load user info for sidebar:", e);
+    }
+}
+
