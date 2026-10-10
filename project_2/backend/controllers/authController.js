@@ -586,8 +586,27 @@ exports.signup = async (req, res) => {
             .then(() => console.log(`📧 [WELCOME EMAIL SENT] to ${user.email}`))
             .catch(err => console.error("Welcome email dispatch failed:", err));
 
+        // Create initial session for instant smooth vault unlock
+        const userAgent = req.headers["user-agent"] || "Unknown Browser";
+        const ip = req.ip || req.connection.remoteAddress || "127.0.0.1";
+        const session = await Session.create({
+            user: user._id,
+            userAgent,
+            ipAddress: ip,
+            refreshToken: "temp"
+        });
+
+        const accessToken = generateAccessToken(user._id, session._id);
+        const refreshToken = generateRefreshToken(user._id, session._id);
+        session.refreshToken = refreshToken;
+        await session.save();
+
+        sendTokenCookies(res, accessToken, refreshToken);
+
         res.status(201).json({
             message: "User Registered Successfully",
+            accessToken,
+            refreshToken,
             user: { id: user._id, name: user.name, email: user.email }
         });
     } catch (error) {

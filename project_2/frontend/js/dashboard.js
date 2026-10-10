@@ -162,7 +162,13 @@ window.handleModalLogin = async function(e) {
                 captchaToken: window.modalCaptchaToken || ""
             })
         });
-        const data = await res.json();
+        let data;
+        try {
+            data = await res.json();
+        } catch(parseErr) {
+            data = { message: "Server response error (" + res.status + ")." };
+        }
+
         if (res.ok && data.accessToken) {
             localStorage.setItem("accessToken", data.accessToken);
             if (data.refreshToken) localStorage.setItem("refreshToken", data.refreshToken);
@@ -190,7 +196,7 @@ window.handleModalLogin = async function(e) {
             feedback.style.display = "block";
             feedback.style.background = "rgba(239, 68, 68, 0.15)";
             feedback.style.color = "#f87171";
-            feedback.textContent = "Network error. Please try again.";
+            feedback.textContent = "Connection issue: " + (err.message || "Please check internet connection");
         }
     } finally {
         btn.disabled = false;
@@ -236,39 +242,50 @@ window.handleModalSignup = async function(e) {
     if (feedback) feedback.style.display = "none";
 
     try {
-        const res = await fetch("/api/auth/register", {
+        const signupUrl = typeof BASE_API_URL !== "undefined" ? `${BASE_API_URL}/auth/signup` : "/api/auth/signup";
+        const res = await fetch(signupUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ name, email, password })
         });
-        const data = await res.json();
+        
+        let data;
+        try {
+            data = await res.json();
+        } catch(parseErr) {
+            data = { message: "Unexpected server response (" + res.status + ")." };
+        }
+
         if (res.ok) {
             if (typeof showToast === "function") {
-                showToast("Vault Created! 🔒", "Account created successfully. Signing in...");
+                showToast("Vault Created! 🔒", "Account created successfully. Welcome to KvaultX!");
             }
-            // Automatically log in with the new credentials
-            const loginRes = await fetch("/api/auth/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password })
-            });
-            const loginData = await loginRes.json();
-            if (loginRes.ok && loginData.accessToken) {
-                localStorage.setItem("accessToken", loginData.accessToken);
-                if (loginData.refreshToken) localStorage.setItem("refreshToken", loginData.refreshToken);
-                if (loginData.user) localStorage.setItem("user", JSON.stringify(loginData.user));
+            if (data.accessToken) {
+                localStorage.setItem("accessToken", data.accessToken);
+                if (data.refreshToken) localStorage.setItem("refreshToken", data.refreshToken);
+                if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
+                window.closeAuthModal();
+                updateUserNavHeader();
+                if (typeof loadVaultItems === "function") loadVaultItems();
+                if (typeof loadAnalytics === "function") loadAnalytics();
+            } else {
+                window.switchAuthModalTab('login');
+                const loginFeedback = document.getElementById("modalAuthFeedback");
+                if (loginFeedback) {
+                    loginFeedback.style.display = "block";
+                    loginFeedback.style.background = "rgba(16, 185, 129, 0.15)";
+                    loginFeedback.style.color = "#10b981";
+                    loginFeedback.style.border = "1px solid rgba(16, 185, 129, 0.3)";
+                    loginFeedback.textContent = "Account created! Please enter your master password to unlock.";
+                }
             }
-            window.closeAuthModal();
-            updateUserNavHeader();
-            if (typeof loadVaultItems === "function") loadVaultItems();
-            if (typeof loadAnalytics === "function") loadAnalytics();
         } else {
             if (feedback) {
                 feedback.style.display = "block";
                 feedback.style.background = "rgba(239, 68, 68, 0.15)";
                 feedback.style.color = "#f87171";
                 feedback.style.border = "1px solid rgba(239, 68, 68, 0.3)";
-                feedback.textContent = data.message || "Registration failed.";
+                feedback.textContent = data.message || "Registration failed. Please try again.";
             }
         }
     } catch (err) {
@@ -276,7 +293,7 @@ window.handleModalSignup = async function(e) {
             feedback.style.display = "block";
             feedback.style.background = "rgba(239, 68, 68, 0.15)";
             feedback.style.color = "#f87171";
-            feedback.textContent = "Network error. Please try again.";
+            feedback.textContent = "Connection issue: " + (err.message || "Please check internet connection");
         }
     } finally {
         btn.disabled = false;
@@ -1120,8 +1137,8 @@ document.addEventListener("DOMContentLoaded", () => {
                             <div class="advisory-item-left">
                                 <span class="adv-icon">🛡️</span>
                                 <div class="advisory-item-content">
-                                    <h4>NIST Compliant Security Posture</h4>
-                                    <p>Zero weak or compromised passwords detected. Client-side AES-256 encryption active.</p>
+                                    <h4>Vault Protected</h4>
+                                    <p>All saved passwords are strong and unique. Zero-knowledge encryption is active.</p>
                                 </div>
                             </div>
                         </div>
@@ -1144,15 +1161,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
-            // 7. Vulnerability Triage Register Table
+            // 7. Passwords Requiring Attention Table
             const triageTbody = document.querySelector("#vulnerabilityTriageTbody");
             if (triageTbody) {
                 const vulnItems = data.vulnerableItems || [];
                 if (vulnItems.length === 0) {
                     triageTbody.innerHTML = `
                         <tr>
-                            <td colspan="5" style="text-align: center; padding: 24px; color: #10b981; font-weight: 600;">
-                                🛡️ All vault credentials satisfy enterprise complexity standards! Zero weak passwords detected.
+                            <td colspan="5" style="text-align: center; padding: 22px; color: #10b981; font-weight: 600;">
+                                🛡️ All your saved passwords are strong! No weak passwords found.
                             </td>
                         </tr>
                     `;

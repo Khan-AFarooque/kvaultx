@@ -29,7 +29,7 @@ const {
 } = require("../controllers/authController");
 
 // Public auth routes
-router.post("/signup", signup);
+router.post(["/signup", "/register"], signup);
 router.get("/captcha", getCaptcha);
 router.post("/login", login);
 router.post("/refresh-token", refreshToken);

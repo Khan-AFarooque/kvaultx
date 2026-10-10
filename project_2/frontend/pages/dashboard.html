@@ -9,6 +9,19 @@
 </head>
 <body class="dashboard-page">
 
+    <!-- Scrolling Marquee Security Banner -->
+    <div class="top-banner">
+        <marquee behavior="scroll" direction="left" scrollamount="6">
+            🔐 Saving your notes is saving your privacy — Protect your passwords with zero-knowledge AES-256 encryption — KvaultX &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 🔐 Saving your notes is saving your privacy — Protect your passwords with zero-knowledge AES-256 encryption — KvaultX
+        </marquee>
+    </div>
+
+    <!-- Ambient Twinkling Atmosphere -->
+    <div class="twinkle-star" style="top: 70px; left: 16%; animation-delay: 0s;">✦</div>
+    <div class="twinkle-star" style="top: 130px; right: 12%; animation-delay: 1.2s;">✨</div>
+    <div class="twinkle-star" style="top: 450px; left: 8%; animation-delay: 2.1s;">✦</div>
+    <div class="twinkle-star" style="top: 650px; right: 14%; animation-delay: 0.8s;">✨</div>
+
     <!-- TOP NAVBAR (Logo at Top Left + Sidebar Toggle Hamburger + Actions) -->
     <header class="top-navbar">
         <div class="nav-left-group" style="display: flex; align-items: center; gap: 12px;">
@@ -20,7 +33,7 @@
             <!-- Brand Logo at Top Left as Requested -->
             <div class="nav-brand" onclick="window.location.href='dashboard.html'" style="display: flex; align-items: center; gap: 9px; cursor: pointer;">
                 <img src="../assets/logo.png" alt="KvaultX Logo" style="height: 32px; width: auto; object-fit: contain; filter: drop-shadow(0 2px 8px rgba(0, 210, 255, 0.45));">
-                <span class="brand-name" style="font-weight: 800; font-size: 19px; letter-spacing: 0.5px; background: linear-gradient(135deg, #ffffff 0%, #00d2ff 50%, #10b981 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">KvaultX</span>
+                <span class="brand-name twinkle-text" style="font-weight: 800; font-size: 19px; letter-spacing: 0.5px; background: linear-gradient(135deg, #ffffff 0%, #00d2ff 50%, #10b981 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">KvaultX</span>
             </div>
         </div>
 
@@ -306,107 +319,92 @@
                 <button id="btnGeneratePassword" style="margin-top: 18px;">Generate Password</button>
             </div>
             
-            <!-- Tab 4: Analytics Dashboard (Enterprise Cryptographic Security Center) -->
+            <!-- Tab 4: Analytics Dashboard (Clean, Human Password Manager Design) -->
             <div id="analyticsTab" class="tab-content">
                 
-                <!-- Microsoft Entra / Defender-Grade Executive Security Posture Card -->
-                <div class="executive-posture-card">
-                    <div class="posture-header-row">
-                        <div class="posture-title-group">
-                            <div class="posture-icon-wrap">🛡️</div>
+                <!-- Sleek Vault Health Overview Card -->
+                <div class="executive-posture-card" style="padding: 22px 26px; border-radius: 16px; margin-bottom: 24px; background: rgba(11, 22, 19, 0.7); border: 1px solid rgba(22, 48, 42, 0.6); box-shadow: 0 8px 24px rgba(0,0,0,0.25);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
+                        <div style="display: flex; align-items: center; gap: 14px;">
+                            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); display: flex; align-items: center; justify-content: center; font-size: 24px;">🛡️</div>
                             <div>
-                                <h3 class="posture-card-title">Enterprise Security Posture & Cryptographic Health</h3>
-                                <p class="posture-card-desc">Audited against NIST SP 800-63B guidelines · Zero-Knowledge AES-256-GCM verification active</p>
+                                <h3 style="margin: 0; font-size: 19px; font-weight: 700; color: #ffffff;">Vault Security Health</h3>
+                                <p style="margin: 3px 0 0; font-size: 13px; color: #94a3b8;">Real-time status of your saved passwords and zero-knowledge encryption.</p>
                             </div>
                         </div>
-                        <div class="posture-badge-group">
-                            <span id="securityPostureRating" class="posture-grade-badge critical">Rating: D (Critical)</span>
-                            <span id="securityNistStatus" class="posture-spec-badge">NIST SP 800-63B</span>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span id="securityPostureRating" class="posture-grade-badge optimal" style="padding: 6px 12px; border-radius: 8px; font-weight: 600; font-size: 13px;">Optimal</span>
+                            <button id="btnRunDeepAudit" class="btn-posture-audit" type="button" onclick="loadAnalytics()" style="padding: 9px 18px; border-radius: 9px; background: linear-gradient(135deg, #10b981, #059669); color: #050a09; font-weight: 700; border: none; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: 'Poppins', sans-serif;">
+                                <span>⚡</span> Run Audit
+                            </button>
                         </div>
                     </div>
 
                     <div class="posture-meter-row">
-                        <div class="posture-meter-labels">
-                            <span class="posture-score-label">Comprehensive Vault Health Index</span>
-                            <span id="postureScoreDisplay" class="posture-score-val">100%</span>
+                        <div class="posture-meter-labels" style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+                            <span style="font-size: 13px; color: #a6bba8; font-weight: 500;">Overall Protection Score</span>
+                            <span id="postureScoreDisplay" class="posture-score-val" style="font-size: 24px; font-weight: 800; color: #10b981;">100%</span>
                         </div>
-                        <div class="posture-meter-track">
-                            <div id="postureMeterFill" class="posture-meter-fill" style="width: 100%;"></div>
+                        <div class="posture-meter-track" style="height: 8px; border-radius: 4px; background: rgba(255,255,255,0.08); overflow: hidden;">
+                            <div id="postureMeterFill" class="posture-meter-fill" style="width: 100%; height: 100%; background: #10b981; border-radius: 4px; transition: width 0.4s ease;"></div>
                         </div>
-                        <div class="posture-meter-scale">
-                            <span>0% Compromised</span>
-                            <span>50% Elevated Risk</span>
-                            <span>80% Strong</span>
-                            <span>100% Bank Grade</span>
-                        </div>
-                    </div>
-
-                    <div class="posture-action-strip">
-                        <div class="posture-compliance-tags">
-                            <span class="compliance-tag">✓ Zero-Knowledge Client Derivation</span>
-                            <span class="compliance-tag">✓ PBKDF2 100,000 Rounds</span>
-                            <span class="compliance-tag">✓ Memory Key Isolation</span>
-                        </div>
-                        <button id="btnRunDeepAudit" class="btn-posture-audit" type="button" onclick="loadAnalytics()">
-                            <span>⚡</span> Refresh Security Audit
-                        </button>
                     </div>
                 </div>
 
-                <!-- 6 Advanced Enterprise Telemetry KPI Cards -->
+                <!-- 6 Metric Cards (Clean, Human, No Buzzwords) -->
                 <div class="analytics-stats-grid kpi-6-grid">
                     <div class="stat-card" id="kpiCardTotal" onclick="switchTab('vault')" style="cursor: pointer;" title="Click to view all credentials">
                         <div class="stat-card-icon">🔑</div>
-                        <h4 class="stat-card-label">Managed Credentials</h4>
+                        <h4 class="stat-card-label">Total Passwords</h4>
                         <p id="statTotalCount" class="stat-card-value">0</p>
-                        <span id="kpiTotalSub" class="kpi-sub-badge">0 Strong · 0 Med · 0 Weak</span>
+                        <span id="kpiTotalSub" class="kpi-sub-badge">0 saved</span>
                     </div>
                     
                     <div class="stat-card danger-accent" id="kpiCardWeak" onclick="switchTab('vault')" style="cursor: pointer;" title="Click to isolate and fix weak passwords">
                         <div class="stat-card-icon">🚨</div>
-                        <h4 class="stat-card-label">Weak & Compromised</h4>
+                        <h4 class="stat-card-label">Weak Passwords</h4>
                         <p id="statWeakCount" class="stat-card-value" style="color: #ef4444;">0</p>
-                        <span id="kpiWeakSub" class="kpi-sub-badge danger">High dictionary risk</span>
+                        <span id="kpiWeakSub" class="kpi-sub-badge danger">Need update</span>
                     </div>
                     
                     <div class="stat-card" id="kpiCardReused" onclick="switchTab('vault')" style="cursor: pointer;" title="Click to view reused credentials">
-                        <div class="stat-card-icon">⚠️</div>
-                        <h4 class="stat-card-label">Reused Credentials</h4>
+                        <div class="stat-card-icon">🔁</div>
+                        <h4 class="stat-card-label">Reused Passwords</h4>
                         <p id="statReusedCount" class="stat-card-value" style="color: #10b981;">0</p>
-                        <span id="kpiReusedSub" class="kpi-sub-badge success">Zero credential reuse</span>
+                        <span id="kpiReusedSub" class="kpi-sub-badge success">None reused</span>
                     </div>
                     
                     <div class="stat-card" id="kpiCardScore">
                         <div class="stat-card-icon">🛡️</div>
-                        <h4 class="stat-card-label">Vault Health Score</h4>
+                        <h4 class="stat-card-label">Security Score</h4>
                         <p id="statSecurityScore" class="stat-card-value" style="color: #10b981;">100%</p>
-                        <span id="kpiScoreSub" class="kpi-sub-badge success">Optimal Posture</span>
+                        <span id="kpiScoreSub" class="kpi-sub-badge success">Optimal</span>
                     </div>
 
                     <div class="stat-card" id="kpiCardStale" onclick="switchTab('vault')" style="cursor: pointer;" title="Credentials unrotated over 90 days">
                         <div class="stat-card-icon">⏳</div>
-                        <h4 class="stat-card-label">Aged Over 90 Days</h4>
+                        <h4 class="stat-card-label">Old Passwords</h4>
                         <p id="statStaleCount" class="stat-card-value">0</p>
-                        <span id="kpiStaleSub" class="kpi-sub-badge">NIST rotation status</span>
+                        <span id="kpiStaleSub" class="kpi-sub-badge">Over 90 days</span>
                     </div>
 
-                    <div class="stat-card" id="kpiCardSession" onclick="openSessionDetailsModal()" style="cursor: pointer;" title="Click for active cryptographic session telemetry">
+                    <div class="stat-card" id="kpiCardSession" onclick="openSessionDetailsModal()" style="cursor: pointer;" title="Click for active session details">
                         <div class="stat-card-icon">🕒</div>
-                        <h4 class="stat-card-label">Last Unlock / Session</h4>
-                        <p id="statSessionTelemetry" class="stat-card-value" style="font-size: 22px;">Just now</p>
-                        <span id="kpiSessionSub" class="kpi-sub-badge session">● Active: 0s</span>
+                        <h4 class="stat-card-label">Active Session</h4>
+                        <p id="statSessionTelemetry" class="stat-card-value" style="font-size: 20px;">Just now</p>
+                        <span id="kpiSessionSub" class="kpi-sub-badge session">● Live</span>
                     </div>
                 </div>
 
-                <!-- Dual Analytics Visualizations Grid -->
+                <!-- Dual Visualizations Grid -->
                 <div class="analytics-charts-grid">
-                    <!-- Chart 1: Shannon Entropy & Cryptographic Distribution -->
+                    <!-- Chart 1: Password Strength Breakdown -->
                     <div class="chart-card-container">
                         <div class="chart-card-header">
                             <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 8px;">
-                                <span>🔒</span> Shannon Entropy & Strength Distribution
+                                <span>🔒</span> Password Strength
                             </h3>
-                            <span class="chart-tag">NIST Standard</span>
+                            <span class="chart-tag" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-size: 11px; padding: 3px 8px; border-radius: 6px;">Breakdown</span>
                         </div>
                         <div class="chart-dual-body">
                             <div class="chart-canvas-wrap">
@@ -416,35 +414,35 @@
                                 <div class="legend-row">
                                     <span class="legend-indicator" style="background: #10b981;"></span>
                                     <div class="legend-info">
-                                        <strong>Military Grade (&gt;70 bits)</strong>
-                                        <span id="entropyHighCount">0 credentials (0%)</span>
+                                        <strong>Strong Passwords</strong>
+                                        <span id="entropyHighCount">0 items (0%)</span>
                                     </div>
                                 </div>
                                 <div class="legend-row">
                                     <span class="legend-indicator" style="background: #f59e0b;"></span>
                                     <div class="legend-info">
-                                        <strong>Standard Grade (50-70 bits)</strong>
-                                        <span id="entropyMedCount">0 credentials (0%)</span>
+                                        <strong>Moderate Passwords</strong>
+                                        <span id="entropyMedCount">0 items (0%)</span>
                                     </div>
                                 </div>
                                 <div class="legend-row">
                                     <span class="legend-indicator" style="background: #ef4444;"></span>
                                     <div class="legend-info">
-                                        <strong>Vulnerable Grade (&lt;50 bits)</strong>
-                                        <span id="entropyLowCount">0 credentials (0%)</span>
+                                        <strong>Weak Passwords</strong>
+                                        <span id="entropyLowCount">0 items (0%)</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Chart 2: Category Threat Surface Breakdown -->
+                    <!-- Chart 2: Category Breakdown -->
                     <div class="chart-card-container">
                         <div class="chart-card-header">
                             <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 8px;">
-                                <span>📊</span> Category & Attack Surface Distribution
+                                <span>📊</span> Vault Categories
                             </h3>
-                            <span class="chart-tag">Live Assets</span>
+                            <span class="chart-tag" style="background: rgba(0, 210, 255, 0.15); color: #00d2ff; font-size: 11px; padding: 3px 8px; border-radius: 6px;">Distribution</span>
                         </div>
                         <div style="padding: 10px 0; display: flex; justify-content: center; align-items: center; min-height: 180px;">
                             <canvas id="categoryDistributionChart" width="460" height="180" style="max-width: 100%; height: auto;"></canvas>
@@ -452,17 +450,16 @@
                     </div>
                 </div>
 
-                <!-- Microsoft Defender-Style Security Recommendations (Threat Advisory) -->
+                <!-- Practical Security Recommendations Card -->
                 <div class="security-advisory-card">
                     <div class="advisory-card-header">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="font-size: 22px;">💡</span>
+                            <span style="font-size: 20px;">💡</span>
                             <div>
-                                <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #ffffff;">Threat Advisory & Remediation Engine</h3>
-                                <p style="margin: 2px 0 0; font-size: 12.5px; color: #a6bba8;">Automated threat heuristics identify vulnerabilities and guide immediate resolution.</p>
+                                <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #ffffff;">Security Recommendations</h3>
+                                <p style="margin: 2px 0 0; font-size: 12.5px; color: #a6bba8;">Actionable tips to keep your credentials safe and up to date.</p>
                             </div>
                         </div>
-                        <span class="advisory-live-pill">Live Telemetry</span>
                     </div>
 
                     <div id="securityAdvisoryList" class="advisory-items-list">
@@ -470,18 +467,18 @@
                     </div>
                 </div>
 
-                <!-- Interactive Vulnerability Triage & Remediation Table -->
+                <!-- Items Requiring Attention Table -->
                 <div class="vulnerability-triage-card">
                     <div class="triage-card-header">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="font-size: 20px;">🔍</span>
+                            <span style="font-size: 18px;">⚠️</span>
                             <div>
-                                <h3 style="margin: 0; font-size: 15.5px; font-weight: 700; color: #ffffff;">Vulnerability Triage Register</h3>
-                                <p style="margin: 2px 0 0; font-size: 12px; color: #a6bba8;">Accounts requiring immediate credential rotation or complexity enhancement.</p>
+                                <h3 style="margin: 0; font-size: 15.5px; font-weight: 700; color: #ffffff;">Passwords Requiring Attention</h3>
+                                <p style="margin: 2px 0 0; font-size: 12px; color: #a6bba8;">Accounts with weak or reused passwords that should be updated.</p>
                             </div>
                         </div>
                         <button class="triage-quick-fix-btn" type="button" onclick="switchTab('generator')">
-                            <span>🎲</span> Open Password Generator
+                            <span>🎲</span> Password Generator
                         </button>
                     </div>
 
@@ -489,30 +486,29 @@
                         <table class="triage-table">
                             <thead>
                                 <tr>
-                                    <th>Credential / Service</th>
+                                    <th>Account / Service</th>
                                     <th>Category</th>
-                                    <th>Strength & Entropy</th>
-                                    <th>Vulnerability Detected</th>
-                                    <th>Remediation Action</th>
+                                    <th>Strength</th>
+                                    <th>Issue</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody id="vulnerabilityTriageTbody">
-                                <tr><td colspan="5" style="text-align: center; padding: 24px;">Analyzing vault items...</td></tr>
+                                <tr><td colspan="5" style="text-align: center; padding: 24px; color: #a6bba8;">All passwords are secure! No issues found.</td></tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- Recently Added list Card -->
-                <div class="recent-list-container" style="background: rgba(11, 22, 19, 0.8); border: 1px solid rgba(22, 48, 42, 0.6); border-radius: 18px; padding: 24px; margin-bottom: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px;">
-                        <h3 style="font-size: 16px; font-weight: 700; color: #ffffff; margin: 0; display: flex; align-items: center; gap: 8px;">
-                            <span>🕒</span> Recently Added Credentials
+                <!-- Recently Added Passwords List Card -->
+                <div class="recent-list-container" style="background: rgba(11, 22, 19, 0.7); border: 1px solid rgba(22, 48, 42, 0.6); border-radius: 16px; padding: 22px; margin-bottom: 24px; box-shadow: 0 8px 24px rgba(0,0,0,0.25);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px;">
+                        <h3 style="font-size: 15.5px; font-weight: 700; color: #ffffff; margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <span>🕒</span> Recently Added Passwords
                         </h3>
-                        <span style="font-size: 12px; color: #10b981; background: rgba(16, 185, 129, 0.12); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.25);">Live Sync</span>
                     </div>
                     <ul id="recentlyAddedList" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px;">
-                        <li>Loading recently added...</li>
+                        <li>No recent items.</li>
                     </ul>
                 </div>
             </div>

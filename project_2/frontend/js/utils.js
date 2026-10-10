@@ -3,9 +3,16 @@
    SecureVault AI - Version 3
 ========================================================= */
 
-const BASE_API_URL = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
-    ? "http://localhost:5000/api"
-    : `${window.location.origin}/api`;
+const BASE_API_URL = (() => {
+    if (typeof window === "undefined") return "http://localhost:5000/api";
+    if (window.location.protocol === "file:" || !window.location.hostname) {
+        return "https://kvaultx.onrender.com/api";
+    }
+    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+        return (window.location.port === "5000") ? "/api" : "http://localhost:5000/api";
+    }
+    return `${window.location.origin}/api`;
+})();
 
 /**
  * Standard fetch wrapper that handles authorization headers,
