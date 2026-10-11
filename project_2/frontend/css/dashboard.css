@@ -2612,3 +2612,143 @@ body.dashboard-page.light-mode .analysis-stat-row strong {
     color: #0f172a !important;
 }
 
+/* ----------------------- SIDEBAR GUEST AUTHENTICATION STYLES ----------------------- */
+.sidebar-guest-auth {
+    margin-top: auto;
+    padding: 12px 10px;
+    background: rgba(16, 185, 129, 0.05);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.sidebar-auth-pill-btn {
+    border: none;
+    border-radius: 8px;
+    font-family: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sidebar-auth-pill-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
+/* ----------------------- VAULT SECURITY REPORT STYLES ----------------------- */
+.vault-report-modal-card {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(16, 185, 129, 0.3) rgba(5, 10, 9, 0.8);
+}
+
+.vault-report-modal-card::-webkit-scrollbar {
+    width: 6px;
+}
+
+.vault-report-modal-card::-webkit-scrollbar-thumb {
+    background: rgba(16, 185, 129, 0.3);
+    border-radius: 3px;
+}
+
+.report-filter-pill {
+    transition: all 0.2s ease;
+}
+
+.report-filter-pill:hover {
+    background: rgba(16, 185, 129, 0.15) !important;
+    color: #10b981 !important;
+}
+
+.report-filter-pill.active {
+    background: rgba(16, 185, 129, 0.25) !important;
+    border-color: rgba(16, 185, 129, 0.5) !important;
+    color: #ffffff !important;
+}
+
+.report-card-item {
+    background: rgba(11, 22, 19, 0.8);
+    border: 1px solid rgba(22, 48, 42, 0.6);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    transition: border-color 0.2s ease;
+}
+
+.report-card-item:hover {
+    border-color: rgba(16, 185, 129, 0.4);
+}
+
+.report-audit-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 6px;
+}
+
+.audit-check-tag {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin: 2px;
+}
+
+.audit-check-tag.pos {
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.audit-check-tag.neg {
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+/* ----------------------- PRINT MEDIA STYLES ----------------------- */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #vaultReportModal, #vaultReportModal * {
+        visibility: visible;
+    }
+    #vaultReportModal {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: #ffffff !important;
+        color: #000000 !important;
+        display: block !important;
+        opacity: 1 !important;
+        padding: 0 !important;
+    }
+    .vault-report-modal-card {
+        background: #ffffff !important;
+        color: #000000 !important;
+        border: none !important;
+        box-shadow: none !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        padding: 20px !important;
+    }
+    .report-top-actions, #reportSearchInput, .report-filter-pill, .report-close-btn {
+        display: none !important;
+    }
+    .report-card-item {
+        background: #f9fafb !important;
+        border: 1px solid #e5e7eb !important;
+        color: #111827 !important;
+        break-inside: avoid;
+    }
+    .card-pwd-field {
+        color: #111827 !important;
+        -webkit-text-security: none !important;
+    }
+}
+

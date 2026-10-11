@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Session Verification
     const token = localStorage.getItem("accessToken");
     const isValidToken = token && token !== "undefined" && token !== "null";
-    const publicPages = ["login.html", "signup.html", "forgot.html", "report-login.html", "terms.html", "privacy.html", "dashboard.html"];
+    const publicPages = ["login.html", "signup.html", "forgot.html", "report-login.html", "terms.html", "privacy.html", "dashboard.html", "add-password.html"];
     const isPublic = publicPages.some(page => window.location.pathname.endsWith(page)) || window.location.pathname === "/" || window.location.pathname === "";
     if (!isValidToken && !isPublic) {
         window.location.href = "login.html";

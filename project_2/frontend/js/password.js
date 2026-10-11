@@ -139,6 +139,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             const payload = { title, username, password, url, notes, category, tags, expiryDate };
 
+            // Prompt auth popup modal if not logged in
+            if (!localStorage.getItem("accessToken")) {
+                window.pendingVaultSavePayload = payload;
+                window.pendingVaultEditId = editId;
+                if (typeof window.openAuthModal === "function") {
+                    window.openAuthModal("login");
+                    const subtitle = document.getElementById("authModalSubtitle");
+                    if (subtitle) {
+                        subtitle.textContent = "Please sign in or create an account to save your credential.";
+                    }
+                } else {
+                    window.location.href = "login.html";
+                }
+                return;
+            }
+
             try {
                 let response;
                 if (editId) {
@@ -632,3 +648,288 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 });
+
+/* =========================================================
+   AUTH MODAL HELPERS FOR ADD-PASSWORD PAGE
+========================================================= */
+if (typeof window.openAuthModal !== "function") {
+    window.openAuthModal = function(tab = "login") {
+        const overlay = document.getElementById("authModalOverlay");
+        if (overlay) {
+            overlay.classList.add("active");
+            window.switchAuthModalTab(tab);
+            window.loadModalCaptcha();
+        }
+    };
+}
+
+if (typeof window.closeAuthModal !== "function") {
+    window.closeAuthModal = function() {
+        const overlay = document.getElementById("authModalOverlay");
+        if (overlay) overlay.classList.remove("active");
+        const feedback = document.getElementById("modalAuthFeedback");
+        if (feedback) feedback.style.display = "none";
+    };
+}
+
+if (typeof window.switchAuthModalTab !== "function") {
+    window.switchAuthModalTab = function(tab) {
+        const loginTabBtn = document.getElementById("tabAuthLogin");
+        const signupTabBtn = document.getElementById("tabAuthSignup");
+        const loginPanel = document.getElementById("modalLoginPanel");
+        const signupPanel = document.getElementById("modalSignupPanel");
+        const subtitle = document.getElementById("authModalSubtitle");
+        const feedback = document.getElementById("modalAuthFeedback");
+        if (feedback) feedback.style.display = "none";
+
+        if (tab === "signup") {
+            if (loginTabBtn) loginTabBtn.classList.remove("active");
+            if (signupTabBtn) signupTabBtn.classList.add("active");
+            if (loginPanel) loginPanel.classList.add("hidden");
+            if (signupPanel) signupPanel.classList.remove("hidden");
+            if (subtitle) subtitle.textContent = "Create an account to save your credentials.";
+        } else {
+            if (loginTabBtn) loginTabBtn.classList.add("active");
+            if (signupTabBtn) signupTabBtn.classList.remove("active");
+            if (loginPanel) loginPanel.classList.remove("hidden");
+            if (signupPanel) signupPanel.classList.add("hidden");
+            if (subtitle) subtitle.textContent = "Sign in to save your credentials to your vault.";
+        }
+    };
+}
+
+if (typeof window.loadModalCaptcha !== "function") {
+    window.loadModalCaptcha = async function() {
+        const textEl = document.getElementById("modalCaptchaText");
+        const inputEl = document.getElementById("modalCaptchaInput");
+        if (!textEl) return;
+        textEl.textContent = "...";
+        try {
+            const captchaUrl = typeof BASE_API_URL !== "undefined" ? `${BASE_API_URL}/auth/captcha` : "/api/auth/captcha";
+            const res = await fetch(captchaUrl);
+            if (res.ok) {
+                const data = await res.json();
+                textEl.textContent = data.captchaText;
+                window.modalCaptchaToken = data.captchaToken;
+                if (inputEl) inputEl.value = "";
+            } else {
+                textEl.textContent = "↻";
+            }
+        } catch (e) {
+            textEl.textContent = "↻";
+        }
+    };
+}
+
+if (typeof window.toggleModalEye !== "function") {
+    window.toggleModalEye = function(inputId, eyeEl) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        if (input.type === "password") {
+            input.type = "text";
+            eyeEl.textContent = "🙈";
+        } else {
+            input.type = "password";
+            eyeEl.textContent = "👁️";
+        }
+    };
+}
+
+if (typeof window.checkModalSignupStrength !== "function") {
+    window.checkModalSignupStrength = function(pwd) {
+        const bar = document.getElementById("modalPasswordStrengthBar");
+        const fill = document.getElementById("modalPasswordStrengthFill");
+        const text = document.getElementById("modalPasswordStrengthText");
+        if (!bar || !fill || !text) return;
+        if (!pwd) {
+            bar.style.display = "none";
+            text.textContent = "";
+            return;
+        }
+        bar.style.display = "block";
+        let score = 0;
+        if (pwd.length >= 8) score += 25;
+        if (pwd.length >= 12) score += 25;
+        if (/[A-Z]/.test(pwd)) score += 20;
+        if (/[0-9]/.test(pwd)) score += 15;
+        if (/[^A-Za-z0-9]/.test(pwd)) score += 15;
+
+        fill.style.width = `${score}%`;
+        if (score < 50) {
+            fill.style.background = "#ef4444";
+            text.textContent = "Weak password";
+            text.style.color = "#ef4444";
+        } else if (score < 75) {
+            fill.style.background = "#f59e0b";
+            text.textContent = "Moderate password";
+            text.style.color = "#f59e0b";
+        } else {
+            fill.style.background = "#10b981";
+            text.textContent = "Strong password";
+            text.style.color = "#10b981";
+        }
+    };
+}
+
+if (typeof window.handleModalLogin !== "function") {
+    window.handleModalLogin = async function(e) {
+        e.preventDefault();
+        const email = document.getElementById("modalLoginEmail").value.trim();
+        const password = document.getElementById("modalLoginPassword").value;
+        const captchaText = document.getElementById("modalCaptchaInput").value.trim();
+        const btn = document.getElementById("btnModalLoginSubmit");
+        const feedback = document.getElementById("modalAuthFeedback");
+
+        btn.disabled = true;
+        btn.textContent = "Verifying...";
+        if (feedback) feedback.style.display = "none";
+
+        try {
+            const loginUrl = typeof BASE_API_URL !== "undefined" ? `${BASE_API_URL}/auth/login` : "/api/auth/login";
+            const res = await fetch(loginUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email,
+                    password,
+                    captchaInput: captchaText,
+                    captchaText,
+                    captchaToken: window.modalCaptchaToken || ""
+                })
+            });
+            let data = await res.json();
+            if (res.ok && data.accessToken) {
+                localStorage.setItem("accessToken", data.accessToken);
+                if (data.refreshToken) localStorage.setItem("refreshToken", data.refreshToken);
+                if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
+                window.closeAuthModal();
+                if (window.pendingVaultSavePayload) {
+                    await window.executePendingVaultSave();
+                }
+            } else {
+                if (feedback) {
+                    feedback.style.display = "block";
+                    feedback.style.background = "rgba(239, 68, 68, 0.15)";
+                    feedback.style.color = "#f87171";
+                    feedback.textContent = data.message || "Invalid credentials.";
+                }
+                window.loadModalCaptcha();
+            }
+        } catch (err) {
+            if (feedback) {
+                feedback.style.display = "block";
+                feedback.style.color = "#f87171";
+                feedback.textContent = err.message || "Network error";
+            }
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "Unlock Vault";
+        }
+    };
+}
+
+if (typeof window.handleModalSignup !== "function") {
+    window.handleModalSignup = async function(e) {
+        e.preventDefault();
+        const name = document.getElementById("modalSignupName").value.trim();
+        const email = document.getElementById("modalSignupEmail").value.trim();
+        const password = document.getElementById("modalSignupPassword").value;
+        const confirm = document.getElementById("modalSignupConfirm").value;
+        const agree = document.getElementById("modalAgreeTerms")?.checked;
+        const btn = document.getElementById("btnModalSignupSubmit");
+        const feedback = document.getElementById("modalAuthFeedback");
+
+        if (password !== confirm) {
+            if (feedback) {
+                feedback.style.display = "block";
+                feedback.style.color = "#f87171";
+                feedback.textContent = "Passwords do not match.";
+            }
+            return;
+        }
+        if (password.length < 8) {
+            if (feedback) {
+                feedback.style.display = "block";
+                feedback.style.color = "#f87171";
+                feedback.textContent = "Password must be at least 8 characters.";
+            }
+            return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = "Creating Vault...";
+        if (feedback) feedback.style.display = "none";
+
+        try {
+            const signupUrl = typeof BASE_API_URL !== "undefined" ? `${BASE_API_URL}/auth/signup` : "/api/auth/signup";
+            const res = await fetch(signupUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, email, password })
+            });
+            let data = await res.json();
+            if (res.ok) {
+                if (data.accessToken) {
+                    localStorage.setItem("accessToken", data.accessToken);
+                    if (data.refreshToken) localStorage.setItem("refreshToken", data.refreshToken);
+                    if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
+                    window.closeAuthModal();
+                    if (window.pendingVaultSavePayload) {
+                        await window.executePendingVaultSave();
+                    }
+                } else {
+                    window.switchAuthModalTab('login');
+                }
+            } else {
+                if (feedback) {
+                    feedback.style.display = "block";
+                    feedback.style.color = "#f87171";
+                    feedback.textContent = data.message || "Registration failed.";
+                }
+            }
+        } catch (err) {
+            if (feedback) {
+                feedback.style.display = "block";
+                feedback.style.color = "#f87171";
+                feedback.textContent = err.message || "Network error";
+            }
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "Create Free Vault";
+        }
+    };
+}
+
+window.executePendingVaultSave = async function() {
+    if (!window.pendingVaultSavePayload) return;
+    const payload = window.pendingVaultSavePayload;
+    const editId = window.pendingVaultEditId;
+    window.pendingVaultSavePayload = null;
+    window.pendingVaultEditId = null;
+
+    try {
+        let response;
+        if (editId) {
+            response = await apiFetch(`/vault/${editId}`, {
+                method: "PUT",
+                body: JSON.stringify(payload)
+            });
+        } else {
+            response = await apiFetch(`/vault`, {
+                method: "POST",
+                body: JSON.stringify(payload)
+            });
+        }
+
+        if (!response.ok) {
+            const err = await response.json();
+            return alert(err.message || "Failed to save credential");
+        }
+
+        alert(editId ? "Credential updated!" : "Credential added to Vault!");
+        window.location.href = "dashboard.html?tab=vault";
+    } catch (err) {
+        console.error(err);
+        alert("Error saving credential: " + err.message);
+    }
+};

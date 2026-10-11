@@ -19,6 +19,9 @@ window.isUserLoggedIn = function() {
 
 window.requireAuth = function(actionCallback, defaultTab = "login") {
     if (!window.isUserLoggedIn()) {
+        if (typeof actionCallback === "function") {
+            window.pendingAuthCallback = actionCallback;
+        }
         window.openAuthModal(defaultTab);
         return false;
     }
@@ -179,8 +182,33 @@ window.handleModalLogin = async function(e) {
             }
             window.closeAuthModal();
             updateUserNavHeader();
+            if (typeof window.updateSidebarAuthState === "function") {
+                window.updateSidebarAuthState();
+            }
             if (typeof loadVaultItems === "function") loadVaultItems();
             if (typeof loadAnalytics === "function") loadAnalytics();
+
+            // Run pending auth callbacks (e.g. redirected to add password)
+            if (typeof window.pendingAuthCallback === "function") {
+                const cb = window.pendingAuthCallback;
+                window.pendingAuthCallback = null;
+                cb();
+            }
+
+            // Save pending note if note was submitted before login
+            if (window.pendingSaveNote) {
+                let notes = JSON.parse(localStorage.getItem("secure_notes") || "[]");
+                notes.push({ content: window.pendingSaveNote, timestamp: new Date().toLocaleString() });
+                localStorage.setItem("secure_notes", JSON.stringify(notes));
+                const noteInput = document.querySelector("#noteInput");
+                if (noteInput) noteInput.value = "";
+                const notesCountEl = document.querySelector("#statNotesCount");
+                if (notesCountEl) notesCountEl.textContent = notes.length;
+                if (typeof showToast === "function") {
+                    showToast("Note Saved 🔒", "Encrypted and saved to your secure storage.");
+                }
+                window.pendingSaveNote = null;
+            }
         } else {
             if (feedback) {
                 feedback.style.display = "block";
@@ -266,8 +294,33 @@ window.handleModalSignup = async function(e) {
                 if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
                 window.closeAuthModal();
                 updateUserNavHeader();
+                if (typeof window.updateSidebarAuthState === "function") {
+                    window.updateSidebarAuthState();
+                }
                 if (typeof loadVaultItems === "function") loadVaultItems();
                 if (typeof loadAnalytics === "function") loadAnalytics();
+
+                // Run pending auth callbacks
+                if (typeof window.pendingAuthCallback === "function") {
+                    const cb = window.pendingAuthCallback;
+                    window.pendingAuthCallback = null;
+                    cb();
+                }
+
+                // Save pending note if submitted before signup
+                if (window.pendingSaveNote) {
+                    let notes = JSON.parse(localStorage.getItem("secure_notes") || "[]");
+                    notes.push({ content: window.pendingSaveNote, timestamp: new Date().toLocaleString() });
+                    localStorage.setItem("secure_notes", JSON.stringify(notes));
+                    const noteInput = document.querySelector("#noteInput");
+                    if (noteInput) noteInput.value = "";
+                    const notesCountEl = document.querySelector("#statNotesCount");
+                    if (notesCountEl) notesCountEl.textContent = notes.length;
+                    if (typeof showToast === "function") {
+                        showToast("Note Saved 🔒", "Encrypted and saved to your secure storage.");
+                    }
+                    window.pendingSaveNote = null;
+                }
             } else {
                 window.switchAuthModalTab('login');
                 const loginFeedback = document.getElementById("modalAuthFeedback");
@@ -322,6 +375,9 @@ function updateUserNavHeader() {
 document.addEventListener("DOMContentLoaded", () => {
     
     updateUserNavHeader();
+    if (typeof window.updateSidebarAuthState === "function") {
+        window.updateSidebarAuthState();
+    }
 
     // Redirect to profile settings page (protected)
     const btnGoToProfile = document.querySelector("#btnGoToProfile");
@@ -419,20 +475,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!window.isUserLoggedIn()) {
             passwordCardsContainer.innerHTML = `
-                <div style="text-align: center; padding: 48px 24px; background: rgba(16, 185, 129, 0.04); border: 1px dashed rgba(16, 185, 129, 0.3); border-radius: 16px; margin: 16px 0;">
-                    <div style="font-size: 40px; margin-bottom: 12px;">🛡️</div>
-                    <h3 style="font-size: 19px; font-weight: 700; margin-bottom: 6px;">Zero-Knowledge Password Vault</h3>
-                    <p style="font-size: 13.5px; opacity: 0.8; max-width: 440px; margin: 0 auto 20px; line-height: 1.5;">
-                        Store, auto-generate, and audit passwords with military-grade AES-256 encryption. Sign in or create a free account to unlock your digital vault.
-                    </p>
-                    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-                        <button onclick="window.openAuthModal('login')" style="background: linear-gradient(135deg, #10b981, #059669); color: #050a09; font-weight: 700; border: none; padding: 10px 24px; border-radius: 10px; cursor: pointer; font-size: 13.5px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
-                            🔐 Sign In to Vault
-                        </button>
-                        <button onclick="window.openAuthModal('signup')" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: inherit; font-weight: 600; padding: 10px 24px; border-radius: 10px; cursor: pointer; font-size: 13.5px;">
-                            ✨ Create Free Account
-                        </button>
-                    </div>
+                <div style="text-align: center; padding: 48px 20px; color: #a6bba8;">
+                    <div style="font-size: 36px; margin-bottom: 12px; opacity: 0.85;">🔒</div>
+                    <h4 style="font-size: 16px; font-weight: 700; color: #ffffff; margin: 0 0 6px;">No passwords in vault yet</h4>
+                    <p style="font-size: 13px; color: #a6bba8; margin: 0; max-width: 400px; margin: 0 auto;">Click <strong>+ Add</strong> above to store your first zero-knowledge encrypted credential.</p>
                 </div>
             `;
             const banner = document.querySelector("#aiVaultAuditBanner");
@@ -1504,6 +1550,18 @@ document.addEventListener("DOMContentLoaded", () => {
         saveNoteBtn.addEventListener("click", () => {
             const noteContent = noteInput.value.trim();
             if (!noteContent) return alert("Note is empty.");
+
+            // Before saving note, require user to log in or sign up if not logged in
+            if (!window.isUserLoggedIn()) {
+                window.pendingSaveNote = noteContent;
+                window.openAuthModal("login");
+                const subtitle = document.getElementById("authModalSubtitle");
+                if (subtitle) {
+                    subtitle.textContent = "Please sign in or create an account to save your encrypted note.";
+                }
+                return;
+            }
+
             let notes = JSON.parse(localStorage.getItem("secure_notes") || "[]");
             notes.push({ content: noteContent, timestamp: new Date().toLocaleString() });
             localStorage.setItem("secure_notes", JSON.stringify(notes));
@@ -1515,12 +1573,6 @@ document.addEventListener("DOMContentLoaded", () => {
             noteInput.value = "";
             const notesCountEl = document.querySelector("#statNotesCount");
             if (notesCountEl) notesCountEl.textContent = notes.length;
-
-            if (!window.isUserLoggedIn()) {
-                setTimeout(() => {
-                    window.openAuthModal("signup");
-                }, 800);
-            }
         });
     }
 
@@ -1866,18 +1918,473 @@ async function loadSidebarUserInfo() {
     try {
         const token = localStorage.getItem("accessToken");
         if (!token) return;
-        const res = await apiFetch("/auth/profile");
-        if (res.ok) {
-            const user = await res.json();
-            const name = user.name || "Sameer";
-            const initial = name.charAt(0).toUpperCase();
-            const avatarEl = document.getElementById("sidebarAvatarCircle");
-            const nameEl = document.getElementById("sidebarUserNameLabel");
-            if (avatarEl) avatarEl.textContent = initial;
-            if (nameEl) nameEl.textContent = name;
+        const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+        let name = storedUser.name || "";
+        if (!name) {
+            const res = await apiFetch("/auth/profile");
+            if (res.ok) {
+                const user = await res.json();
+                name = user.name || "Vault User";
+                localStorage.setItem("user", JSON.stringify(user));
+            }
         }
+        name = name || "Vault User";
+        const initial = name.charAt(0).toUpperCase();
+        const avatarEl = document.getElementById("sidebarAvatarCircle");
+        const nameEl = document.getElementById("sidebarUserNameLabel");
+        if (avatarEl) avatarEl.textContent = initial;
+        if (nameEl) nameEl.textContent = name;
     } catch (e) {
         console.error("Failed to load user info for sidebar:", e);
     }
 }
+
+/* =========================================================
+   VAULT SECURITY AUDIT & REPORT SYSTEM
+========================================================= */
+
+// Sidebar guest / authenticated state manager
+window.updateSidebarAuthState = function() {
+    const guestAuth = document.getElementById("sidebarGuestAuth");
+    const accountWrap = document.getElementById("sidebarAccountDropdownWrap");
+    const isLoggedIn = window.isUserLoggedIn();
+
+    if (guestAuth && accountWrap) {
+        if (isLoggedIn) {
+            guestAuth.style.display = "none";
+            accountWrap.style.display = "block";
+            loadSidebarUserInfo();
+        } else {
+            guestAuth.style.display = "block";
+            accountWrap.style.display = "none";
+        }
+    }
+};
+
+// Comprehensive security & weakness analyzer
+window.analyzeCredentialSecurity = function(password, item = {}, allItems = []) {
+    const pwd = password || "";
+    let score = 0;
+    const strengths = [];
+    const weaknesses = [];
+
+    // Length analysis
+    if (pwd.length >= 16) {
+        score += 35;
+        strengths.push("High Length: 16+ chars (AES-256 standard)");
+    } else if (pwd.length >= 12) {
+        score += 25;
+        strengths.push("Good Length: 12+ chars");
+    } else if (pwd.length >= 8) {
+        score += 15;
+        weaknesses.push("Moderate Length: Under 12 chars (16+ recommended)");
+    } else if (pwd.length > 0) {
+        score += 5;
+        weaknesses.push("Critical Weakness: Under 8 chars (easily crackable)");
+    } else {
+        weaknesses.push("Critical: Empty password");
+    }
+
+    // Uppercase
+    if (/[A-Z]/.test(pwd)) {
+        score += 15;
+        strengths.push("Includes uppercase letters (A-Z)");
+    } else {
+        weaknesses.push("Missing uppercase letters (A-Z)");
+    }
+
+    // Lowercase
+    if (/[a-z]/.test(pwd)) {
+        score += 15;
+        strengths.push("Includes lowercase letters (a-z)");
+    } else {
+        weaknesses.push("Missing lowercase letters (a-z)");
+    }
+
+    // Numbers
+    if (/[0-9]/.test(pwd)) {
+        score += 15;
+        strengths.push("Includes numerical digits (0-9)");
+    } else {
+        weaknesses.push("Missing numerical digits (0-9)");
+    }
+
+    // Special Symbols
+    if (/[^A-Za-z0-9]/.test(pwd)) {
+        score += 20;
+        strengths.push("Includes special symbols (!@#$%^&*)");
+    } else {
+        weaknesses.push("Missing special symbols / characters");
+    }
+
+    // Patterns
+    if (/(.)\1{2,}/.test(pwd)) {
+        score -= 15;
+        weaknesses.push("Contains repetitive character sequences");
+    }
+    if (/1234|abcd|qwerty|password|admin/i.test(pwd)) {
+        score -= 25;
+        weaknesses.push("Contains predictable keyboard or dictionary pattern");
+    }
+
+    // Expiry
+    if (item.expiryDate && new Date(item.expiryDate) < new Date()) {
+        score -= 15;
+        weaknesses.push("Credential has expired — overdue for rotation");
+    }
+
+    // Reused check across vault items
+    if (Array.isArray(allItems) && allItems.length > 1 && pwd) {
+        const matches = allItems.filter(i => i.password === pwd);
+        if (matches.length > 1) {
+            score -= 20;
+            weaknesses.push(`Reused password across ${matches.length} vault services`);
+        }
+    }
+
+    score = Math.max(5, Math.min(100, score));
+
+    let status = "Strong";
+    let statusColor = "#10b981";
+    let statusBadge = "✅ Strong";
+    let recommendation = "Optimal zero-knowledge credential. Compliant with AES-256 standard.";
+
+    if (score < 50) {
+        status = "Weak";
+        statusColor = "#ef4444";
+        statusBadge = "🚨 Weak";
+        recommendation = "Action Required: Vulnerable to brute-force attack. Upgrade using 'Fix with AI' or Generator to 16+ characters with mixed characters.";
+    } else if (score < 75) {
+        status = "Medium";
+        statusColor = "#f59e0b";
+        statusBadge = "⚠️ Moderate";
+        recommendation = "Moderate security: Consider adding special symbols or lengthening beyond 14 characters for enhanced safety.";
+    }
+
+    return {
+        score,
+        status,
+        statusColor,
+        statusBadge,
+        strengths,
+        weaknesses,
+        recommendation
+    };
+};
+
+// Open and render Vault Security Report
+window.openVaultSecurityReport = async function() {
+    if (!window.isUserLoggedIn()) {
+        window.openAuthModal("login");
+        const subtitle = document.getElementById("authModalSubtitle");
+        if (subtitle) {
+            subtitle.textContent = "Please sign in or register to generate your Vault Security Report.";
+        }
+        return;
+    }
+
+    const modal = document.getElementById("vaultReportModal");
+    if (!modal) return;
+    modal.classList.add("active");
+
+    await window.renderVaultSecurityReport();
+};
+
+window.closeVaultSecurityReport = function() {
+    const modal = document.getElementById("vaultReportModal");
+    if (modal) modal.classList.remove("active");
+};
+
+// Global report items cache
+window.reportCurrentItems = [];
+window.reportFilterMode = "all";
+
+window.renderVaultSecurityReport = async function() {
+    const listContainer = document.getElementById("reportCredentialsListContainer");
+    if (!listContainer) return;
+
+    listContainer.innerHTML = `<div style="text-align: center; padding: 40px; color: #a6bba8;">⏳ Generating zero-knowledge security audit report...</div>`;
+
+    let items = window.currentVaultItems || [];
+    if (!items || items.length === 0) {
+        try {
+            const res = await apiFetch("/vault");
+            if (res.ok) {
+                items = await res.json();
+                window.currentVaultItems = items;
+            }
+        } catch (e) {
+            console.error("Failed to fetch vault items for report:", e);
+        }
+    }
+
+    window.reportCurrentItems = items;
+
+    // Populate user and date meta
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const ownerNameEl = document.getElementById("reportOwnerName");
+    const genDateEl = document.getElementById("reportGeneratedDate");
+    if (ownerNameEl) ownerNameEl.textContent = user.name || user.email || "Vault Owner";
+    if (genDateEl) genDateEl.textContent = new Date().toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+
+    // Calculate audit metrics
+    let strongCount = 0;
+    let moderateCount = 0;
+    let weakCount = 0;
+    let totalScore = 0;
+
+    items.forEach(item => {
+        const audit = window.analyzeCredentialSecurity(item.password, item, items);
+        item._audit = audit;
+        if (audit.status === "Strong") strongCount++;
+        else if (audit.status === "Medium") moderateCount++;
+        else weakCount++;
+        totalScore += audit.score;
+    });
+
+    const totalCount = items.length;
+    const avgScore = totalCount > 0 ? Math.round(totalScore / totalCount) : 100;
+
+    const totalCountEl = document.getElementById("reportTotalCount");
+    const strongCountEl = document.getElementById("reportStrongCount");
+    const moderateCountEl = document.getElementById("reportModerateCount");
+    const weakCountEl = document.getElementById("reportWeakCount");
+    const gradeEl = document.getElementById("reportSecurityGrade");
+
+    if (totalCountEl) totalCountEl.textContent = totalCount;
+    if (strongCountEl) strongCountEl.textContent = strongCount;
+    if (moderateCountEl) moderateCountEl.textContent = moderateCount;
+    if (weakCountEl) weakCountEl.textContent = weakCount;
+
+    if (gradeEl) {
+        if (avgScore >= 80) {
+            gradeEl.textContent = `Health: ${avgScore}% (Optimal)`;
+            gradeEl.style.background = "rgba(16, 185, 129, 0.2)";
+            gradeEl.style.color = "#10b981";
+            gradeEl.style.borderColor = "rgba(16, 185, 129, 0.4)";
+        } else if (avgScore >= 60) {
+            gradeEl.textContent = `Health: ${avgScore}% (Moderate)`;
+            gradeEl.style.background = "rgba(245, 158, 11, 0.2)";
+            gradeEl.style.color = "#f59e0b";
+            gradeEl.style.borderColor = "rgba(245, 158, 11, 0.4)";
+        } else {
+            gradeEl.textContent = `Health: ${avgScore}% (Attention Needed)`;
+            gradeEl.style.background = "rgba(239, 68, 68, 0.2)";
+            gradeEl.style.color = "#ef4444";
+            gradeEl.style.borderColor = "rgba(239, 68, 68, 0.4)";
+        }
+    }
+
+    window.populateVaultReportList();
+};
+
+window.populateVaultReportList = function() {
+    const listContainer = document.getElementById("reportCredentialsListContainer");
+    if (!listContainer) return;
+
+    const searchInput = document.getElementById("reportSearchInput");
+    const search = searchInput ? searchInput.value.toLowerCase().trim() : "";
+    const filter = window.reportFilterMode || "all";
+
+    const filtered = (window.reportCurrentItems || []).filter(item => {
+        const audit = item._audit || window.analyzeCredentialSecurity(item.password, item, window.reportCurrentItems);
+        item._audit = audit;
+
+        // Filter tabs
+        if (filter === "strong" && audit.status !== "Strong") return false;
+        if (filter === "medium" && audit.status !== "Medium") return false;
+        if (filter === "weak" && audit.status !== "Weak") return false;
+
+        // Search text
+        if (search) {
+            const titleMatch = (item.title || "").toLowerCase().includes(search);
+            const userMatch = (item.username || "").toLowerCase().includes(search);
+            const catMatch = (item.category || "").toLowerCase().includes(search);
+            const urlMatch = (item.url || "").toLowerCase().includes(search);
+            const notesMatch = (item.notes || "").toLowerCase().includes(search);
+            return titleMatch || userMatch || catMatch || urlMatch || notesMatch;
+        }
+        return true;
+    });
+
+    if (filtered.length === 0) {
+        listContainer.innerHTML = `<div style="text-align: center; padding: 36px; color: #a6bba8;">No credentials match the selected report filter.</div>`;
+        return;
+    }
+
+    let html = "";
+    filtered.forEach((item, idx) => {
+        const audit = item._audit;
+        const catColor = typeof getCategoryColor === "function" ? getCategoryColor(item.category) : "#10b981";
+        const tagsHtml = (item.tags && item.tags.length > 0)
+            ? `<span style="font-size: 11px; color: #a6bba8;">Tags: ${item.tags.map(t => `<span style="background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; margin-right: 4px;">#${escapeHtml(t)}</span>`).join("")}</span>`
+            : "";
+        const expiryHtml = item.expiryDate
+            ? `<span style="font-size: 12px; color: ${new Date(item.expiryDate) < new Date() ? '#ef4444' : '#a6bba8'};">⏰ Expiry: ${new Date(item.expiryDate).toLocaleDateString()}</span>`
+            : `<span style="font-size: 12px; color: #64748b;">No expiration set</span>`;
+        const urlHtml = item.url
+            ? `<a href="${item.url}" target="_blank" rel="noopener noreferrer" style="color: #00d2ff; text-decoration: underline; font-size: 12.5px; word-break: break-all;">${escapeHtml(item.url)}</a>`
+            : `<span style="color: #64748b; font-size: 12px;">No URL specified</span>`;
+        const notesHtml = item.notes
+            ? `<div style="margin-top: 6px; font-size: 12.5px; color: #cbd5e1; background: rgba(0,0,0,0.25); padding: 8px 12px; border-radius: 6px; border-left: 3px solid #10b981;">📝 <strong>Notes:</strong> ${escapeHtml(item.notes)}</div>`
+            : "";
+
+        const strengthsBadges = audit.strengths.map(s => `<span class="audit-check-tag pos">✔ ${escapeHtml(s)}</span>`).join(" ");
+        const weaknessesBadges = audit.weaknesses.map(w => `<span class="audit-check-tag neg">✖ ${escapeHtml(w)}</span>`).join(" ");
+
+        html += `
+            <div class="report-card-item" id="repItem_${item.id || idx}">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <strong style="font-size: 16px; color: #ffffff;">${escapeHtml(item.title || "Untitled")}</strong>
+                            <span style="font-size: 11px; background: ${catColor}; color: #ffffff; padding: 2px 8px; border-radius: 4px; font-weight: 600;">${escapeHtml(item.category || "Uncategorized")}</span>
+                            <span class="report-audit-badge" style="background: ${audit.statusColor}22; color: ${audit.statusColor}; border: 1px solid ${audit.statusColor}55;">
+                                ${audit.statusBadge} (${audit.score}/100)
+                            </span>
+                        </div>
+                        <div style="margin-top: 4px; font-size: 13px; color: #a6bba8;">
+                            👤 Username / Email: <strong style="color: #ffffff;">${escapeHtml(item.username || "-")}</strong>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        ${audit.status === "Weak" ? `<button onclick="closeVaultSecurityReport(); openAiFixModal('${item.id}', '${escapeHtml(item.title)}', '${escapeHtml(item.password)}')" style="background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4); padding: 5px 12px; border-radius: 6px; font-size: 11.5px; font-weight: 700; cursor: pointer;">✨ AI Fix</button>` : ''}
+                    </div>
+                </div>
+
+                <!-- Credential Values & Website -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; background: rgba(0,0,0,0.3); padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 12px;">
+                    <div>
+                        <span style="font-size: 11px; color: #a6bba8; display: block;">PASSWORD VALUE</span>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-top: 2px;">
+                            <input type="password" id="repPwd_${item.id || idx}" class="card-pwd-field" value="${escapeHtml(item.password || '')}" readonly style="background: transparent; border: none; color: #10b981; font-family: monospace; font-size: 14px; font-weight: 800; width: 140px; padding: 2px 0;">
+                            <button type="button" onclick="toggleReportPassword('repPwd_${item.id || idx}', this)" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #a6bba8; padding: 2px 8px; font-size: 11px; border-radius: 4px; cursor: pointer;">Reveal</button>
+                            <button type="button" onclick="copyVaultPassword('${escapeHtml(item.password || '')}')" style="background: rgba(0, 210, 255, 0.15); border: 1px solid rgba(0, 210, 255, 0.3); color: #00d2ff; padding: 2px 8px; font-size: 11px; border-radius: 4px; cursor: pointer;">Copy</button>
+                        </div>
+                    </div>
+                    <div>
+                        <span style="font-size: 11px; color: #a6bba8; display: block;">WEBSITE / SERVICE URL</span>
+                        <div style="margin-top: 2px;">${urlHtml}</div>
+                    </div>
+                    <div>
+                        <span style="font-size: 11px; color: #a6bba8; display: block;">EXPIRY & TAGS</span>
+                        <div style="margin-top: 2px; display: flex; flex-direction: column; gap: 2px;">
+                            ${expiryHtml}
+                            ${tagsHtml}
+                        </div>
+                    </div>
+                </div>
+
+                ${notesHtml}
+
+                <!-- Strengths & Weaknesses Detailed Audit Box -->
+                <div style="margin-top: 12px; padding: 10px 14px; border-radius: 8px; background: rgba(22, 48, 42, 0.25); border: 1px solid rgba(22, 48, 42, 0.5);">
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <div>
+                            <strong style="font-size: 12px; color: #10b981;">Strengths:</strong>
+                            <div style="margin-top: 4px;">${strengthsBadges || '<span style="font-size: 11px; color: #a6bba8;">None identified</span>'}</div>
+                        </div>
+                        <div style="margin-top: 4px;">
+                            <strong style="font-size: 12px; color: #ef4444;">Weaknesses & Risks:</strong>
+                            <div style="margin-top: 4px;">${weaknessesBadges || '<span style="font-size: 11px; color: #10b981;">No security weaknesses detected!</span>'}</div>
+                        </div>
+                        <div style="margin-top: 4px; font-size: 12px; color: #a6bba8; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 6px;">
+                            💡 <strong>Security Advice:</strong> <span style="color: #ffffff;">${escapeHtml(audit.recommendation)}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    listContainer.innerHTML = html;
+};
+
+window.toggleReportPassword = function(inputId, btn) {
+    const el = document.getElementById(inputId);
+    if (!el) return;
+    if (el.type === "password") {
+        el.type = "text";
+        btn.textContent = "Hide";
+    } else {
+        el.type = "password";
+        btn.textContent = "Reveal";
+    }
+};
+
+window.filterVaultReportTable = function() {
+    window.populateVaultReportList();
+};
+
+window.setVaultReportFilter = function(mode, btn) {
+    window.reportFilterMode = mode;
+    document.querySelectorAll(".report-filter-pill").forEach(p => p.classList.remove("active"));
+    if (btn) btn.classList.add("active");
+    window.populateVaultReportList();
+};
+
+window.printVaultSecurityReport = function() {
+    window.print();
+};
+
+window.exportVaultReportCSV = function() {
+    const items = window.reportCurrentItems || [];
+    if (items.length === 0) {
+        return alert("No credentials available in vault to export.");
+    }
+
+    const headers = [
+        "Title",
+        "Category",
+        "Username",
+        "Password",
+        "URL",
+        "Tags",
+        "Expiry Date",
+        "Notes",
+        "Security Status",
+        "Security Score",
+        "Strengths",
+        "Weaknesses",
+        "Recommendation"
+    ];
+
+    const escapeCsv = (val) => {
+        if (val === null || val === undefined) return '""';
+        const str = String(val).replace(/"/g, '""');
+        return `"${str}"`;
+    };
+
+    const rows = items.map(item => {
+        const audit = item._audit || window.analyzeCredentialSecurity(item.password, item, items);
+        return [
+            escapeCsv(item.title || ""),
+            escapeCsv(item.category || "Uncategorized"),
+            escapeCsv(item.username || ""),
+            escapeCsv(item.password || ""),
+            escapeCsv(item.url || ""),
+            escapeCsv((item.tags || []).join(", ")),
+            escapeCsv(item.expiryDate ? new Date(item.expiryDate).toLocaleDateString() : ""),
+            escapeCsv(item.notes || ""),
+            escapeCsv(audit.status),
+            escapeCsv(audit.score),
+            escapeCsv(audit.strengths.join(" | ")),
+            escapeCsv(audit.weaknesses.join(" | ")),
+            escapeCsv(audit.recommendation)
+        ].join(",");
+    });
+
+    const csvContent = "\uFEFF" + [headers.join(","), ...rows].join("\r\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    const dateStr = new Date().toISOString().substring(0, 10);
+    link.download = `kvaultx_vault_security_report_${dateStr}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+};
 

@@ -68,8 +68,21 @@
                 </button>
             </nav>
 
-            <!-- Bottom 4 options consolidated into a clean Dropdown ("below 4 option hi uska drop down bna do ok") -->
-            <div class="sidebar-account-dropdown-wrap">
+            <!-- Sidebar Guest Access: Sign In & Register Buttons (Visible when opening web without login) -->
+            <div id="sidebarGuestAuth" class="sidebar-guest-auth" style="display: none; margin-top: auto; padding: 12px 10px; background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px;">
+                <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #a6bba8; margin-bottom: 8px; font-weight: 700; text-align: center;">Account Access</div>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" id="sidebarSignInBtn" class="sidebar-auth-pill-btn" onclick="openAuthModal('login')" style="flex: 1; padding: 8px 6px; font-size: 12px; font-weight: 700; background: linear-gradient(135deg, #10b981, #059669); color: #050a09; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                        <span>🔐</span> Sign In
+                    </button>
+                    <button type="button" id="sidebarRegisterBtn" class="sidebar-auth-pill-btn highlight" onclick="openAuthModal('signup')" style="flex: 1; padding: 8px 6px; font-size: 12px; font-weight: 700; background: rgba(255, 255, 255, 0.08); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                        <span>✨</span> Register
+                    </button>
+                </div>
+            </div>
+
+            <!-- Bottom 4 options consolidated into a clean Dropdown (Visible when user is logged in) -->
+            <div id="sidebarAccountDropdownWrap" class="sidebar-account-dropdown-wrap">
                 <button id="sidebarAccountBtn" type="button" class="sidebar-account-btn" onclick="toggleSidebarAccountMenu(event)" title="Account Options">
                     <div class="account-user-info">
                         <div class="user-avatar-mini" id="sidebarAvatarCircle">S</div>
@@ -245,11 +258,14 @@
                 <div class="vault-search-row">
                     <input type="text" id="vaultSearchInput" placeholder="Search title, username, url...">
                     <button id="btnAddPasswordRedirect">+ Add</button>
+                    <button id="btnVaultReportHeader" type="button" onclick="openVaultSecurityReport()" style="background: linear-gradient(135deg, #00d2ff, #10b981); color: #050a09; border: none; padding: 10px 18px; border-radius: 10px; font-size: 13.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: 'Poppins', sans-serif; box-shadow: 0 4px 14px rgba(0, 210, 255, 0.25); white-space: nowrap;">
+                        <span>📋</span> Security Report
+                    </button>
                 </div>
                 
                 <!-- Filters & View Toggle -->
                 <div class="vault-filter-row" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
-                    <div style="display: flex; gap: 10px; align-items: center;">
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                         <select id="vaultCategoryFilter">
                             <option value="">All Categories</option>
                             <option value="Uncategorized">Uncategorized</option>
@@ -259,6 +275,9 @@
                             <option value="Finance">Finance</option>
                         </select>
                         <button id="btnFilterFavorite">⭐ Favorites Only</button>
+                        <button id="btnVaultReportFilterRow" type="button" onclick="openVaultSecurityReport()" style="background: rgba(0, 210, 255, 0.15); color: #00d2ff; border: 1px solid rgba(0, 210, 255, 0.35); padding: 7px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;">
+                            <span>📋</span> Vault Report
+                        </button>
                     </div>
 
                     <!-- View Toggle Buttons (Grid vs Compact List) -->
@@ -734,6 +753,96 @@
 
             <!-- Error / Status message box -->
             <div id="modalAuthFeedback" style="display: none; margin-top: 14px; padding: 10px 14px; border-radius: 8px; font-size: 12.5px; text-align: center;"></div>
+        </div>
+    </div>
+
+    <!-- =========================================================
+         VAULT SECURITY & AUDIT REPORT MODAL (Full Details + Weakness/Strength)
+    ========================================================= -->
+    <div id="vaultReportModal" class="auth-modal-overlay" style="z-index: 100000;">
+        <div class="auth-modal-card vault-report-modal-card" style="max-width: 1020px; width: 95%; max-height: 90vh; overflow-y: auto; padding: 28px 32px; border-radius: 20px; text-align: left; background: #0b1613; border: 1px solid rgba(16, 185, 129, 0.4); box-shadow: 0 25px 70px rgba(0,0,0,0.85), 0 0 40px rgba(16, 185, 129, 0.15);">
+            
+            <!-- Report Header -->
+            <div class="report-header-section" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; gap: 14px;">
+                    <div style="width: 50px; height: 50px; border-radius: 12px; background: rgba(16, 185, 129, 0.18); border: 1px solid rgba(16, 185, 129, 0.35); display: flex; align-items: center; justify-content: center; font-size: 26px;">
+                        🛡️
+                    </div>
+                    <div>
+                        <h2 style="margin: 0; font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px;">
+                            Vault Security & Password Audit Report
+                        </h2>
+                        <p style="margin: 4px 0 0; font-size: 13px; color: #a6bba8;">
+                            Detailed credential analysis report including all saved inputs, password strengths, weaknesses & security advice.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="report-top-actions" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <button type="button" onclick="printVaultSecurityReport()" class="report-action-btn" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.35); padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                        <span>🖨️</span> Print / Save PDF
+                    </button>
+                    <button type="button" onclick="exportVaultReportCSV()" class="report-action-btn" style="background: rgba(0, 210, 255, 0.15); color: #00d2ff; border: 1px solid rgba(0, 210, 255, 0.35); padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                        <span>📥</span> Export CSV
+                    </button>
+                    <button type="button" onclick="closeVaultSecurityReport()" class="report-close-btn" style="background: rgba(255,255,255,0.08); color: #a6bba8; border: 1px solid rgba(255,255,255,0.15); padding: 8px 14px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer;">
+                        ✕ Close
+                    </button>
+                </div>
+            </div>
+
+            <!-- Meta info bar -->
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; background: rgba(22, 48, 42, 0.35); border: 1px solid rgba(22, 48, 42, 0.6); padding: 12px 18px; border-radius: 12px; margin-bottom: 20px; font-size: 12.5px;">
+                <div style="display: flex; gap: 18px; flex-wrap: wrap;">
+                    <span style="color: #a6bba8;">Vault Account: <strong id="reportOwnerName" style="color: #ffffff;">Account User</strong></span>
+                    <span style="color: #a6bba8;">Generated: <strong id="reportGeneratedDate" style="color: #ffffff;">Today</strong></span>
+                    <span style="color: #a6bba8;">Encryption: <strong style="color: #10b981;">AES-256-GCM Zero-Knowledge</strong></span>
+                </div>
+                <div>
+                    <span id="reportSecurityGrade" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); padding: 4px 12px; border-radius: 8px; font-weight: 700; font-size: 13px;">Health: 100% (Optimal)</span>
+                </div>
+            </div>
+
+            <!-- 4 Summary KPI Cards in Report -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                <div style="background: rgba(11, 22, 19, 0.85); border: 1px solid rgba(22, 48, 42, 0.6); border-radius: 12px; padding: 14px; text-align: center;">
+                    <span style="font-size: 11px; color: #a6bba8; text-transform: uppercase; letter-spacing: 0.5px;">Total Passwords</span>
+                    <div id="reportTotalCount" style="font-size: 24px; font-weight: 800; color: #ffffff; margin-top: 4px;">0</div>
+                </div>
+                <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 14px; text-align: center;">
+                    <span style="font-size: 11px; color: #10b981; text-transform: uppercase; letter-spacing: 0.5px;">Strong</span>
+                    <div id="reportStrongCount" style="font-size: 24px; font-weight: 800; color: #10b981; margin-top: 4px;">0</div>
+                </div>
+                <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 14px; text-align: center;">
+                    <span style="font-size: 11px; color: #f59e0b; text-transform: uppercase; letter-spacing: 0.5px;">Moderate</span>
+                    <div id="reportModerateCount" style="font-size: 24px; font-weight: 800; color: #f59e0b; margin-top: 4px;">0</div>
+                </div>
+                <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 14px; text-align: center;">
+                    <span style="font-size: 11px; color: #ef4444; text-transform: uppercase; letter-spacing: 0.5px;">Weak / At Risk</span>
+                    <div id="reportWeakCount" style="font-size: 24px; font-weight: 800; color: #ef4444; margin-top: 4px;">0</div>
+                </div>
+            </div>
+
+            <!-- Report Filter & Search Controls -->
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px;">
+                <input type="text" id="reportSearchInput" oninput="filterVaultReportTable()" placeholder="Filter report by title, username, category or url..." style="flex: 1; min-width: 240px; padding: 9px 14px; border-radius: 10px; border: 1px solid rgba(22, 48, 42, 0.8); background: rgba(5, 10, 9, 0.8); color: #fff; font-size: 13px; outline: none;">
+                <div style="display: flex; gap: 6px;">
+                    <button type="button" id="repFilterAll" class="report-filter-pill active" onclick="setVaultReportFilter('all', this)" style="background: rgba(16, 185, 129, 0.25); color: #fff; border: 1px solid rgba(16, 185, 129, 0.4); padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">All</button>
+                    <button type="button" id="repFilterStrong" class="report-filter-pill" onclick="setVaultReportFilter('strong', this)" style="background: rgba(255,255,255,0.06); color: #a6bba8; border: 1px solid rgba(255,255,255,0.1); padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">Strong</button>
+                    <button type="button" id="repFilterMedium" class="report-filter-pill" onclick="setVaultReportFilter('medium', this)" style="background: rgba(255,255,255,0.06); color: #a6bba8; border: 1px solid rgba(255,255,255,0.1); padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">Moderate</button>
+                    <button type="button" id="repFilterWeak" class="report-filter-pill" onclick="setVaultReportFilter('weak', this)" style="background: rgba(255,255,255,0.06); color: #a6bba8; border: 1px solid rgba(255,255,255,0.1); padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">Weak Only</button>
+                </div>
+            </div>
+
+            <!-- Detailed Credentials List Container -->
+            <div id="reportCredentialsListContainer" style="overflow-x: auto; background: rgba(5, 10, 9, 0.6); border: 1px solid rgba(22, 48, 42, 0.6); border-radius: 14px; padding: 14px;">
+                <!-- Populated dynamically with full details and weakness/strength audit -->
+            </div>
+
+            <!-- Report Disclaimer -->
+            <div style="margin-top: 20px; font-size: 11.5px; color: #a6bba8; opacity: 0.8; text-align: center; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 14px;">
+                🔒 This report contains confidential decrypted credentials rendered in your local memory. Never share raw export files publicly.
+            </div>
         </div>
     </div>
 
