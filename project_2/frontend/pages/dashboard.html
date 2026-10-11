@@ -12,7 +12,7 @@
     <!-- Scrolling Marquee Security Banner -->
     <div class="top-banner">
         <marquee behavior="scroll" direction="left" scrollamount="6">
-            🔐 Saving your notes is saving your privacy — Protect your passwords with zero-knowledge AES-256 encryption — KvaultX &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 🔐 Saving your notes is saving your privacy — Protect your passwords with zero-knowledge AES-256 encryption — KvaultX
+            🔐 Keep your passwords & private notes secure with zero-knowledge encryption — KvaultX &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 🔐 Keep your passwords & private notes secure with zero-knowledge encryption — KvaultX
         </marquee>
     </div>
 
@@ -29,16 +29,6 @@
             <button id="sidebarToggleBtn" class="sidebar-toggle-btn" type="button" title="Toggle Navigation Sidebar" aria-label="Toggle Sidebar">
                 <span>☰</span>
             </button>
-            
-            <!-- TOGGLE SIDE: SIGN IN & REGISTER BUTTONS (Directly next to toggle hamburger button) -->
-            <div id="navToggleAuthGroup" class="nav-toggle-auth-group" style="display: flex; align-items: center; gap: 6px;">
-                <button type="button" id="btnToggleSideSignIn" onclick="openAuthModal('login')" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.5); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; font-family: inherit; transition: all 0.2s ease;">
-                    <span>🔐</span> Sign In
-                </button>
-                <button type="button" id="btnToggleSideRegister" onclick="openAuthModal('signup')" style="background: rgba(0, 210, 255, 0.2); color: #00d2ff; border: 1px solid rgba(0, 210, 255, 0.5); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; font-family: inherit; transition: all 0.2s ease;">
-                    <span>✨</span> Register
-                </button>
-            </div>
 
             <!-- Brand Logo at Top Left as Requested -->
             <div class="nav-brand" onclick="window.location.href='dashboard.html'" style="display: flex; align-items: center; gap: 9px; cursor: pointer;">
@@ -48,13 +38,41 @@
         </div>
 
         <div class="nav-right-group" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-            <!-- REPORT GENERATION BUTTON (In Top Navbar, Always Accessible on All Tabs) -->
-            <button id="btnHeaderSecurityReport" type="button" onclick="openVaultSecurityReport()" style="width: auto; margin-top: 0; padding: 8px 16px; background: linear-gradient(135deg, rgba(0, 210, 255, 0.2), rgba(16, 185, 129, 0.2)); color: #00d2ff; border: 1px solid rgba(0, 210, 255, 0.5); font-weight: 700; border-radius: 9px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: 'Poppins', sans-serif; transition: all 0.2s ease; box-shadow: 0 4px 14px rgba(0, 210, 255, 0.2);">
-                <span>📋</span> Generate Report
-            </button>
+            <!-- MULTI-LANGUAGE SWITCHER (English, Urdu, Hindi, Arabic) -->
+            <div id="navLangDropdownWrap" class="nav-lang-dropdown-wrap" style="position: relative;">
+                <button id="btnNavLanguage" type="button" class="nav-lang-btn" onclick="toggleLanguageMenu(event)" aria-label="Select Language" title="Select Language">
+                    <span class="lang-globe">🌐</span>
+                    <span id="currentLangLabel">English</span>
+                    <span class="lang-caret">▾</span>
+                </button>
+                <div id="navLangDropdownMenu" class="nav-lang-dropdown hidden">
+                    <button type="button" class="lang-option-btn active" data-lang="en" onclick="setAppLanguage('en')">
+                        <span class="lang-flag">🇬🇧</span> <span class="lang-name">English</span>
+                    </button>
+                    <button type="button" class="lang-option-btn" data-lang="ur" onclick="setAppLanguage('ur')">
+                        <span class="lang-flag">🇵🇰</span> <span class="lang-name">اردو</span>
+                    </button>
+                    <button type="button" class="lang-option-btn" data-lang="hi" onclick="setAppLanguage('hi')">
+                        <span class="lang-flag">🇮🇳</span> <span class="lang-name">हिन्दी</span>
+                    </button>
+                    <button type="button" class="lang-option-btn" data-lang="ar" onclick="setAppLanguage('ar')">
+                        <span class="lang-flag">🇸🇦</span> <span class="lang-name">العربية</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- SIGN IN & REGISTER BUTTONS (Placed to the left of + Add password as requested) -->
+            <div id="navTopAuthGroup" class="nav-top-auth-group" style="display: flex; align-items: center; gap: 8px;">
+                <button type="button" id="btnHeaderSignIn" onclick="openAuthModal('login')" class="nav-auth-btn signin-btn">
+                    <span>🔐</span> <span data-i18n="signIn">Sign In</span>
+                </button>
+                <button type="button" id="btnHeaderRegister" onclick="openAuthModal('signup')" class="nav-auth-btn register-btn">
+                    <span>✨</span> <span data-i18n="register">Register</span>
+                </button>
+            </div>
 
             <button id="btnAddPasswordHeader" onclick="requireAuth(() => window.location.href='add-password.html', 'login')" style="width: auto; margin-top: 0; padding: 8px 18px; background: linear-gradient(135deg, #10b981, #059669); color: #050a09; font-weight: 700; border-radius: 9px; border: none; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: 'Poppins', sans-serif; transition: all 0.2s ease; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
-                <span style="font-size: 15px;">+</span> Add password
+                <span style="font-size: 15px;">+</span> <span data-i18n="addPassword">Add password</span>
             </button>
         </div>
     </header>
@@ -67,23 +85,23 @@
             <nav class="tab-nav-container">
                 <button class="tab-btn" data-tab="notes" title="Secure Notes">
                     <span class="tab-icon">📝</span>
-                    <span class="tab-label">Notes</span>
+                    <span class="tab-label" data-i18n="navNotes">Notes</span>
                 </button>
                 <button class="tab-btn" data-tab="vault" id="vaultSidebarTabBtn" title="Password Vault">
                     <span class="tab-icon">🔑</span>
-                    <span class="tab-label">Vault</span>
+                    <span class="tab-label" data-i18n="navVault">Vault</span>
                 </button>
                 <button class="tab-btn" data-tab="generator" title="Password Generator">
                     <span class="tab-icon">🎲</span>
-                    <span class="tab-label">Generator</span>
+                    <span class="tab-label" data-i18n="navGenerator">Generator</span>
                 </button>
                 <button class="tab-btn active" data-tab="analytics" title="Vault Analytics">
                     <span class="tab-icon">📊</span>
-                    <span class="tab-label">Analytics</span>
+                    <span class="tab-label" data-i18n="navAnalytics">Analytics</span>
                 </button>
                 <button class="tab-btn" data-tab="report" id="reportSidebarNavBtn" onclick="openVaultSecurityReport()" title="Generate Vault Security Report">
                     <span class="tab-icon">📋</span>
-                    <span class="tab-label">Generate Report</span>
+                    <span class="tab-label" data-i18n="navReport">Generate Report</span>
                 </button>
             </nav>
 
@@ -138,7 +156,7 @@
             <header class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;">
                 <div class="dashboard-header-text">
                     <h2 id="dashboardHeaderTitle" style="font-weight: 800; font-size: 24px; color: #ffffff; letter-spacing: -0.3px;">Dashboard Analytics</h2>
-                    <p id="dashboardHeaderSubtitle">Welcome back — real-time cryptographic audit & vault health status.</p>
+                    <p id="dashboardHeaderSubtitle">Welcome back — Vault security and health overview.</p>
                 </div>
             </header>
             
@@ -179,8 +197,8 @@
                                 📄
                             </div>
                             <div>
-                                <h3 style="font-size: 16.5px; font-weight: 700; color: #ffffff; margin: 0; line-height: 1.2;">Quick Note</h3>
-                                <span style="color: #a6bba8; font-size: 12px; display: block; margin-top: 2px;">Encrypted before it ever leaves your device.</span>
+                                <h3 style="font-size: 16.5px; font-weight: 700; color: #ffffff; margin: 0; line-height: 1.2;" data-i18n="quickNote">Quick Note</h3>
+                                <span style="color: #a6bba8; font-size: 12px; display: block; margin-top: 2px;" data-i18n="quickNoteSubtitle">Private notes protected on your device.</span>
                             </div>
                         </div>
                         
@@ -202,7 +220,7 @@
                                 <button type="button" id="shareNotesBtn" class="dropdown-item">
                                     <span>📤</span> Share Note
                                 </button>
-                                <div class="dropdown-divider" style="height: 1px; background: rgba(255,255,255,0.08); margin: 3px 0;"></div>
+                                <div class="dropdown-divider" style="height: 1px; background: rgba(255,255,200,0.08); margin: 3px 0;"></div>
                                 <button type="button" id="deleteAllBtn" class="dropdown-item danger-item">
                                     <span>🗑️</span> Clear All Notes
                                 </button>
@@ -211,16 +229,16 @@
                     </div>
                     
                     <div style="display: flex; gap: 16px; align-items: stretch; position: relative;">
-                        <textarea id="noteInput" placeholder="Type a secure note... card PINs, recovery phrases, private thoughts." style="flex: 1; min-height: 180px; border-radius: 12px; padding: 14px; font-family: inherit; font-size: 14px; resize: vertical; outline: none;"></textarea>
+                        <textarea id="noteInput" placeholder="Write your private note here..." style="flex: 1; min-height: 180px; border-radius: 12px; padding: 14px; font-family: inherit; font-size: 14px; resize: vertical; outline: none;"></textarea>
                     </div>
                     
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 10px;">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <button id="saveNoteBtn" type="button" style="width: auto; padding: 10px 24px; background: linear-gradient(135deg, #10b981, #059669) !important; color: #050a09 !important; font-weight: 700; border-radius: 20px; margin-top: 0; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4); font-size: 14px;">
-                                <span>💾</span> Save note
+                                <span>💾</span> <span data-i18n="saveNote">Save note</span>
                             </button>
                             <button id="btnStarNoteToggle" type="button" onclick="toggleDraftNoteStar()" title="Bookmark note with star marking" style="width: auto; padding: 9px 16px; background: rgba(255, 190, 11, 0.1); color: #ffbe0b; border: 1px solid rgba(255, 190, 11, 0.35); border-radius: 20px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 13px; margin-top: 0; transition: all 0.2s ease;">
-                                <span id="draftStarIcon">☆</span> <span id="draftStarLabel">Bookmark</span>
+                                <span id="draftStarIcon">☆</span> <span id="draftStarLabel" data-i18n="bookmark">Bookmark</span>
                             </button>
                         </div>
                         <button type="button" onclick="openSavedNotesModal()" style="width: auto; padding: 8px 16px; background: rgba(0, 210, 255, 0.12); color: #00d2ff; border: 1px solid rgba(0, 210, 255, 0.35); border-radius: 20px; font-size: 12.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; margin-top: 0;">
@@ -233,36 +251,87 @@
             <!-- Tab 2: Password Vault -->
             <div id="vaultTab" class="tab-content hidden-tab">
 
-                <!-- Vault Security Analysis Graph Widget -->
-                <div class="security-analysis-card" style="background: rgba(11, 22, 19, 0.75); border: 1px solid rgba(22, 48, 42, 0.5); backdrop-filter: blur(16px); border-radius: 16px; padding: 20px 24px; margin-bottom: 20px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                        <h3 style="font-size: 16px; font-weight: 700; color: #ffffff; margin: 0; display: flex; align-items: center; gap: 8px;">
-                            📊 Vault Security Analysis
-                        </h3>
-                        <span id="vaultGraphHealthScore" class="vault-health-badge" style="font-size: 14px; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.12); padding: 4px 12px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.3);">
-                            Health: 100%
-                        </span>
+                <!-- Vault Security Analysis Telemetry Widget (Professional & Advanced) -->
+                <div class="advanced-security-analysis">
+                    <div class="analysis-header-row">
+                        <div class="analysis-title-group">
+                            <div class="analysis-shield-icon">🛡️</div>
+                            <div>
+                                <h3 class="analysis-main-title" data-i18n="vaultSecurityAnalysis">
+                                    Vault Security Analysis
+                                </h3>
+                                <p class="analysis-sub-text">Real-time cryptographic audit & entropy health</p>
+                            </div>
+                        </div>
+                        <div id="vaultGraphHealthScore" class="vault-health-telemetry-badge">
+                            <span class="health-pulse-indicator"></span>
+                            <span id="vaultHealthText">Health: 100%</span>
+                        </div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: minmax(160px, 200px) 1fr; gap: 24px; align-items: center;">
-                        <!-- Canvas Donut Graph -->
-                        <div style="position: relative; width: 100%; height: 140px; display: flex; justify-content: center; align-items: center;">
-                            <canvas id="vaultSecurityChart" width="140" height="140"></canvas>
+                    <div class="analysis-body-grid">
+                        <!-- Canvas Donut Telemetry Gauge with High-DPI & Orbital Glow -->
+                        <div class="analysis-chart-column">
+                            <div class="chart-canvas-wrapper">
+                                <canvas id="vaultSecurityChart" width="160" height="160"></canvas>
+                                <div class="chart-center-overlay">
+                                    <span id="chartOverlayScore" class="overlay-score-val">100%</span>
+                                    <span class="overlay-score-tag">HEALTH</span>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Breakdown Details -->
-                        <div style="display: flex; flex-direction: column; gap: 10px;">
-                            <div class="analysis-stat-row" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(22, 48, 42, 0.4);">
-                                <span style="font-size: 13px; color: #a6bba8; display: flex; align-items: center; gap: 8px;"><span style="color: #10b981;">●</span> Strong Passwords</span>
-                                <strong id="graphStrongCount" style="font-size: 14px; color: #ffffff;">0</strong>
+                        <!-- Advanced Telemetry Metric Cards -->
+                        <div class="telemetry-metrics-column">
+                            <!-- Strong Passwords Metric Card -->
+                            <div class="telemetry-card card-strong">
+                                <div class="telemetry-card-top">
+                                    <div class="telemetry-label-group">
+                                        <span class="telemetry-dot dot-strong"></span>
+                                        <strong data-i18n="strongPasswords">Strong Passwords</strong>
+                                    </div>
+                                    <div class="telemetry-card-stat">
+                                        <span id="graphStrongCount" class="stat-count-number">0</span>
+                                        <span id="graphStrongPct" class="stat-pct-badge">0%</span>
+                                    </div>
+                                </div>
+                                <div class="telemetry-progress-track">
+                                    <div id="graphStrongBar" class="telemetry-progress-fill fill-strong" style="width: 0%;"></div>
+                                </div>
                             </div>
-                            <div class="analysis-stat-row" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(22, 48, 42, 0.4);">
-                                <span style="font-size: 13px; color: #a6bba8; display: flex; align-items: center; gap: 8px;"><span style="color: #f59e0b;">●</span> Moderate Passwords</span>
-                                <strong id="graphModerateCount" style="font-size: 14px; color: #ffffff;">0</strong>
+
+                            <!-- Moderate Passwords Metric Card -->
+                            <div class="telemetry-card card-moderate">
+                                <div class="telemetry-card-top">
+                                    <div class="telemetry-label-group">
+                                        <span class="telemetry-dot dot-moderate"></span>
+                                        <strong data-i18n="moderatePasswords">Moderate Passwords</strong>
+                                    </div>
+                                    <div class="telemetry-card-stat">
+                                        <span id="graphModerateCount" class="stat-count-number">0</span>
+                                        <span id="graphModeratePct" class="stat-pct-badge">0%</span>
+                                    </div>
+                                </div>
+                                <div class="telemetry-progress-track">
+                                    <div id="graphModerateBar" class="telemetry-progress-fill fill-moderate" style="width: 0%;"></div>
+                                </div>
                             </div>
-                            <div class="analysis-stat-row" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(22, 48, 42, 0.4);">
-                                <span style="font-size: 13px; color: #a6bba8; display: flex; align-items: center; gap: 8px;"><span style="color: #ef4444;">●</span> Weak & Compromised</span>
-                                <strong id="graphWeakCount" style="font-size: 14px; color: #ffffff;">0</strong>
+
+                            <!-- Weak & At-Risk Metric Card -->
+                            <div class="telemetry-card card-weak">
+                                <div class="telemetry-card-top">
+                                    <div class="telemetry-label-group">
+                                        <span class="telemetry-dot dot-weak"></span>
+                                        <strong data-i18n="weakCompromised">Weak & At-Risk</strong>
+                                    </div>
+                                    <div class="telemetry-card-stat">
+                                        <span id="graphWeakCount" class="stat-count-number">0</span>
+                                        <span id="graphWeakPct" class="stat-pct-badge">0%</span>
+                                    </div>
+                                </div>
+                                <div class="telemetry-progress-track">
+                                    <div id="graphWeakBar" class="telemetry-progress-fill fill-weak" style="width: 0%;"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -274,7 +343,7 @@
                         <span style="font-size: 20px;">🤖</span>
                         <div>
                             <strong style="color: #00d2ff; font-size: 14px; display: block;" id="aiBannerTitle">AI Vault Audit Active</strong>
-                            <span style="font-size: 12.5px; color: #a6bba8;" id="aiBannerSubtitle">Checking for weak or vulnerable passwords...</span>
+                            <span style="font-size: 12.5px; color: #a6bba8;" id="aiBannerSubtitle">Quickly update weak passwords to stay protected.</span>
                         </div>
                     </div>
                     <button id="btnAiBatchAudit" onclick="runBatchAiAudit()" style="background: linear-gradient(135deg, #00d2ff, #10b981); color: #050a09; font-weight: 700; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px;">
@@ -283,10 +352,10 @@
                 </div>
 
                 <div class="vault-search-row">
-                    <input type="text" id="vaultSearchInput" placeholder="Search title, username, url...">
+                    <input type="text" id="vaultSearchInput" data-i18n-placeholder="searchPlaceholder" placeholder="Search title, username, url...">
                     <button id="btnAddPasswordRedirect">+ Add</button>
                     <button id="btnVaultReportHeader" type="button" onclick="openVaultSecurityReport()" style="background: linear-gradient(135deg, #00d2ff, #10b981); color: #050a09; border: none; padding: 10px 18px; border-radius: 10px; font-size: 13.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: 'Poppins', sans-serif; box-shadow: 0 4px 14px rgba(0, 210, 255, 0.25); white-space: nowrap;">
-                        <span>📋</span> Generate Report
+                        <span>📋</span> <span data-i18n="navReport">Generate Report</span>
                     </button>
                 </div>
                 
@@ -294,16 +363,17 @@
                 <div class="vault-filter-row" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
                     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                         <select id="vaultCategoryFilter">
-                            <option value="">All Categories</option>
+                            <option value="" data-i18n="allCategories">All Categories</option>
                             <option value="Uncategorized">Uncategorized</option>
                             <option value="Work">Work</option>
                             <option value="Personal">Personal</option>
                             <option value="Social">Social</option>
                             <option value="Finance">Finance</option>
+                            <option value="Other">Other</option>
                         </select>
                         <button id="btnFilterFavorite" class="btn-star-filter" type="button" title="Filter Bookmarked Passwords">
                             <span class="star-icon">⭐</span>
-                            <span class="filter-label">Favorites Only</span>
+                            <span class="filter-label" data-i18n="favoritesOnly">Favorites Only</span>
                         </button>
                     </div>
 

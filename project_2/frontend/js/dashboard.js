@@ -648,6 +648,7 @@ document.addEventListener("DOMContentLoaded", () => {
             case "Personal": return "#2ecc71";
             case "Social": return "#9b59b6";
             case "Finance": return "#e67e22";
+            case "Other": return "#8b5cf6";
             default: return "#7f8c8d";
         }
     }
@@ -1457,16 +1458,16 @@ document.addEventListener("DOMContentLoaded", () => {
         if (headerTitle && headerSubtitle) {
             if (tabName === "analytics") {
                 headerTitle.innerHTML = "✨ Dashboard Analytics";
-                headerSubtitle.textContent = "Welcome back — real-time cryptographic audit & vault health status.";
+                headerSubtitle.textContent = "Welcome back — Vault security and health overview.";
             } else if (tabName === "notes") {
                 headerTitle.innerHTML = "✨ Secure Notes";
-                headerSubtitle.textContent = "Client-side encrypted scratchpad for confidential thoughts and PINs.";
+                headerSubtitle.textContent = "Save and manage your private notes securely.";
             } else if (tabName === "vault") {
                 headerTitle.innerHTML = "✨ Password Vault";
-                headerSubtitle.textContent = "Zero-knowledge encrypted credential database with AES-256.";
+                headerSubtitle.textContent = "All your stored passwords in one secure place.";
             } else if (tabName === "generator") {
                 headerTitle.innerHTML = "✨ Password Generator";
-                headerSubtitle.textContent = "Cryptographically secure random password and passphrase engine.";
+                headerSubtitle.textContent = "Generate strong, secure passwords instantly.";
             }
         }
 
@@ -2089,78 +2090,299 @@ function debounce(func, wait) {
     };
 }
 
+/* =========================================================
+   MULTI-LANGUAGE (i18n) LOCALIZATION ENGINE
+========================================================= */
+const I18N_TRANSLATIONS = {
+    en: {
+        signIn: "Sign In",
+        register: "Register",
+        addPassword: "Add password",
+        navNotes: "Notes",
+        navVault: "Vault",
+        navGenerator: "Generator",
+        navAnalytics: "Analytics",
+        navReport: "Generate Report",
+        vaultSecurityAnalysis: "Vault Security Analysis",
+        strongPasswords: "Strong Passwords",
+        moderatePasswords: "Moderate Passwords",
+        weakCompromised: "Weak & At-Risk",
+        allCategories: "All Categories",
+        favoritesOnly: "Favorites Only",
+        saveNote: "Save note",
+        bookmark: "Bookmark",
+        quickNote: "Quick Note",
+        quickNoteSubtitle: "Private notes protected on your device.",
+        searchPlaceholder: "Search title, username, url..."
+    },
+    ur: {
+        signIn: "سائن ان",
+        register: "رجسٹر",
+        addPassword: "پاس ورڈ شامل کریں",
+        navNotes: "نوٹس",
+        navVault: "والٹ",
+        navGenerator: "جنریٹر",
+        navAnalytics: "تجزیات",
+        navReport: "رپورٹ بنائیں",
+        vaultSecurityAnalysis: "والٹ سیکیورٹی تجزیہ",
+        strongPasswords: "مضبوط پاس ورڈز",
+        moderatePasswords: "معتدل پاس ورڈز",
+        weakCompromised: "کمزور اور خطرے میں",
+        allCategories: "تمام اقسام",
+        favoritesOnly: "صرف پسندیدہ",
+        saveNote: "نوٹ محفوظ کریں",
+        bookmark: "بک مارک",
+        quickNote: "فوری نوٹ",
+        quickNoteSubtitle: "آپ کے آلے پر محفوظ نجی نوٹس۔",
+        searchPlaceholder: "عنوان، صارف نام، یو آر ایل تلاش کریں..."
+    },
+    hi: {
+        signIn: "साइन इन",
+        register: "रजिस्टर",
+        addPassword: "पासवर्ड जोड़ें",
+        navNotes: "नोट्स",
+        navVault: "वॉल्ट",
+        navGenerator: "जेनरेटर",
+        navAnalytics: "एनालिटिक्स",
+        navReport: "रिपोर्ट बनाएं",
+        vaultSecurityAnalysis: "वॉल्ट सुरक्षा विश्लेषण",
+        strongPasswords: "मजबूत पासवर्ड",
+        moderatePasswords: "मध्यम पासवर्ड",
+        weakCompromised: "कमजोर व जोखिम",
+        allCategories: "सभी श्रेणियां",
+        favoritesOnly: "केवल पसंदीदा",
+        saveNote: "नोट सहेजें",
+        bookmark: "बुकमार्क",
+        quickNote: "त्वरित नोट",
+        quickNoteSubtitle: "आपके डिवाइस पर सुरक्षित निजी नोट्स।",
+        searchPlaceholder: "शीर्षक, यूज़रनेम या यूआरएल खोजें..."
+    },
+    ar: {
+        signIn: "تسجيل الدخول",
+        register: "إنشاء حساب",
+        addPassword: "إضافة كلمة مرور",
+        navNotes: "الملاحظات",
+        navVault: "الخزنة",
+        navGenerator: "المولد",
+        navAnalytics: "التحليلات",
+        navReport: "إنشاء تقرير",
+        vaultSecurityAnalysis: "تحليل أمان الخزنة",
+        strongPasswords: "كلمات مرور قوية",
+        moderatePasswords: "كلمات مرور متوسطة",
+        weakCompromised: "ضعيفة ومعرضة للخطر",
+        allCategories: "جميع الفئات",
+        favoritesOnly: "المفضلة فقط",
+        saveNote: "حفظ الملاحظة",
+        bookmark: "إشارة مرجعية",
+        quickNote: "ملاحظة سريعة",
+        quickNoteSubtitle: "ملاحظات خاصة محمية على جهازك.",
+        searchPlaceholder: "ابحث عن العنوان أو المستخدم أو الرابط..."
+    }
+};
+
+const LANG_DISPLAY_NAMES = {
+    en: "English",
+    ur: "اردو",
+    hi: "हिन्दी",
+    ar: "العربية"
+};
+
+window.toggleLanguageMenu = function(e) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    const menu = document.getElementById("navLangDropdownMenu");
+    if (!menu) return;
+    menu.classList.toggle("hidden");
+};
+
+window.setAppLanguage = function(lang) {
+    if (!I18N_TRANSLATIONS[lang]) lang = "en";
+    try {
+        localStorage.setItem("kvault_lang", lang);
+    } catch (e) {}
+
+    const currentLabel = document.getElementById("currentLangLabel");
+    if (currentLabel) {
+        currentLabel.textContent = LANG_DISPLAY_NAMES[lang] || "English";
+    }
+
+    const menu = document.getElementById("navLangDropdownMenu");
+    if (menu) menu.classList.add("hidden");
+
+    document.querySelectorAll(".lang-option-btn").forEach(btn => {
+        if (btn.getAttribute("data-lang") === lang) {
+            btn.classList.add("active");
+        } else {
+            btn.classList.remove("active");
+        }
+    });
+
+    const isRtl = (lang === "ur" || lang === "ar");
+    document.documentElement.setAttribute("dir", isRtl ? "rtl" : "ltr");
+    document.documentElement.setAttribute("lang", lang);
+
+    const dict = I18N_TRANSLATIONS[lang] || I18N_TRANSLATIONS.en;
+
+    document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        if (dict[key]) {
+            el.textContent = dict[key];
+        }
+    });
+
+    document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+        const key = el.getAttribute("data-i18n-placeholder");
+        if (dict[key]) {
+            el.placeholder = dict[key];
+        }
+    });
+};
+
+function initAppLanguage() {
+    const saved = localStorage.getItem("kvault_lang") || "en";
+    window.setAppLanguage(saved);
+}
+
+document.addEventListener("click", (e) => {
+    const wrap = document.getElementById("navLangDropdownWrap");
+    if (wrap && !wrap.contains(e.target)) {
+        const menu = document.getElementById("navLangDropdownMenu");
+        if (menu && !menu.classList.contains("hidden")) {
+            menu.classList.add("hidden");
+        }
+    }
+});
+
+// Run init language immediately
+initAppLanguage();
+
+/* =========================================================
+   ADVANCED VAULT SECURITY ANALYSIS CHART & TELEMETRY
+========================================================= */
 function drawVaultDonutChart(strongCount, moderateCount, weakCount, customScore) {
     const canvas = document.getElementById("vaultSecurityChart");
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const width = canvas.width;
-    const height = canvas.height;
-    const centerX = width / 2;
-    const centerY = height / 2;
-    const radius = Math.min(width, height) / 2 - 8;
-    const innerRadius = radius - 14;
-
-    ctx.clearRect(0, 0, width, height);
-
     const total = strongCount + moderateCount + weakCount;
-    
+    const strongPct = total > 0 ? Math.round((strongCount / total) * 100) : 0;
+    const moderatePct = total > 0 ? Math.round((moderateCount / total) * 100) : 0;
+    const weakPct = total > 0 ? Math.round((weakCount / total) * 100) : 0;
+
+    // Update Telemetry Percentages
+    const strongPctEl = document.getElementById("graphStrongPct");
+    const modPctEl = document.getElementById("graphModeratePct");
+    const weakPctEl = document.getElementById("graphWeakPct");
+    if (strongPctEl) strongPctEl.textContent = `${strongPct}%`;
+    if (modPctEl) modPctEl.textContent = `${moderatePct}%`;
+    if (weakPctEl) weakPctEl.textContent = `${weakPct}%`;
+
+    // Update Telemetry Progress Bars
+    const strongBar = document.getElementById("graphStrongBar");
+    const modBar = document.getElementById("graphModerateBar");
+    const weakBar = document.getElementById("graphWeakBar");
+    if (strongBar) strongBar.style.width = `${strongPct}%`;
+    if (modBar) modBar.style.width = `${moderatePct}%`;
+    if (weakBar) weakBar.style.width = `${weakPct}%`;
+
+    // Compute Overall Health Score
+    const displayScore = customScore !== undefined ? customScore : (total > 0 ? Math.round((strongCount / total) * 100) : 100);
+
+    // Update Center Overlay & Health Badge
+    const overlayScore = document.getElementById("chartOverlayScore");
+    if (overlayScore) overlayScore.textContent = `${displayScore}%`;
+
+    const healthBadge = document.getElementById("vaultGraphHealthScore");
+    const healthTextEl = document.getElementById("vaultHealthText");
+    if (healthTextEl) healthTextEl.textContent = `Health: ${displayScore}%`;
+    if (healthBadge) {
+        if (displayScore >= 80) {
+            healthBadge.className = "vault-health-telemetry-badge status-good";
+        } else if (displayScore >= 50) {
+            healthBadge.className = "vault-health-telemetry-badge status-warn";
+        } else {
+            healthBadge.className = "vault-health-telemetry-badge status-bad";
+        }
+    }
+
+    // High-DPI Canvas Rendering
+    const dpr = window.devicePixelRatio || 1;
+    const displaySize = 160;
+    canvas.width = displaySize * dpr;
+    canvas.height = displaySize * dpr;
+    canvas.style.width = `${displaySize}px`;
+    canvas.style.height = `${displaySize}px`;
+
+    ctx.save();
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, displaySize, displaySize);
+
+    const centerX = displaySize / 2;
+    const centerY = displaySize / 2;
+    const radius = displaySize / 2 - 14;
+    const lineWidth = 12;
+
+    // Outer subtle orbital halo ring
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius + 8, 0, 2 * Math.PI);
+    ctx.strokeStyle = "rgba(0, 210, 255, 0.08)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Background track ring
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+    ctx.strokeStyle = "rgba(22, 48, 42, 0.6)";
+    ctx.lineWidth = lineWidth;
+    ctx.lineCap = "round";
+    ctx.stroke();
+
     if (total === 0) {
+        // Empty vault neutral indicator
         ctx.beginPath();
         ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-        ctx.arc(centerX, centerY, innerRadius, 0, 2 * Math.PI, true);
-        ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
-        ctx.fill();
-
-        ctx.fillStyle = "#a6bba8";
-        ctx.font = "600 12px Poppins, sans-serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText("Empty Vault", centerX, centerY);
+        ctx.strokeStyle = "rgba(16, 185, 129, 0.35)";
+        ctx.lineWidth = lineWidth;
+        ctx.stroke();
+        ctx.restore();
         return;
     }
 
-    const data = [
-        { count: strongCount, color: "#10b981" },
-        { count: moderateCount, color: "#f59e0b" },
-        { count: weakCount, color: "#ef4444" }
+    const segments = [
+        { count: strongCount, color: "#10b981", glow: "rgba(16, 185, 129, 0.4)" },
+        { count: moderateCount, color: "#f59e0b", glow: "rgba(245, 158, 11, 0.4)" },
+        { count: weakCount, color: "#ef4444", glow: "rgba(239, 68, 68, 0.4)" }
     ];
 
     let startAngle = -0.5 * Math.PI;
+    const gapAngle = (segments.filter(s => s.count > 0).length > 1) ? 0.08 : 0;
 
-    data.forEach(segment => {
-        if (segment.count > 0) {
-            const sliceAngle = (segment.count / total) * 2 * Math.PI;
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radius, startAngle, startAngle + sliceAngle);
-            ctx.arc(centerX, centerY, innerRadius, startAngle + sliceAngle, startAngle, true);
-            ctx.closePath();
-            ctx.fillStyle = segment.color;
-            ctx.fill();
-            startAngle += sliceAngle;
+    segments.forEach(seg => {
+        if (seg.count > 0) {
+            const sweep = (seg.count / total) * 2 * Math.PI;
+            const segStart = startAngle + gapAngle / 2;
+            const segEnd = startAngle + sweep - gapAngle / 2;
+
+            if (segEnd > segStart) {
+                ctx.save();
+                ctx.shadowColor = seg.glow;
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, segStart, segEnd);
+                ctx.strokeStyle = seg.color;
+                ctx.lineWidth = lineWidth;
+                ctx.lineCap = "round";
+                ctx.stroke();
+                ctx.restore();
+            }
+            startAngle += sweep;
         }
     });
 
-    const displayScore = customScore !== undefined ? customScore : Math.round((strongCount / total) * 100);
-    const isLightMode = document.body.classList.contains("light-mode");
-    
-    if (displayScore >= 80) {
-        ctx.fillStyle = "#10b981";
-    } else if (displayScore >= 50) {
-        ctx.fillStyle = "#f59e0b";
-    } else {
-        ctx.fillStyle = "#ef4444";
-    }
-    
-    ctx.font = "bold 16px Poppins, sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(`${displayScore}%`, centerX, centerY - 6);
-
-    ctx.fillStyle = isLightMode ? "#475569" : "#a6bba8";
-    ctx.font = "600 10px Poppins, sans-serif";
-    ctx.fillText("HEALTH", centerX, centerY + 10);
+    ctx.restore();
 }
 
 // Escape HTML utility
@@ -2308,9 +2530,13 @@ async function loadSidebarUserInfo() {
 window.updateSidebarAuthState = function() {
     loadSidebarUserInfo();
     const navToggleAuth = document.getElementById("navToggleAuthGroup");
+    const navTopAuth = document.getElementById("navTopAuthGroup");
     const isLoggedIn = window.isUserLoggedIn();
     if (navToggleAuth) {
         navToggleAuth.style.display = isLoggedIn ? "none" : "flex";
+    }
+    if (navTopAuth) {
+        navTopAuth.style.display = isLoggedIn ? "none" : "flex";
     }
 };
 
