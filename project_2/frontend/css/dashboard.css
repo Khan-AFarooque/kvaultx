@@ -162,8 +162,8 @@ body.dashboard-page::after {
     flex-direction: column;
     gap: 20px;
     position: sticky;
-    top: 80px; /* 32px marquee + 48px top-navbar */
-    height: calc(100vh - 80px);
+    top: 82px; /* 32px marquee + 50px top-navbar */
+    height: calc(100vh - 82px);
     z-index: 100;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: visible;
@@ -1249,13 +1249,16 @@ body.dashboard-page.light-mode p {
     align-items: center;
     background: #08100e;
     border-bottom: 1px solid rgba(22, 48, 42, 0.6);
-    padding: 4px 20px;
-    height: 48px;
+    padding: 6px 16px;
+    min-height: 50px;
+    height: auto;
     width: 100%;
     position: sticky;
-    top: 0;
+    top: 32px;
     z-index: 1000;
     box-shadow: 0 2px 15px rgba(0,0,0,0.4);
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .nav-brand {

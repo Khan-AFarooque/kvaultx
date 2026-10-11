@@ -24,37 +24,37 @@
 
     <!-- TOP NAVBAR (Logo at Top Left + Sidebar Toggle Hamburger + Actions) -->
     <header class="top-navbar">
-        <div class="nav-left-group" style="display: flex; align-items: center; gap: 12px;">
+        <div class="nav-left-group" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
             <!-- Hamburger Sidebar Toggle Button -->
             <button id="sidebarToggleBtn" class="sidebar-toggle-btn" type="button" title="Toggle Navigation Sidebar" aria-label="Toggle Sidebar">
                 <span>☰</span>
             </button>
             
+            <!-- TOGGLE SIDE: SIGN IN & REGISTER BUTTONS (Directly next to toggle hamburger button) -->
+            <div id="navToggleAuthGroup" class="nav-toggle-auth-group" style="display: flex; align-items: center; gap: 6px;">
+                <button type="button" id="btnToggleSideSignIn" onclick="openAuthModal('login')" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.5); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; font-family: inherit; transition: all 0.2s ease;">
+                    <span>🔐</span> Sign In
+                </button>
+                <button type="button" id="btnToggleSideRegister" onclick="openAuthModal('signup')" style="background: rgba(0, 210, 255, 0.2); color: #00d2ff; border: 1px solid rgba(0, 210, 255, 0.5); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; font-family: inherit; transition: all 0.2s ease;">
+                    <span>✨</span> Register
+                </button>
+            </div>
+
             <!-- Brand Logo at Top Left as Requested -->
             <div class="nav-brand" onclick="window.location.href='dashboard.html'" style="display: flex; align-items: center; gap: 9px; cursor: pointer;">
                 <img src="../assets/logo.png" alt="KvaultX Logo" style="height: 32px; width: auto; object-fit: contain; filter: drop-shadow(0 2px 8px rgba(0, 210, 255, 0.45));">
                 <span class="brand-name twinkle-text" style="font-weight: 800; font-size: 19px; letter-spacing: 0.5px; background: linear-gradient(135deg, #ffffff 0%, #00d2ff 50%, #10b981 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">KvaultX</span>
             </div>
-
-            <!-- TOGGLE SIDE: SIGN IN & REGISTER BUTTONS (Directly next to toggle hamburger) -->
-            <div id="navToggleAuthGroup" style="display: flex; align-items: center; gap: 8px; margin-left: 6px;">
-                <button type="button" id="btnToggleSideSignIn" onclick="openAuthModal('login')" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); padding: 7px 13px; border-radius: 8px; font-size: 12.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; font-family: inherit; transition: all 0.2s ease;">
-                    <span>🔐</span> Sign In
-                </button>
-                <button type="button" id="btnToggleSideRegister" onclick="openAuthModal('signup')" style="background: rgba(0, 210, 255, 0.15); color: #00d2ff; border: 1px solid rgba(0, 210, 255, 0.4); padding: 7px 13px; border-radius: 8px; font-size: 12.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; font-family: inherit; transition: all 0.2s ease;">
-                    <span>✨</span> Register
-                </button>
-            </div>
         </div>
 
-        <div class="nav-right-group" style="display: flex; align-items: center; gap: 12px;">
+        <div class="nav-right-group" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
             <!-- REPORT GENERATION BUTTON (In Top Navbar, Always Accessible on All Tabs) -->
-            <button id="btnHeaderSecurityReport" type="button" onclick="openVaultSecurityReport()" style="width: auto; margin-top: 0; padding: 9px 16px; background: rgba(0, 210, 255, 0.15); color: #00d2ff; border: 1px solid rgba(0, 210, 255, 0.4); font-weight: 700; border-radius: 9px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: 'Poppins', sans-serif; transition: all 0.2s ease; box-shadow: 0 4px 14px rgba(0, 210, 255, 0.2);">
-                <span>📋</span> Security Report
+            <button id="btnHeaderSecurityReport" type="button" onclick="openVaultSecurityReport()" style="width: auto; margin-top: 0; padding: 8px 16px; background: linear-gradient(135deg, rgba(0, 210, 255, 0.2), rgba(16, 185, 129, 0.2)); color: #00d2ff; border: 1px solid rgba(0, 210, 255, 0.5); font-weight: 700; border-radius: 9px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: 'Poppins', sans-serif; transition: all 0.2s ease; box-shadow: 0 4px 14px rgba(0, 210, 255, 0.2);">
+                <span>📋</span> Generate Report
             </button>
 
-            <button id="btnAddPasswordHeader" onclick="requireAuth(() => window.location.href='add-password.html', 'login')" style="width: auto; margin-top: 0; padding: 9px 18px; background: linear-gradient(135deg, #10b981, #059669); color: #050a09; font-weight: 700; border-radius: 9px; border: none; font-size: 13.5px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: 'Poppins', sans-serif; transition: all 0.2s ease; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
-                <span style="font-size: 16px;">+</span> Add password
+            <button id="btnAddPasswordHeader" onclick="requireAuth(() => window.location.href='add-password.html', 'login')" style="width: auto; margin-top: 0; padding: 8px 18px; background: linear-gradient(135deg, #10b981, #059669); color: #050a09; font-weight: 700; border-radius: 9px; border: none; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: 'Poppins', sans-serif; transition: all 0.2s ease; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
+                <span style="font-size: 15px;">+</span> Add password
             </button>
         </div>
     </header>
@@ -81,9 +81,9 @@
                     <span class="tab-icon">📊</span>
                     <span class="tab-label">Analytics</span>
                 </button>
-                <button class="tab-btn" data-tab="report" id="reportSidebarNavBtn" onclick="openVaultSecurityReport()" title="Vault Security Report">
+                <button class="tab-btn" data-tab="report" id="reportSidebarNavBtn" onclick="openVaultSecurityReport()" title="Generate Vault Security Report">
                     <span class="tab-icon">📋</span>
-                    <span class="tab-label">Security Report</span>
+                    <span class="tab-label">Generate Report</span>
                 </button>
             </nav>
 
@@ -278,7 +278,7 @@
                     <input type="text" id="vaultSearchInput" placeholder="Search title, username, url...">
                     <button id="btnAddPasswordRedirect">+ Add</button>
                     <button id="btnVaultReportHeader" type="button" onclick="openVaultSecurityReport()" style="background: linear-gradient(135deg, #00d2ff, #10b981); color: #050a09; border: none; padding: 10px 18px; border-radius: 10px; font-size: 13.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: 'Poppins', sans-serif; box-shadow: 0 4px 14px rgba(0, 210, 255, 0.25); white-space: nowrap;">
-                        <span>📋</span> Security Report
+                        <span>📋</span> Generate Report
                     </button>
                 </div>
                 
@@ -295,7 +295,7 @@
                         </select>
                         <button id="btnFilterFavorite">⭐ Favorites Only</button>
                         <button id="btnVaultReportFilterRow" type="button" onclick="openVaultSecurityReport()" style="background: rgba(0, 210, 255, 0.15); color: #00d2ff; border: 1px solid rgba(0, 210, 255, 0.35); padding: 7px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;">
-                            <span>📋</span> Vault Report
+                            <span>📋</span> Generate Report
                         </button>
                     </div>
 
