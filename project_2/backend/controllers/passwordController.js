@@ -206,7 +206,7 @@ exports.getPasswords = async (req, res) => {
 // Add password to Vault
 exports.addPassword = async (req, res) => {
     try {
-        const { title, username, password, url, notes, category, tags, expiryDate } = req.body;
+        const { title, username, password, url, notes, category, tags, expiryDate, isFavorite } = req.body;
 
         if (!title || !password) {
             return res.status(400).json({ message: "Title and Password fields are required." });
@@ -215,15 +215,6 @@ exports.addPassword = async (req, res) => {
         const encryptedPass = encryption.encrypt(password);
         let encryptedNotes = "";
         if (notes) {
-            // Encrypt notes using the same IV as password to simplify
-            const tempEncrypted = encryption.encrypt(notes);
-            // Wait, encryption returns random IV. We can store encryptedData in notes, but notes needs its own IV if we decrypt it.
-            // Let's modify: encryption.encrypt returns { encryptedData, iv }. If notes is encrypted separately, it might have a different IV.
-            // Let's encrypt notes with a standard encrypt call, and store both or we can store notes in encrypted format and use the password's iv.
-            // Wait, decrypting requires the exact IV. If notes has a separate IV, how do we store it?
-            // To keep schema simple and secure, let's encrypt notes using the password's IV or encrypt it separately and keep a separate schema, OR:
-            // Just encrypt notes separately and append the IV to notes! E.g. `iv_hex:ciphertext_hex`. That is a classic database trick!
-            // Let's do that! That way we can store notes encryption in a single String field.
             const encNotes = encryption.encrypt(notes);
             encryptedNotes = `${encNotes.iv}:${encNotes.encryptedData}`;
         }
@@ -238,7 +229,8 @@ exports.addPassword = async (req, res) => {
             notes: encryptedNotes,
             category: category || "Uncategorized",
             tags: tags || [],
-            expiryDate: expiryDate || null
+            expiryDate: expiryDate || null,
+            isFavorite: Boolean(isFavorite)
         });
 
         res.status(201).json({ message: "Credential added to Vault successfully", item });

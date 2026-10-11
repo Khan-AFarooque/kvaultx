@@ -75,6 +75,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                     if (item.expiryDate) {
                         expiryInput.value = new Date(item.expiryDate).toISOString().substring(0, 10);
                     }
+                    const favCheck = document.querySelector("#vaultIsFavorite");
+                    if (favCheck) favCheck.checked = Boolean(item.isFavorite);
                     evaluatePasswordInput();
                 } else {
                     alert("Credential not found");
@@ -136,8 +138,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             const category = categoryInput.value;
             const tags = tagsInput.value.split(",").map(t => t.trim()).filter(t => t);
             const expiryDate = expiryInput.value ? new Date(expiryInput.value) : null;
+            const isFavorite = Boolean(document.querySelector("#vaultIsFavorite")?.checked);
 
-            const payload = { title, username, password, url, notes, category, tags, expiryDate };
+            const payload = { title, username, password, url, notes, category, tags, expiryDate, isFavorite };
 
             // Prompt auth popup modal if not logged in
             if (!localStorage.getItem("accessToken")) {

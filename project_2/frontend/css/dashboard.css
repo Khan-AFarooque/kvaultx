@@ -2755,3 +2755,89 @@ body.dashboard-page.light-mode .analysis-stat-row strong {
     }
 }
 
+/* -------------------------------------------------------------
+   STAR BOOKMARKING & SAVED NOTES REPOSITORY STYLES
+------------------------------------------------------------- */
+/* Star Bookmark Filter Button */
+.btn-star-filter {
+    background: rgba(255, 190, 11, 0.1);
+    color: #ffbe0b;
+    border: 1px solid rgba(255, 190, 11, 0.35);
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+}
+.btn-star-filter:hover {
+    background: rgba(255, 190, 11, 0.2);
+    border-color: rgba(255, 190, 11, 0.6);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 190, 11, 0.2);
+}
+.btn-star-filter.active {
+    background: #ffbe0b !important;
+    color: #050a09 !important;
+    border-color: #ffbe0b !important;
+    box-shadow: 0 4px 16px rgba(255, 190, 11, 0.45);
+}
+
+/* Card Star Bookmark Action Button */
+.btn-card-star {
+    background: rgba(255, 190, 11, 0.1) !important;
+    color: #ffbe0b !important;
+    border: 1px solid rgba(255, 190, 11, 0.35) !important;
+    font-size: 15px !important;
+    font-weight: 800 !important;
+    padding: 6px 12px !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-top: 0 !important;
+    width: auto !important;
+}
+.btn-card-star:hover {
+    background: rgba(255, 190, 11, 0.25) !important;
+    border-color: #ffbe0b !important;
+    transform: scale(1.08) !important;
+}
+.btn-card-star.starred {
+    background: rgba(255, 190, 11, 0.25) !important;
+    color: #ffbe0b !important;
+    border-color: rgba(255, 190, 11, 0.7) !important;
+    box-shadow: 0 0 12px rgba(255, 190, 11, 0.35) !important;
+}
+
+/* Saved Notes Repository Modal & Cards */
+.saved-notes-modal-card {
+    max-width: 880px !important;
+    width: 95% !important;
+    max-height: 88vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: #07100e !important;
+    border: 1px solid rgba(16, 185, 129, 0.45) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.9), 0 0 40px rgba(16, 185, 129, 0.15) !important;
+    padding: 26px 28px !important;
+}
+
+.saved-note-item-card {
+    position: relative;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.saved-note-item-card:hover {
+    border-color: rgba(16, 185, 129, 0.6) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45) !important;
+}
+
+

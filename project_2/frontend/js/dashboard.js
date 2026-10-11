@@ -417,17 +417,25 @@ document.addEventListener("DOMContentLoaded", () => {
         // Search & Filter listeners
         vaultSearchInput.addEventListener("input", debounce(loadVaultItems, 300));
         vaultCategoryFilter.addEventListener("change", loadVaultItems);
-        btnFilterFavorite.addEventListener("click", () => {
-            isFavoriteFilterActive = !isFavoriteFilterActive;
-            if (isFavoriteFilterActive) {
-                btnFilterFavorite.style.background = "#ffbe0b";
-                btnFilterFavorite.style.color = "black";
-            } else {
-                btnFilterFavorite.style.background = "#555";
-                btnFilterFavorite.style.color = "white";
-            }
-            loadVaultItems();
-        });
+        if (btnFilterFavorite) {
+            btnFilterFavorite.addEventListener("click", () => {
+                isFavoriteFilterActive = !isFavoriteFilterActive;
+                if (isFavoriteFilterActive) {
+                    btnFilterFavorite.classList.add("active");
+                    btnFilterFavorite.style.background = "#ffbe0b";
+                    btnFilterFavorite.style.color = "#050a09";
+                    btnFilterFavorite.style.borderColor = "#ffbe0b";
+                    btnFilterFavorite.innerHTML = `<span>★</span> Favorites Only`;
+                } else {
+                    btnFilterFavorite.classList.remove("active");
+                    btnFilterFavorite.style.background = "rgba(255, 190, 11, 0.1)";
+                    btnFilterFavorite.style.color = "#ffbe0b";
+                    btnFilterFavorite.style.borderColor = "rgba(255, 190, 11, 0.35)";
+                    btnFilterFavorite.innerHTML = `<span>☆</span> Favorites Only`;
+                }
+                loadVaultItems();
+            });
+        }
     }
 
     let currentVaultViewMode = localStorage.getItem("kvaultx_view_mode") || "grid";
@@ -543,7 +551,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 tableHtml += items.map(item => {
                     const favStar = item.isFavorite ? "★" : "☆";
-                    const favColor = item.isFavorite ? "#ffbe0b" : "inherit";
+                    const favClass = item.isFavorite ? "btn-card-star starred" : "btn-card-star";
+                    const favTitle = item.isFavorite ? "Bookmarked as Favorite" : "Bookmark as Favorite";
                     const catColor = getCategoryColor(item.category);
                     const st = calcPasswordStrength(item.password);
 
@@ -567,7 +576,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             <td style="padding: 12px 10px;">${aiBadge}</td>
                             <td style="padding: 12px 10px; text-align: right;">
                                 <button onclick="copyVaultPassword('${escapeHtml(item.password)}')" title="Copy Password" style="background: #2980b9; padding: 5px 10px; font-size: 11px; margin-top:0; width:auto; cursor:pointer;">Copy</button>
-                                <button onclick="toggleFavoriteCard('${item.id}', ${item.isFavorite})" title="Favorite" style="background: #27ae60; color: ${favColor}; padding: 5px 10px; font-size: 12px; margin-top:0; width:auto; cursor:pointer;">${favStar}</button>
+                                <button onclick="toggleFavoriteCard('${item.id}', ${Boolean(item.isFavorite)})" class="${favClass}" title="${favTitle}" style="padding: 4px 8px; font-size: 13px; margin-top:0; width:auto; cursor:pointer;">${favStar}</button>
                                 <button onclick="editVaultPassword('${item.id}')" title="Edit" style="background: #f39c12; padding: 5px 10px; font-size: 11px; margin-top:0; width:auto; cursor:pointer;">Edit</button>
                                 <button onclick="deleteVaultPassword('${item.id}')" title="Delete" style="background: #c0392b; padding: 5px 10px; font-size: 11px; margin-top:0; width:auto; cursor:pointer;">Delete</button>
                             </td>
@@ -582,7 +591,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 // GRID CARDS VIEW
                 passwordCardsContainer.innerHTML = items.map(item => {
                     const favStar = item.isFavorite ? "★" : "☆";
-                    const favColor = item.isFavorite ? "#ffbe0b" : "inherit";
+                    const favClass = item.isFavorite ? "btn-card-star starred" : "btn-card-star";
+                    const favTitle = item.isFavorite ? "Bookmarked as Favorite" : "Bookmark as Favorite";
                     const displayUrl = item.url ? `<p>🌐 URL: <a href="${item.url}" target="_blank" style="color: #ffde59; text-decoration: underline;">${item.url}</a></p>` : "";
                     const categoryPillColor = getCategoryColor(item.category);
                     const st = calcPasswordStrength(item.password);
@@ -615,7 +625,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             </div>
                             <div class="card-actions">
                                 <button onclick="copyVaultPassword('${escapeHtml(item.password)}')" style="background: #2980b9;">Copy</button>
-                                <button onclick="toggleFavoriteCard('${item.id}', ${item.isFavorite})" style="background: #27ae60; color: ${favColor}; font-size: 14px; font-weight: bold; padding: 5px 12px;">${favStar}</button>
+                                <button onclick="toggleFavoriteCard('${item.id}', ${Boolean(item.isFavorite)})" class="${favClass}" title="${favTitle}">${favStar}</button>
                                 <button onclick="editVaultPassword('${item.id}')" style="background: #f39c12;">Edit</button>
                                 <button onclick="deleteVaultPassword('${item.id}')" style="background: #c0392b;">Delete</button>
                                 <button onclick="openAiFixModal('${item.id}', '${escapeHtml(item.title)}', '${escapeHtml(item.password)}')" style="background: #8e44ad; font-weight: bold;">✨ Fix with AI</button>
@@ -1546,6 +1556,302 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // --- Saved Notes Manager & Individual Note Operations ---
+    window.isDraftNoteStarred = false;
+
+    window.toggleDraftNoteStar = function() {
+        window.isDraftNoteStarred = !window.isDraftNoteStarred;
+        const starIcon = document.getElementById("draftStarIcon");
+        const starLabel = document.getElementById("draftStarLabel");
+        const starBtn = document.getElementById("btnStarNoteToggle");
+        if (starIcon) starIcon.textContent = window.isDraftNoteStarred ? "★" : "☆";
+        if (starLabel) starLabel.textContent = window.isDraftNoteStarred ? "Bookmarked" : "Bookmark";
+        if (starBtn) {
+            if (window.isDraftNoteStarred) {
+                starBtn.style.background = "#ffbe0b";
+                starBtn.style.color = "#050a09";
+                starBtn.style.borderColor = "#ffbe0b";
+                starBtn.style.boxShadow = "0 2px 10px rgba(255, 190, 11, 0.4)";
+            } else {
+                starBtn.style.background = "rgba(255, 190, 11, 0.1)";
+                starBtn.style.color = "#ffbe0b";
+                starBtn.style.borderColor = "rgba(255, 190, 11, 0.35)";
+                starBtn.style.boxShadow = "none";
+            }
+        }
+    };
+
+    window.updateSavedNotesStats = function() {
+        let notes = [];
+        try {
+            notes = JSON.parse(localStorage.getItem("secure_notes") || "[]");
+        } catch (e) {
+            notes = [];
+        }
+        const badge = document.querySelector("#quickNotesCountBadge");
+        const statCount = document.querySelector("#statNotesCount");
+        if (badge) badge.textContent = notes.length;
+        if (statCount) statCount.textContent = notes.length;
+    };
+
+    window.openSavedNotesModal = function() {
+        const notesPopup = document.querySelector("#notesPopup");
+        const actionButtons = document.querySelector("#actionButtons");
+        if (actionButtons) actionButtons.classList.add("hidden");
+        if (notesPopup) {
+            notesPopup.classList.add("active");
+            notesPopup.classList.remove("hidden");
+            notesPopup.style.display = "flex";
+        }
+        window.renderSavedNotesList();
+    };
+
+    window.closeSavedNotesModal = function() {
+        const notesPopup = document.querySelector("#notesPopup");
+        if (notesPopup) {
+            notesPopup.classList.remove("active");
+            notesPopup.classList.add("hidden");
+            notesPopup.style.display = "none";
+        }
+    };
+
+    if (notesPopup) {
+        notesPopup.addEventListener("click", (e) => {
+            if (e.target === notesPopup) {
+                window.closeSavedNotesModal();
+            }
+        });
+    }
+
+    window.savedNotesFilterMode = "all";
+
+    window.setSavedNoteFilter = function(mode, btn) {
+        window.savedNotesFilterMode = mode;
+        const allBtn = document.getElementById("noteFilterAll");
+        const starredBtn = document.getElementById("noteFilterStarred");
+        if (allBtn) allBtn.classList.remove("active");
+        if (starredBtn) starredBtn.classList.remove("active");
+        if (btn) btn.classList.add("active");
+        window.renderSavedNotesList();
+    };
+
+    window.renderSavedNotesList = function() {
+        const container = document.getElementById("savedNotesCardsList");
+        if (!container) return;
+
+        let notes = [];
+        try {
+            notes = JSON.parse(localStorage.getItem("secure_notes") || "[]");
+        } catch (e) {
+            notes = [];
+        }
+
+        // Migrate string notes or notes without id/isFavorite
+        let migrated = false;
+        notes = notes.map((n, idx) => {
+            if (typeof n === "string") {
+                migrated = true;
+                return {
+                    id: "note_" + (Date.now() + idx),
+                    content: n,
+                    timestamp: new Date().toLocaleString(),
+                    isFavorite: false
+                };
+            }
+            if (!n.id) {
+                migrated = true;
+                n.id = "note_" + (Date.now() + idx);
+            }
+            if (typeof n.isFavorite === "undefined") {
+                n.isFavorite = false;
+            }
+            return n;
+        });
+        if (migrated) {
+            localStorage.setItem("secure_notes", JSON.stringify(notes));
+        }
+
+        // Update counters
+        const countAllEl = document.getElementById("countAllNotes");
+        const countStarredEl = document.getElementById("countStarredNotes");
+        const starredCount = notes.filter(n => Boolean(n.isFavorite)).length;
+        if (countAllEl) countAllEl.textContent = notes.length;
+        if (countStarredEl) countStarredEl.textContent = starredCount;
+        window.updateSavedNotesStats();
+
+        const searchInput = document.getElementById("savedNotesSearchInput");
+        const search = searchInput ? searchInput.value.toLowerCase().trim() : "";
+        const filter = window.savedNotesFilterMode || "all";
+
+        const filtered = notes.filter((n, idx) => {
+            if (filter === "starred" && !n.isFavorite) return false;
+            if (search) {
+                const textMatch = (n.content || "").toLowerCase().includes(search);
+                const timeMatch = (n.timestamp || "").toLowerCase().includes(search);
+                const idxMatch = String(idx + 1).includes(search);
+                return textMatch || timeMatch || idxMatch;
+            }
+            return true;
+        });
+
+        if (filtered.length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 44px 20px; background: rgba(0,0,0,0.3); border-radius: 14px; border: 1px dashed rgba(255,255,255,0.12);">
+                    <div style="font-size: 36px; margin-bottom: 8px;">📝</div>
+                    <h4 style="margin: 0 0 6px; color: #ffffff; font-size: 16px;">${notes.length === 0 ? "No saved notes found" : "No notes matching your search"}</h4>
+                    <p style="margin: 0; color: #a6bba8; font-size: 13px;">${notes.length === 0 ? "Type your thoughts or card PINs in Quick Note and click 'Save note'." : "Try adjusting your search query or switch between All / Bookmarked filters."}</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = filtered.map((note) => {
+            const originalIndex = notes.findIndex(n => n.id === note.id);
+            const displayIndex = originalIndex >= 0 ? originalIndex + 1 : 1;
+            const isFav = Boolean(note.isFavorite);
+            const starIcon = isFav ? "★" : "☆";
+            const starText = isFav ? "Bookmarked" : "Bookmark";
+            const starBtnStyle = isFav
+                ? "background: rgba(255, 190, 11, 0.2); color: #ffbe0b; border: 1px solid rgba(255, 190, 11, 0.55);"
+                : "background: rgba(255, 255, 255, 0.06); color: #a6bba8; border: 1px solid rgba(255, 255, 255, 0.15);";
+
+            const safeContent = escapeHtml(note.content || "");
+            const noteIdStr = escapeHtml(note.id);
+
+            return `
+                <div class="saved-note-item-card" data-note-id="${noteIdStr}" style="background: rgba(11, 22, 19, 0.9); border: 1px solid ${isFav ? 'rgba(255, 190, 11, 0.45)' : 'rgba(22, 48, 42, 0.75)'}; border-radius: 14px; padding: 16px 18px; box-shadow: 0 6px 20px rgba(0,0,0,0.4);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 10px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 12px; font-weight: 800; background: rgba(16, 185, 129, 0.18); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.35); padding: 2px 8px; border-radius: 6px;">
+                                #${displayIndex}
+                            </span>
+                            <span style="font-size: 12.5px; color: #a6bba8;">
+                                🕒 ${escapeHtml(note.timestamp || "Local Time")}
+                            </span>
+                        </div>
+                        <button type="button" onclick="toggleIndividualNoteStar('${noteIdStr}')" title="${starText}" style="${starBtnStyle} font-size: 12.5px; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; margin-top: 0; width: auto; transition: all 0.15s ease;">
+                            <span style="font-size: 14px;">${starIcon}</span> ${starText}
+                        </button>
+                    </div>
+
+                    <div style="background: rgba(5, 10, 9, 0.85); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; max-height: 240px; overflow-y: auto;">
+                        <pre style="margin: 0; white-space: pre-wrap; word-break: break-word; font-family: inherit; font-size: 13.5px; line-height: 1.55; color: #f1f5f9; user-select: text;">${safeContent}</pre>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <button type="button" onclick="copyIndividualNote('${noteIdStr}')" title="Copy this note" style="background: rgba(0, 210, 255, 0.15); color: #00d2ff; border: 1px solid rgba(0, 210, 255, 0.35); padding: 6px 12px; border-radius: 7px; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; margin-top: 0; width: auto;">
+                            <span>📋</span> Copy
+                        </button>
+                        <button type="button" onclick="exportIndividualNote('${noteIdStr}')" title="Export this note as text file" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.35); padding: 6px 12px; border-radius: 7px; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; margin-top: 0; width: auto;">
+                            <span>📥</span> Export (.txt)
+                        </button>
+                        <button type="button" onclick="shareIndividualNote('${noteIdStr}')" title="Share this note" style="background: rgba(147, 51, 234, 0.18); color: #c084fc; border: 1px solid rgba(147, 51, 234, 0.35); padding: 6px 12px; border-radius: 7px; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; margin-top: 0; width: auto;">
+                            <span>📤</span> Share
+                        </button>
+                        <button type="button" onclick="deleteIndividualNote('${noteIdStr}')" title="Delete this note" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.35); padding: 6px 12px; border-radius: 7px; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; margin-top: 0; width: auto;">
+                            <span>🗑️</span> Delete
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join("");
+    };
+
+    window.copyIndividualNote = function(noteId) {
+        let notes = JSON.parse(localStorage.getItem("secure_notes") || "[]");
+        const note = notes.find(n => n.id === noteId);
+        if (!note || !note.content) return alert("Note content not found.");
+        navigator.clipboard.writeText(note.content).then(() => {
+            if (typeof showToast === "function") {
+                showToast("Copied 📋", "Note copied to clipboard!");
+            } else {
+                alert("📋 Note copied to clipboard!");
+            }
+        });
+    };
+
+    window.exportIndividualNote = function(noteId) {
+        let notes = JSON.parse(localStorage.getItem("secure_notes") || "[]");
+        const noteIndex = notes.findIndex(n => n.id === noteId);
+        const note = notes[noteIndex];
+        if (!note || !note.content) return alert("Note content not found.");
+
+        const exportBody = `====================================================\nKvaultX Zero-Knowledge Secure Note Export\nNote ID: ${note.id}\nTimestamp: ${note.timestamp || 'N/A'}\n====================================================\n\n${note.content}\n`;
+        const blob = new Blob([exportBody], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `kvaultx_note_${noteIndex + 1}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+        if (typeof showToast === "function") {
+            showToast("Exported 📥", `Note #${noteIndex + 1} downloaded successfully.`);
+        }
+    };
+
+    window.shareIndividualNote = function(noteId) {
+        let notes = JSON.parse(localStorage.getItem("secure_notes") || "[]");
+        const note = notes.find(n => n.id === noteId);
+        if (!note || !note.content) return alert("Note content not found.");
+
+        if (navigator.share) {
+            navigator.share({ title: "KvaultX Secure Note", text: note.content }).catch(() => {});
+        } else {
+            navigator.clipboard.writeText(note.content).then(() => {
+                if (typeof showToast === "function") {
+                    showToast("Copied 📋", "Sharing not supported in this browser. Copied note to clipboard!");
+                } else {
+                    alert("Sharing not supported in browser. Copied note to clipboard!");
+                }
+            });
+        }
+    };
+
+    window.toggleIndividualNoteStar = function(noteId) {
+        let notes = JSON.parse(localStorage.getItem("secure_notes") || "[]");
+        const note = notes.find(n => n.id === noteId);
+        if (!note) return;
+        note.isFavorite = !note.isFavorite;
+        localStorage.setItem("secure_notes", JSON.stringify(notes));
+        window.renderSavedNotesList();
+        if (typeof showToast === "function") {
+            showToast(note.isFavorite ? "Bookmarked ⭐" : "Bookmark Removed", "Note bookmark updated.");
+        }
+    };
+
+    window.deleteIndividualNote = function(noteId) {
+        if (!confirm("Are you sure you want to delete this specific note? This cannot be undone.")) return;
+        let notes = JSON.parse(localStorage.getItem("secure_notes") || "[]");
+        notes = notes.filter(n => n.id !== noteId);
+        localStorage.setItem("secure_notes", JSON.stringify(notes));
+        window.renderSavedNotesList();
+        if (typeof showToast === "function") {
+            showToast("Deleted 🗑️", "Note removed from secure storage.");
+        }
+    };
+
+    window.exportAllNotesTxt = function() {
+        let notes = JSON.parse(localStorage.getItem("secure_notes") || "[]");
+        if (notes.length === 0) return alert("No saved notes to export.");
+
+        let fullText = "====================================================\nKvaultX Encrypted Notes Vault Export (All Notes)\nExported: " + new Date().toLocaleString() + "\nTotal Notes: " + notes.length + "\n====================================================\n\n";
+
+        notes.forEach((n, i) => {
+            fullText += `--- Note #${i + 1} (${n.timestamp || 'N/A'}) [${n.isFavorite ? 'BOOKMARKED ★' : 'STANDARD'}] ---\n${n.content}\n\n`;
+        });
+
+        const blob = new Blob([fullText], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "kvaultx_all_saved_notes.txt";
+        a.click();
+        URL.revokeObjectURL(url);
+        if (typeof showToast === "function") {
+            showToast("Exported All 📥", `All ${notes.length} notes exported as text file.`);
+        }
+    };
+
     if (saveNoteBtn && noteInput) {
         saveNoteBtn.addEventListener("click", () => {
             const noteContent = noteInput.value.trim();
@@ -1563,7 +1869,12 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             let notes = JSON.parse(localStorage.getItem("secure_notes") || "[]");
-            notes.push({ content: noteContent, timestamp: new Date().toLocaleString() });
+            notes.push({
+                id: "note_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6),
+                content: noteContent,
+                timestamp: new Date().toLocaleString(),
+                isFavorite: Boolean(window.isDraftNoteStarred)
+            });
             localStorage.setItem("secure_notes", JSON.stringify(notes));
             if (typeof showToast === "function") {
                 showToast("Note Saved 🔒", "Encrypted and saved to your secure storage.");
@@ -1571,75 +1882,105 @@ document.addEventListener("DOMContentLoaded", () => {
                 alert("🔒 Note saved securely!");
             }
             noteInput.value = "";
-            const notesCountEl = document.querySelector("#statNotesCount");
-            if (notesCountEl) notesCountEl.textContent = notes.length;
+            if (window.isDraftNoteStarred) {
+                window.toggleDraftNoteStar();
+            }
+            window.updateSavedNotesStats();
         });
     }
 
-    if (showNotesBtn && notesPopup && notesDisplay) {
+    if (showNotesBtn) {
         showNotesBtn.addEventListener("click", () => {
-            if (actionButtons) actionButtons.classList.add("hidden");
-            let notes = JSON.parse(localStorage.getItem("secure_notes") || "[]");
-            if (notes.length === 0) {
-                notesDisplay.value = "No saved notes found.";
-            } else {
-                notesDisplay.value = notes.map((n, i) => `--- Note #${i + 1} (${n.timestamp}) ---\n${n.content}\n`).join("\n");
-            }
-            notesPopup.classList.remove("hidden");
+            window.openSavedNotesModal();
         });
     }
 
-    if (closePopupBtn && notesPopup) {
+    if (closePopupBtn) {
         closePopupBtn.addEventListener("click", () => {
-            notesPopup.classList.add("hidden");
-        });
-    }
-
-    if (downloadNotesBtn && noteInput) {
-        downloadNotesBtn.addEventListener("click", () => {
-            if (actionButtons) actionButtons.classList.add("hidden");
-            const content = noteInput.value || "No content to download.";
-            const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = "kvaultx_note.txt";
-            a.click();
-            URL.revokeObjectURL(url);
-            if (typeof showToast === "function") {
-                showToast("Exported 📥", "Note downloaded as kvaultx_note.txt");
-            }
+            window.closeSavedNotesModal();
         });
     }
 
     if (copyNotesBtn && noteInput) {
         copyNotesBtn.addEventListener("click", () => {
             if (actionButtons) actionButtons.classList.add("hidden");
-            const content = noteInput.value;
-            if (!content) return alert("Nothing to copy!");
-            navigator.clipboard.writeText(content).then(() => {
-                if (typeof showToast === "function") {
-                    showToast("Copied 📋", "Note copied to clipboard!");
+            const content = noteInput.value.trim();
+            if (content) {
+                navigator.clipboard.writeText(content).then(() => {
+                    if (typeof showToast === "function") {
+                        showToast("Copied 📋", "Draft note copied to clipboard!");
+                    } else {
+                        alert("📋 Note copied to clipboard!");
+                    }
+                });
+            } else {
+                // If draft is empty, open saved notes modal with prompt
+                let notes = JSON.parse(localStorage.getItem("secure_notes") || "[]");
+                if (notes.length > 0) {
+                    window.openSavedNotesModal();
+                    if (typeof showToast === "function") {
+                        showToast("Select Note 📋", "Click 'Copy' on any desired note below.");
+                    }
                 } else {
-                    alert("📋 Note copied to clipboard!");
+                    alert("No note content to copy. Type a note or save one first.");
                 }
-            });
+            }
+        });
+    }
+
+    if (downloadNotesBtn && noteInput) {
+        downloadNotesBtn.addEventListener("click", () => {
+            if (actionButtons) actionButtons.classList.add("hidden");
+            const content = noteInput.value.trim();
+            if (content) {
+                const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "kvaultx_quick_note.txt";
+                a.click();
+                URL.revokeObjectURL(url);
+                if (typeof showToast === "function") {
+                    showToast("Exported 📥", "Draft note downloaded as text file.");
+                }
+            } else {
+                let notes = JSON.parse(localStorage.getItem("secure_notes") || "[]");
+                if (notes.length > 0) {
+                    window.openSavedNotesModal();
+                    if (typeof showToast === "function") {
+                        showToast("Select Note 📥", "Click 'Export' on any desired note or use 'Export All'.");
+                    }
+                } else {
+                    alert("No notes available to export. Type a note or save one first.");
+                }
+            }
         });
     }
 
     if (shareNotesBtn && noteInput) {
         shareNotesBtn.addEventListener("click", () => {
             if (actionButtons) actionButtons.classList.add("hidden");
-            const content = noteInput.value;
-            if (!content) return alert("Nothing to share!");
-            if (navigator.share) {
-                navigator.share({ title: 'KvaultX Note', text: content }).catch(() => {});
-            } else {
-                navigator.clipboard.writeText(content);
-                if (typeof showToast === "function") {
-                    showToast("Copied 📋", "Sharing not supported in this browser. Copied to clipboard!");
+            const content = noteInput.value.trim();
+            if (content) {
+                if (navigator.share) {
+                    navigator.share({ title: 'KvaultX Note', text: content }).catch(() => {});
                 } else {
-                    alert("Sharing not supported in browser. Copied to clipboard!");
+                    navigator.clipboard.writeText(content);
+                    if (typeof showToast === "function") {
+                        showToast("Copied 📋", "Sharing not supported in browser. Copied to clipboard!");
+                    } else {
+                        alert("Sharing not supported in browser. Copied to clipboard!");
+                    }
+                }
+            } else {
+                let notes = JSON.parse(localStorage.getItem("secure_notes") || "[]");
+                if (notes.length > 0) {
+                    window.openSavedNotesModal();
+                    if (typeof showToast === "function") {
+                        showToast("Select Note 📤", "Click 'Share' on any desired note below.");
+                    }
+                } else {
+                    alert("No note available to share. Type a note or save one first.");
                 }
             }
         });
@@ -1648,19 +1989,24 @@ document.addEventListener("DOMContentLoaded", () => {
     if (deleteAllBtn && noteInput) {
         deleteAllBtn.addEventListener("click", () => {
             if (actionButtons) actionButtons.classList.add("hidden");
-            if (confirm("Are you sure you want to delete all saved notes?")) {
+            if (confirm("Are you sure you want to delete all saved notes? This cannot be undone.")) {
                 localStorage.removeItem("secure_notes");
                 noteInput.value = "";
+                window.updateSavedNotesStats();
+                if (notesPopup && notesPopup.classList.contains("active")) {
+                    window.renderSavedNotesList();
+                }
                 if (typeof showToast === "function") {
                     showToast("Notes Cleared 🗑️", "All local notes deleted.");
                 } else {
                     alert("🗑️ All notes deleted.");
                 }
-                const notesCountEl = document.querySelector("#statNotesCount");
-                if (notesCountEl) notesCountEl.textContent = "0";
             }
         });
     }
+
+    // Initialize saved notes count badge on load
+    window.updateSavedNotesStats();
 
     if (agentOptionPhishing) {
         agentOptionPhishing.addEventListener("click", async () => {
@@ -1917,23 +2263,38 @@ document.addEventListener("click", (e) => {
 async function loadSidebarUserInfo() {
     try {
         const token = localStorage.getItem("accessToken");
-        if (!token) return;
+        const avatarEl = document.getElementById("sidebarAvatarCircle");
+        const nameEl = document.getElementById("sidebarUserNameLabel");
+        const roleEl = document.getElementById("sidebarUserRoleLabel");
+        const logoutBtn = document.getElementById("logoutBtn");
+        const dropDivider = document.getElementById("sidebarDropLogoutDivider");
+
+        if (!token) {
+            if (avatarEl) avatarEl.textContent = "👤";
+            if (nameEl) nameEl.textContent = "Account";
+            if (roleEl) roleEl.textContent = "Sign In / Register";
+            if (logoutBtn) logoutBtn.style.display = "none";
+            if (dropDivider) dropDivider.style.display = "none";
+            return;
+        }
+
         const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
         let name = storedUser.name || "";
         if (!name) {
             const res = await apiFetch("/auth/profile");
             if (res.ok) {
                 const user = await res.json();
-                name = user.name || "Vault User";
+                name = user.name || "Vault Owner";
                 localStorage.setItem("user", JSON.stringify(user));
             }
         }
-        name = name || "Vault User";
+        name = name || "Vault Owner";
         const initial = name.charAt(0).toUpperCase();
-        const avatarEl = document.getElementById("sidebarAvatarCircle");
-        const nameEl = document.getElementById("sidebarUserNameLabel");
         if (avatarEl) avatarEl.textContent = initial;
         if (nameEl) nameEl.textContent = name;
+        if (roleEl) roleEl.textContent = "Vault Owner";
+        if (logoutBtn) logoutBtn.style.display = "flex";
+        if (dropDivider) dropDivider.style.display = "block";
     } catch (e) {
         console.error("Failed to load user info for sidebar:", e);
     }
@@ -1945,18 +2306,9 @@ async function loadSidebarUserInfo() {
 
 // Sidebar & Navbar guest / authenticated state manager
 window.updateSidebarAuthState = function() {
-    const guestAuth = document.getElementById("sidebarGuestAuth");
-    const accountWrap = document.getElementById("sidebarAccountDropdownWrap");
+    loadSidebarUserInfo();
     const navToggleAuth = document.getElementById("navToggleAuthGroup");
     const isLoggedIn = window.isUserLoggedIn();
-
-    if (guestAuth) {
-        guestAuth.style.display = isLoggedIn ? "none" : "block";
-    }
-    if (accountWrap) {
-        accountWrap.style.display = isLoggedIn ? "block" : "none";
-        if (isLoggedIn) loadSidebarUserInfo();
-    }
     if (navToggleAuth) {
         navToggleAuth.style.display = isLoggedIn ? "none" : "flex";
     }
@@ -2133,6 +2485,7 @@ window.renderVaultSecurityReport = async function() {
     let strongCount = 0;
     let moderateCount = 0;
     let weakCount = 0;
+    let starredCount = 0;
     let totalScore = 0;
 
     items.forEach(item => {
@@ -2141,6 +2494,7 @@ window.renderVaultSecurityReport = async function() {
         if (audit.status === "Strong") strongCount++;
         else if (audit.status === "Medium") moderateCount++;
         else weakCount++;
+        if (item.isFavorite) starredCount++;
         totalScore += audit.score;
     });
 
@@ -2151,12 +2505,14 @@ window.renderVaultSecurityReport = async function() {
     const strongCountEl = document.getElementById("reportStrongCount");
     const moderateCountEl = document.getElementById("reportModerateCount");
     const weakCountEl = document.getElementById("reportWeakCount");
+    const starredCountEl = document.getElementById("reportStarredCount");
     const gradeEl = document.getElementById("reportSecurityGrade");
 
     if (totalCountEl) totalCountEl.textContent = totalCount;
     if (strongCountEl) strongCountEl.textContent = strongCount;
     if (moderateCountEl) moderateCountEl.textContent = moderateCount;
     if (weakCountEl) weakCountEl.textContent = weakCount;
+    if (starredCountEl) starredCountEl.textContent = starredCount;
 
     if (gradeEl) {
         if (avgScore >= 80) {
@@ -2193,6 +2549,7 @@ window.populateVaultReportList = function() {
         item._audit = audit;
 
         // Filter tabs
+        if (filter === "starred" && !item.isFavorite) return false;
         if (filter === "strong" && audit.status !== "Strong") return false;
         if (filter === "medium" && audit.status !== "Medium") return false;
         if (filter === "weak" && audit.status !== "Weak") return false;
@@ -2251,6 +2608,9 @@ window.populateVaultReportList = function() {
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 8px;">
+                        <button type="button" onclick="toggleFavoriteCard('${item.id}', ${Boolean(item.isFavorite)}); setTimeout(() => { if (typeof renderVaultSecurityReport === 'function') renderVaultSecurityReport(); }, 400);" title="${item.isFavorite ? 'Bookmarked as Favorite' : 'Bookmark as Favorite'}" style="background: ${item.isFavorite ? 'rgba(255, 190, 11, 0.2)' : 'rgba(255, 255, 255, 0.08)'}; color: #ffbe0b; border: 1px solid ${item.isFavorite ? 'rgba(255, 190, 11, 0.6)' : 'rgba(255, 190, 11, 0.3)'}; padding: 5px 12px; border-radius: 6px; font-size: 12.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
+                            <span>${item.isFavorite ? '★' : '☆'}</span> ${item.isFavorite ? 'Starred' : 'Bookmark'}
+                        </button>
                         ${audit.status === "Weak" ? `<button onclick="closeVaultSecurityReport(); openAiFixModal('${item.id}', '${escapeHtml(item.title)}', '${escapeHtml(item.password)}')" style="background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4); padding: 5px 12px; border-radius: 6px; font-size: 11.5px; font-weight: 700; cursor: pointer;">✨ AI Fix</button>` : ''}
                     </div>
                 </div>
@@ -2339,6 +2699,7 @@ window.exportVaultReportCSV = function() {
     const headers = [
         "Title",
         "Category",
+        "Bookmarked (Star)",
         "Username",
         "Password",
         "URL",
@@ -2363,6 +2724,7 @@ window.exportVaultReportCSV = function() {
         return [
             escapeCsv(item.title || ""),
             escapeCsv(item.category || "Uncategorized"),
+            escapeCsv(item.isFavorite ? "YES (★)" : "NO"),
             escapeCsv(item.username || ""),
             escapeCsv(item.password || ""),
             escapeCsv(item.url || ""),
