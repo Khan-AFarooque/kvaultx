@@ -35,9 +35,24 @@
                 <img src="../assets/logo.png" alt="KvaultX Logo" style="height: 32px; width: auto; object-fit: contain; filter: drop-shadow(0 2px 8px rgba(0, 210, 255, 0.45));">
                 <span class="brand-name twinkle-text" style="font-weight: 800; font-size: 19px; letter-spacing: 0.5px; background: linear-gradient(135deg, #ffffff 0%, #00d2ff 50%, #10b981 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">KvaultX</span>
             </div>
+
+            <!-- TOGGLE SIDE: SIGN IN & REGISTER BUTTONS (Directly next to toggle hamburger) -->
+            <div id="navToggleAuthGroup" style="display: flex; align-items: center; gap: 8px; margin-left: 6px;">
+                <button type="button" id="btnToggleSideSignIn" onclick="openAuthModal('login')" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); padding: 7px 13px; border-radius: 8px; font-size: 12.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; font-family: inherit; transition: all 0.2s ease;">
+                    <span>🔐</span> Sign In
+                </button>
+                <button type="button" id="btnToggleSideRegister" onclick="openAuthModal('signup')" style="background: rgba(0, 210, 255, 0.15); color: #00d2ff; border: 1px solid rgba(0, 210, 255, 0.4); padding: 7px 13px; border-radius: 8px; font-size: 12.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; font-family: inherit; transition: all 0.2s ease;">
+                    <span>✨</span> Register
+                </button>
+            </div>
         </div>
 
         <div class="nav-right-group" style="display: flex; align-items: center; gap: 12px;">
+            <!-- REPORT GENERATION BUTTON (In Top Navbar, Always Accessible on All Tabs) -->
+            <button id="btnHeaderSecurityReport" type="button" onclick="openVaultSecurityReport()" style="width: auto; margin-top: 0; padding: 9px 16px; background: rgba(0, 210, 255, 0.15); color: #00d2ff; border: 1px solid rgba(0, 210, 255, 0.4); font-weight: 700; border-radius: 9px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: 'Poppins', sans-serif; transition: all 0.2s ease; box-shadow: 0 4px 14px rgba(0, 210, 255, 0.2);">
+                <span>📋</span> Security Report
+            </button>
+
             <button id="btnAddPasswordHeader" onclick="requireAuth(() => window.location.href='add-password.html', 'login')" style="width: auto; margin-top: 0; padding: 9px 18px; background: linear-gradient(135deg, #10b981, #059669); color: #050a09; font-weight: 700; border-radius: 9px; border: none; font-size: 13.5px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: 'Poppins', sans-serif; transition: all 0.2s ease; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
                 <span style="font-size: 16px;">+</span> Add password
             </button>
@@ -66,23 +81,27 @@
                     <span class="tab-icon">📊</span>
                     <span class="tab-label">Analytics</span>
                 </button>
+                <button class="tab-btn" data-tab="report" id="reportSidebarNavBtn" onclick="openVaultSecurityReport()" title="Vault Security Report">
+                    <span class="tab-icon">📋</span>
+                    <span class="tab-label">Security Report</span>
+                </button>
             </nav>
 
             <!-- Sidebar Guest Access: Sign In & Register Buttons (Visible when opening web without login) -->
-            <div id="sidebarGuestAuth" class="sidebar-guest-auth" style="display: none; margin-top: auto; padding: 12px 10px; background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px;">
+            <div id="sidebarGuestAuth" class="sidebar-guest-auth" style="margin-top: auto; padding: 12px 10px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; margin-bottom: 8px;">
                 <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #a6bba8; margin-bottom: 8px; font-weight: 700; text-align: center;">Account Access</div>
                 <div style="display: flex; gap: 8px;">
                     <button type="button" id="sidebarSignInBtn" class="sidebar-auth-pill-btn" onclick="openAuthModal('login')" style="flex: 1; padding: 8px 6px; font-size: 12px; font-weight: 700; background: linear-gradient(135deg, #10b981, #059669); color: #050a09; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 4px;">
                         <span>🔐</span> Sign In
                     </button>
-                    <button type="button" id="sidebarRegisterBtn" class="sidebar-auth-pill-btn highlight" onclick="openAuthModal('signup')" style="flex: 1; padding: 8px 6px; font-size: 12px; font-weight: 700; background: rgba(255, 255, 255, 0.08); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                    <button type="button" id="sidebarRegisterBtn" class="sidebar-auth-pill-btn highlight" onclick="openAuthModal('signup')" style="flex: 1; padding: 8px 6px; font-size: 12px; font-weight: 700; background: rgba(0, 210, 255, 0.15); color: #00d2ff; border: 1px solid rgba(0, 210, 255, 0.35); border-radius: 8px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 4px;">
                         <span>✨</span> Register
                     </button>
                 </div>
             </div>
 
             <!-- Bottom 4 options consolidated into a clean Dropdown (Visible when user is logged in) -->
-            <div id="sidebarAccountDropdownWrap" class="sidebar-account-dropdown-wrap">
+            <div id="sidebarAccountDropdownWrap" class="sidebar-account-dropdown-wrap" style="display: none;">
                 <button id="sidebarAccountBtn" type="button" class="sidebar-account-btn" onclick="toggleSidebarAccountMenu(event)" title="Account Options">
                     <div class="account-user-info">
                         <div class="user-avatar-mini" id="sidebarAvatarCircle">S</div>

@@ -1943,20 +1943,23 @@ async function loadSidebarUserInfo() {
    VAULT SECURITY AUDIT & REPORT SYSTEM
 ========================================================= */
 
-// Sidebar guest / authenticated state manager
+// Sidebar & Navbar guest / authenticated state manager
 window.updateSidebarAuthState = function() {
     const guestAuth = document.getElementById("sidebarGuestAuth");
     const accountWrap = document.getElementById("sidebarAccountDropdownWrap");
+    const navToggleAuth = document.getElementById("navToggleAuthGroup");
     const isLoggedIn = window.isUserLoggedIn();
 
     if (guestAuth && accountWrap) {
         if (isLoggedIn) {
             guestAuth.style.display = "none";
             accountWrap.style.display = "block";
+            if (navToggleAuth) navToggleAuth.style.display = "none";
             loadSidebarUserInfo();
         } else {
             guestAuth.style.display = "block";
             accountWrap.style.display = "none";
+            if (navToggleAuth) navToggleAuth.style.display = "flex";
         }
     }
 };
